@@ -39,9 +39,8 @@ const introSteps = [
 let currentIntroStep = 0;
 const introArea = document.getElementById('intro-content-area');
 const introDots = document.getElementById('intro-pagination');
-
-// 스플래시에서 넘어갈 때 인트로 기열람 여부 확인
 document.getElementById('btn-start-onboarding').addEventListener('click', () => { 
+    // 인트로를 본 적이 없다면 노출, 아니면 바로 설정 마법사로 직행
     if(!localStorage.getItem('introSeen')){
         switchView('view-intro'); 
         renderIntroStep();
@@ -100,6 +99,7 @@ function renderWizardStep() {
     const step = wizardSteps[currentWizardStep];
     document.getElementById('q-title').innerText = step.title;
     document.getElementById('q-desc').innerText = step.desc;
+    // 하단 힌트 영역 초기화 연동
     document.getElementById('q-hint').innerText = step.hint;
     document.getElementById('step-counter').innerText = `질문 ${currentWizardStep + 1}/${wizardSteps.length}`;
     document.getElementById('wizard-progress').style.width = `${((currentWizardStep + 1) / wizardSteps.length) * 100}%`;
@@ -144,17 +144,15 @@ function renderWizardStep() {
             const target = e.currentTarget; const sec = target.getAttribute('data-sec'); const val = target.getAttribute('data-val'); const color = target.getAttribute('data-color');
             const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
             
+            // 강조와 유지 각각 독립적으로 3개까지만 선택 가능
             if (existingIdx > -1) { 
                 step.values.splice(existingIdx, 1); 
                 target.classList.remove(`active-${color}`); 
             } else { 
-                // 해당 섹션(강조 또는 유지)에 이미 3개가 선택되어 있는지 확인
                 const secValues = step.values.filter(v => v.id === sec);
-                if (secValues.length >= 6) {
-                    return alert('각 항목당 최대 3개까지만 선택 가능합니다.'); 
-                }
+                if (secValues.length >= 3) return alert('각 항목당 최대 3개까지만 선택 가능합니다.'); 
                 
-                // 반대 섹션에 중복 선택된 경우 제거 (예: 가슴을 유지에 넣었는데 강조를 또 누르면 유지에서 삭제)
+                // 반대쪽 영역에 이미 선택되어 있으면 해제
                 step.values = step.values.filter(v => v.val !== val); 
                 step.values.push({id: sec, val: val}); 
                 renderWizardStep(); 
@@ -169,15 +167,16 @@ document.getElementById('btn-next-step').addEventListener('click', () => {
     const activeInput = document.querySelector('.input-val');
     if (activeInput) { wizardSteps[currentWizardStep].value = activeInput.value; }
     if (currentWizardStep < wizardSteps.length - 1) { currentWizardStep++; renderWizardStep(); } 
-    else { showLoadingScreen(); }
+    else { showLoadingScreen(); } // 로딩 호출로 자동 전환
 });
 document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
 });
 
-// --- 분석 및 결과 노출 로직 ---
+// --- 분석 및 결과 (자동 전환 처리) ---
 function showLoadingScreen() {
     switchView('view-loading');
+    // 로딩 화면에서 2.5초 대기 후 자동으로 다음 화면(타임라인 설명 뷰)으로 전환됨
     setTimeout(() => { startResultExplain(); }, 2500); 
 }
 
@@ -215,7 +214,6 @@ function generateRecommendedRoutine() {
     const frequency = wizardSteps[6].value || 3; 
     const isCardio = wizardSteps[11].value === '네, 하고 싶어요';
 
-    // 분할 타이틀 동적 결정
     let splitName = '밀기-당기기-하체';
     if(frequency === 4) splitName = '상하체 2분할';
     else if(frequency >= 5) splitName = '근육 부위별 분할';
@@ -261,6 +259,7 @@ function generateRecommendedRoutine() {
 document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
 document.getElementById('btn-go-login').addEventListener('click', () => { switchView('view-login'); });
 
+// --- 로그인 연동 처리 ---
 const loginBtns = document.querySelectorAll('.login-btn');
 loginBtns.forEach(btn => {
     btn.addEventListener('click', () => {
