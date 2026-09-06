@@ -1,5 +1,5 @@
-/* Google Fonts에서 4가지 필기체 로드 */
-@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Allura&family=Dancing+Script:wght@700&family=Pinyon+Script&display=swap');
+/* Google Fonts - Pinyon Script 로드 */
+@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Helvetica Neue", sans-serif; user-select: none; }
 body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: transparent; margin: 0; }
@@ -26,31 +26,38 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 .nav-icon { font-size: 1.2rem; filter: grayscale(100%); opacity: 0.5; }
 .nav-item.active .nav-icon { filter: grayscale(0%); opacity: 1; }
 
-/* --- 4가지 폰트 클래스 정의 --- */
-.font-alex { font-family: 'Alex Brush', cursive; font-weight: normal; }
-.font-dancing { font-family: 'Dancing Script', cursive; font-weight: 700; }
-.font-allura { font-family: 'Allura', cursive; font-weight: normal; }
-.font-pinyon { font-family: 'Pinyon Script', cursive; font-weight: normal; }
+/* --- Pinyon Script 폰트 클래스 --- */
+.font-pinyon { font-family: 'Pinyon Script', cursive !important; font-weight: normal; }
 
-/* --- 스플래시 화면 (4가지 폰트 선택 리스트) --- */
+/* --- [수정됨] 스플래시 화면 (Pinyon Script 단독 넷플릭스 톤) --- */
 #view-splash { background-color: #000000; }
-.splash-netflix-content { flex: 1; width: 100%; max-width: 420px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px 20px 100px 20px; }
-.splash-sub { font-size: 0.85rem; color: #777; letter-spacing: 2px; margin-bottom: 20px; font-weight: 500; }
-
-.font-preview-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
-.font-card { background: #111116; border: 1px solid #28283a; border-radius: 12px; padding: 14px 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; position: relative; }
-.font-card:active { transform: scale(0.97); }
-.font-card.active { border-color: #E50914; background: rgba(229, 9, 20, 0.08); box-shadow: 0 0 15px rgba(229, 9, 20, 0.25); }
-.font-label { font-size: 0.7rem; color: #888; margin-bottom: 6px; font-weight: 500; }
-.font-card.active .font-label { color: #E50914; font-weight: bold; }
-.logo-preview { font-size: 3.2rem; color: #E50914; margin: 0; line-height: 1.1; text-shadow: 0 0 15px rgba(229, 9, 20, 0.3); }
-
+.splash-netflix-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: -60px; }
+.splash-netflix-logo { 
+    font-family: 'Pinyon Script', cursive; 
+    font-size: 6.8rem; 
+    font-weight: normal; 
+    color: #E50914; 
+    letter-spacing: 2px; 
+    text-align: center; 
+    margin: 0; 
+    margin-top: 5px;
+    text-shadow: 0 0 25px rgba(229, 9, 20, 0.45);
+    line-height: 1;
+}
+.splash-sub { font-size: 0.95rem; color: #777; letter-spacing: 3px; margin-bottom: 5px; font-weight: 500; }
 .splash-netflix-footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 40px 20px; background: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent); }
 .netflix-start-btn { width: 100%; padding: 18px; border: none; border-radius: 4px; background-color: #E50914; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; letter-spacing: 1px; }
 .netflix-start-btn:active { transform: scale(0.98); background-color: #B20710; }
 
 /* --- 로그인 화면 --- */
-.login-logo { font-size: 3.8rem; margin-bottom: 25px; text-align: center; color: #E50914; text-shadow: 0 0 15px rgba(229, 9, 20, 0.3); }
+.login-logo { 
+    font-size: 4.5rem; 
+    margin-bottom: 20px; 
+    text-align: center; 
+    color: #E50914; 
+    text-shadow: 0 0 15px rgba(229, 9, 20, 0.3);
+    line-height: 1;
+}
 .login-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; text-align: center; }
 .login-desc { font-size: 0.85rem; color: #888; margin-bottom: 45px; text-align: center; }
 .login-btns { width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; align-items: center; }
@@ -59,9 +66,9 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 .login-btn .btn-icon { font-size: 1.2rem; font-weight: 900; color: #4285F4; }
 .login-btn-skip { background: transparent; border: none; color: #888; font-size: 0.9rem; text-decoration: underline; cursor: pointer; padding: 10px; }
 
-/* 홈 대시보드 로고 */
+/* 홈 대시보드 */
 .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px; }
-.logo { font-size: 2.2rem; color: #E50914; line-height: 1; text-shadow: 0 0 10px rgba(229, 9, 20, 0.3); }
+.logo { font-size: 2.4rem; color: #E50914; line-height: 1; text-shadow: 0 0 10px rgba(229, 9, 20, 0.3); }
 .routine-title { font-size: 1.2rem; margin-bottom: 10px; font-weight: 600; }
 .target-bar-container { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
 .target-bar { flex: 1; height: 8px; background: linear-gradient(90deg, #E50914 30%, #333 30%); border-radius: 4px; }
