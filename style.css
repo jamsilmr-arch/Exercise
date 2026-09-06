@@ -179,14 +179,12 @@ input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 
 .rt-text { font-size: 1.05rem; color: #555; transition: 0.3s; font-weight: normal; }
 .rt-item.active .rt-text { color: #fff; font-weight: bold; }
 
-/* 팝업 클릭 충돌 해결 */
 .result-bottom-card { background: #141414; border: 1px solid #333; padding: 25px 20px; border-radius: 12px 12px 0 0; position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; animation: slideUp 0.3s; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.r-desc-text { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 25px; white-space: pre-line; word-break: keep-all; }
+.r-desc-text { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 25px; white-space: pre-line; word-break: keep-all; pointer-events: none;}
 .r-tap-btn { align-self: flex-end; font-size: 0.85rem; font-weight: bold; background: transparent; border: none; cursor: pointer; padding: 10px; color: #E50914; outline: none; transition: 0.2s;}
 .r-tap-btn:active { opacity: 0.7; }
 
-/* 모의 그래프 */
 .mock-graph { margin-bottom: 20px; background: #0a0a0a; padding: 20px 15px; border-radius: 8px; border: 1px solid #222; width: 100%;}
 .mock-graph-svg { width: 100%; height: auto; max-height: 80px; display: block; overflow: visible; margin-bottom: 15px; }
 .mock-graph-labels { display: flex; justify-content: space-between; margin-top: 15px; }
@@ -197,7 +195,7 @@ input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 
 .mgl-txt { font-size: 0.65rem; color: #666; }
 .mgl-txt.green { color: #aaa; font-weight: bold; }
 
-/* --- [수정됨] 추천 루틴 타임라인 (3열 썸네일 그리드) --- */
+/* --- [수정됨] 추천 루틴 타임라인 (가로 스크롤 카드 레이아웃) --- */
 .rec-header { padding: 20px; position: sticky; top: 0; background: #000; z-index: 10; border-bottom: 1px solid #222; }
 .r-top-nav { display: flex; align-items: center; margin-bottom: 20px; }
 .r-nav-title { flex: 1; text-align: center; font-size: 1rem; font-weight: bold; padding-right: 30px; }
@@ -209,23 +207,34 @@ input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 
 .r-preview-text { font-size: 0.8rem; color: #888; }
 .rec-timeline-area { padding: 20px; padding-bottom: 140px; display: flex; flex-direction: column; background: #0a0a0a; }
 
-.rtl-item { display: flex; align-items: flex-start; gap: 15px; position: relative; margin-bottom: 45px; }
-.rtl-item::after { content: ''; position: absolute; left: 11px; top: 30px; bottom: -50px; width: 2px; background: rgba(108, 92, 231, 0.4); }
-.rtl-item:last-child::after { display: none; }
-.rtl-circle { width: 24px; height: 24px; background: #6C5CE7; border-radius: 50%; box-shadow: 0 0 10px rgba(108, 92, 231, 0.5); border: 4px solid #000; position: relative; z-index: 2; margin-top: 2px; flex-shrink: 0; }
-.rtl-content { flex: 1; min-width: 0; }
-.rtl-day-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+/* 각 Day를 감싸는 래퍼 (가로 전체 사용) */
+.rtl-item { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 45px; position: relative; }
+
+/* Day 제목 및 유산소 뱃지 래퍼 */
+.rtl-day-title-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.rtl-circle { width: 14px; height: 14px; background: #6C5CE7; border-radius: 50%; box-shadow: 0 0 10px rgba(108, 92, 231, 0.5); border: 2px solid #000; flex-shrink: 0; }
+.rtl-day-title { font-size: 1.2rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
 .rtl-day-sub { font-size: 0.85rem; color: #888; font-weight: normal; }
 .badge-cardio { background: rgba(108, 92, 231, 0.2); color: #a29bfe; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; font-weight: bold; border: 1px dashed rgba(108, 92, 231, 0.4); }
 
-/* 그리드 레이아웃 적용 */
+/* --- [핵심] 가로 스크롤 가능한 썸네일 리스트 래퍼 --- */
 .rtl-thumbnails { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 10px; 
-    margin-bottom: 12px; 
+    display: flex; 
+    gap: 15px; 
+    width: 100%; 
+    overflow-x: auto; 
+    padding-bottom: 15px; 
+    scroll-snap-type: x mandatory; 
+    -webkit-overflow-scrolling: touch; 
 }
+.rtl-thumbnails::-webkit-scrollbar { height: 4px; }
+.rtl-thumbnails::-webkit-scrollbar-track { background: #111; border-radius: 2px; }
+.rtl-thumbnails::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+/* 개별 운동 이미지 카드 (레퍼런스와 동일한 정사각형) */
 .rtl-thumb { 
+    width: 200px; 
+    height: 200px; 
     background: #141414; 
     border: 1px solid #333; 
     border-radius: 12px; 
@@ -234,15 +243,39 @@ input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 
     justify-content: center; 
     align-items: center; 
     position: relative; 
-    padding: 10px 0; 
+    flex-shrink: 0; 
+    scroll-snap-align: start; 
     box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
-    aspect-ratio: 1 / 1.1;
+    overflow: hidden;
 }
-.rtl-thumb svg { width: 50px; height: 50px; }
-.rtl-thumb .ro-watermark { position: absolute; bottom: 6px; right: 6px; font-size: 0.55rem; color: #444; font-weight: 900; letter-spacing: 0.5px; }
-.rtl-thumb.cardio { border: 1px dashed rgba(108, 92, 231, 0.6); background: rgba(108, 92, 231, 0.05); }
-.rtl-thumb.cardio .target-label { color: #a29bfe; position: absolute; bottom: 8px; font-size: 0.7rem; font-weight: bold;}
-.rtl-rest-node { background: rgba(108, 92, 231, 0.15); border: 1px solid rgba(108, 92, 231, 0.3); padding: 16px; border-radius: 8px; font-weight: bold; color: #dcdde1; font-size: 0.95rem; }
-.rtl-desc { font-size: 0.8rem; color: #777; line-height: 1.4; word-break: keep-all; }
+
+/* 실제 인체 해부학 이미지가 렌더링될 요소 */
+.rtl-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 이미지가 상자를 꽉 채우도록 설정 */
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); /* 이미지를 선명하게 부각 */
+}
+
+/* 운동 이름 라벨 (이미지 하단 오버레이) */
+.rtl-thumb .target-label { 
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    padding: 10px 5px; 
+    background: linear-gradient(transparent, rgba(0,0,0,0.9));
+    font-size: 0.85rem; 
+    color: #fff; 
+    font-weight: bold; 
+    text-align: center; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+/* 휴식 노드 */
+.rtl-rest-node { background: rgba(108, 92, 231, 0.15); border: 1px solid rgba(108, 92, 231, 0.3); padding: 16px; border-radius: 8px; font-weight: bold; color: #dcdde1; font-size: 0.95rem; width: 100%; margin-top: 10px;}
+.rtl-desc { font-size: 0.8rem; color: #777; line-height: 1.4; word-break: keep-all; padding-left: 24px; }
 .rec-footer { position: fixed; bottom: 0; width: 100%; padding: 15px 20px 30px; background: linear-gradient(to top, #000 90%, transparent); z-index: 100; text-align: center; border-top: 1px solid #222; }
 .scroll-down-hint { font-size: 0.8rem; color: #888; margin-bottom: 12px; font-weight: 500; }
