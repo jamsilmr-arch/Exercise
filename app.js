@@ -6,6 +6,7 @@ function switchView(targetId) {
     window.scrollTo(0, 0);
 }
 
+// 최초 진입 체크
 const isFirstVisit = !localStorage.getItem('onboardingCompleted');
 if (isFirstVisit) {
     mainNav.style.display = 'none';
@@ -15,6 +16,7 @@ if (isFirstVisit) {
     switchView('view-home');
 }
 
+// 네비게이션
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
         const target = item.getAttribute('data-target');
@@ -54,7 +56,7 @@ document.getElementById('btn-intro-prev').addEventListener('click', () => {
     if (currentIntroStep > 0) { currentIntroStep--; renderIntroStep(); }
 });
 
-// --- [수정됨] 마법사 11단계 (전체 hint 배정, 슬라이더 5단계 구조화, value 공란 처리) ---
+// --- [신규 완결판] 설정 마법사 12단계 및 동적 힌트 로직 ---
 const wizardSteps = [
     { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '72', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
     { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '29', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영해요.' },
@@ -63,10 +65,12 @@ const wizardSteps = [
     { type: 'list', title: '운동 경력을\n알려주세요', desc: '목표 달성 기간 계산에 사용돼요', options: [{title:'초보자', sub:'운동 1-2년'}, {title:'중급자', sub:'운동 3-6년'}, {title:'상급자', sub:'7년 이상'}], value: null, hint: '운동 구력에 맞춰 점진적 과부하 사이클이 조정돼요.' },
     { type: 'list', title: '어떤 기구를\n사용할 수 있나요?', desc: '보유한 기구에 맞춰 루틴의 운동을 교체해드려요', options: [{title:'맨몸 운동만 가능해요', sub:'풀업 바 필요'}, {title:'덤벨과 바벨, 기본적인 프리웨이트만 있어요', sub:''}, {title:'덤벨, 바벨, 그리고 기본적인 머신만 있어요', sub:'전형적인 아파트 헬스장'}, {title:'일반적인 헬스장이에요', sub:'프리웨이트, 머신 케이블 기본적인 요소 다 있음'}, {title:'대형 헬스장이에요', sub:'웬만한 머신은 다 있음'}], value: null, hint: '선택하신 환경에 맞춰 대체 가능한 운동을 추천해드려요.' },
     { type: 'grid-num', title: '주당 운동 횟수', desc: '일주일에 몇 번 운동할 수 있나요?', options: [1, 2, 3, 4, 5, 6], value: null, hint: '선택하신 횟수에 맞춰 최적의 분할 루틴을 구성할게요.' },
-    { type: 'grid-bool', title: '신체 불균형이 있나요?', desc: '좌우 발달 차이가 있으면 한쪽 운동으로 보완해드려요', options: ['예, 있어요', '아니오'], value: null, hint: '불균형이 있다면 덤벨이나 머신 위주의 편측 운동을 추가해요.' },
+    { type: 'grid-bool', title: '신체 불균형이 있나요?', desc: '좌우 발달 차이가 있으면 한쪽 운동으로 보완해드려요', options: ['예, 있어요', '아니오'], value: null, hint: '불균형이 있다면 머신이나 덤벨 위주의 편측 운동을 우선해요.' },
     { type: 'slider', title: '근비대 vs 스트렝스,\n어느쪽이 목표인가요?', desc: '', value: 0, hint: '목표에 따라 세트당 반복 횟수(Reps)와 볼륨이 크게 달라져요.' },
     { type: 'multi', title: '강조/유지할 부위가\n있나요?', desc: '균형 잡힌 루틴을 원하면 선택하지 않아도 돼요 · 최대 3개', sections: [{id:'emph', name:'강조', color:'purple'}, {id:'maint', name:'유지', color:'green'}], items: ['가슴','어깨(전/측면)','어깨(후면)','등 중/상부','광배근','이두근','삼두근','전완','대퇴사두','햄스트링','둔근','복근','목','기립근','종아리','내전근'], values: [], hint: '선택하신 부위의 세트 수가 우선적으로 배정돼요.' },
-    { type: 'list', title: '선호하는 중량대가 있나요?', desc: '알고리즘이 참고하는 초기 설정이에요', options: [{title:'초고중량', sub:''}, {title:'고중량', sub:''}, {title:'중간 중량', sub:'', badge:'추천'}, {title:'저중량', sub:''}, {title:'초저중량', sub:''}], value: null, hint: '처음 시작할 때 추천되는 기준 중량을 설정해요.' }
+    { type: 'list', title: '선호하는 중량대가 있나요?', desc: '알고리즘이 참고하는 초기 설정이에요', options: [{title:'초고중량', sub:''}, {title:'고중량', sub:''}, {title:'중간 중량', sub:'', badge:'추천'}, {title:'저중량', sub:''}, {title:'초저중량', sub:''}], value: null, hint: '처음 시작할 때 추천되는 기준 중량을 설정해요.' },
+    // 12단계 추가
+    { type: 'grid-bool', title: '유산소 운동도\n하고 싶으신가요?', desc: '근력 운동을 마친 뒤에 이어서 할 수 있어요', options: ['네, 하고 싶어요', '아니요'], value: null, hint: '선택에 따라 점심 40분 외에 별도의 유산소 플랜을 제안해드려요.' }
 ];
 
 const sliderMapping = [
@@ -199,7 +203,7 @@ function renderWizardStep() {
         });
     }
 
-    document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '완료' : '다음';
+    document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '루틴 보기' : '다음';
     document.getElementById('btn-prev-step').style.opacity = currentWizardStep === 0 ? '0.3' : '1';
 }
 
@@ -210,16 +214,81 @@ document.getElementById('btn-next-step').addEventListener('click', () => {
     if (currentWizardStep < wizardSteps.length - 1) {
         currentWizardStep++; renderWizardStep();
     } else {
-        localStorage.setItem('onboardingCompleted', 'true');
-        mainNav.style.display = 'flex';
-        switchView('view-home');
+        // [신규] 온보딩 완료 시 로딩 화면 호출
+        showLoadingScreen();
     }
 });
 document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
 });
 
-// --- 훈련 렌더링 및 타이머 (유지) ---
+// --- [신규] 로딩 및 결과 분석(Timeline) 프로세스 ---
+function showLoadingScreen() {
+    switchView('view-loading');
+    setTimeout(() => {
+        startResultExplain();
+    }, 2500); // 2.5초 대기
+}
+
+const explainData = [
+    { icon: '🏋️', title: '운동 종류', desc: "근육을 고르게 키우려면 한 부위도 여러 각도에서 자극해야 해요.\n\n사용자님께 필요한 운동을 부위별로 빠짐없이 배정했어요. 특히 '스트레치'와 '수축'을 강조하는 운동을 골고루 배치해 정체기 없는 성장을 도와요." },
+    { icon: '⚖️', title: '중량', desc: "요청하신 <span style='color:#6C5CE7; font-weight:bold;'>중간 중량</span> 기준으로 각 운동의 무게 범위를 잡았어요.\n\n알고리즘이 퍼포먼스 변화에 맞추어 적절히 무게를 변경해줄거예요." },
+    { icon: '🔄', title: '횟수', desc: "같은 무게에서 목표 횟수에 도달하면 다음 회차에 무게를 올리는 '더블 프로그레션' 방식으로 횟수와 무게를 함께 늘려가요.\n\n입력하신 체중과 운동 경험을 기반으로 해 <span style='color:#00b894; font-weight:bold;'>가장 적절한 점진적 과부하 속도</span>로 코칭해드릴게요." },
+    { icon: '⏱️', title: '운동 강도', desc: "사용자님의 특징에 따라 <span style='color:#00b894; font-weight:bold;'>운동 강도 (RPE/RIR)</span>도 적절히 설정했어요.\n\n앱을 사용할 경우 알고리즘이 퍼포먼스 변화와 피로도에 따라 운동 강도를 자동 수정해줍니다." },
+    { icon: '📅', title: '운동 주기', desc: `<div class="mock-graph"><svg viewBox="0 0 100 35" preserveAspectRatio="none" style="width:100%; height:35px; overflow:visible; margin-bottom:10px;"><path d="M 5,30 Q 50,20 80,5" fill="none" stroke="#6C5CE7" stroke-width="2"/><path d="M 80,5 L 95,25" fill="none" stroke="#00b894" stroke-width="2" stroke-dasharray="2,2"/><circle cx="80" cy="5" r="3" fill="#6C5CE7"/><circle cx="95" cy="25" r="3" fill="#00b894"/></svg><div class="mock-graph-labels"><div class="mgl"><div class="mgl-circ">1</div><span class="mgl-txt">1주</span></div><div class="mgl"><div class="mgl-circ">2</div><span class="mgl-txt">2주</span></div><div class="mgl"><div class="mgl-circ">3</div><span class="mgl-txt">3주</span></div><div class="mgl"><div class="mgl-circ">4</div><span class="mgl-txt">4주</span></div><div class="mgl"><div class="mgl-circ">5</div><span class="mgl-txt">5주</span></div><div class="mgl"><div class="mgl-circ green">☾</div><span class="mgl-txt green">디로딩</span></div></div></div>최적의 피로 회복과 장기적인 성장을 위해 '5주 운동 + 1주 디로딩'으로 배정했습니다. 체계적인 피로 관리를 통해 정체기 없는 성장을 경험할 수 있습니다.` },
+    { icon: '⚖️', title: '근비대 : 스트렝스 비율', desc: "근비대는 볼륨과 자극에 집중, 스트렝스는 중량 증가에 더 집중해요.\n\n사용자님의 목표에 맞춰 <span style='color:#00b894; font-weight:bold;'>근비대 75 · 스트렝스 25</span> 비중으로 프로그램을 설계했어요." }
+];
+
+let currentExplainStep = 0;
+
+function startResultExplain() {
+    switchView('view-result-explain');
+    currentExplainStep = 0;
+    renderExplainStep();
+}
+
+function renderExplainStep() {
+    const timelineArea = document.getElementById('explain-timeline');
+    const progressBarArea = document.getElementById('explain-progress-bar');
+    const descArea = document.getElementById('explain-desc');
+    const tapText = document.getElementById('explain-tap-text');
+
+    // 상단 진행바 렌더링
+    progressBarArea.innerHTML = explainData.map((_, i) => `<div class="r-progress-bar ${i <= currentExplainStep ? 'active' : ''}"></div>`).join('') + `<span class="r-progress-text">${currentExplainStep + 1} / 6</span>`;
+
+    // 타임라인 렌더링 (현재 스텝까지만 노출)
+    let timelineHtml = '';
+    for (let i = 0; i <= currentExplainStep; i++) {
+        const item = explainData[i];
+        const isActive = i === currentExplainStep ? 'active' : '';
+        timelineHtml += `
+            <div class="rt-item ${isActive}">
+                <div class="rt-icon-wrap">${item.icon}</div>
+                <div class="rt-text">${item.title}</div>
+            </div>
+        `;
+    }
+    timelineArea.innerHTML = timelineHtml;
+
+    // 하단 카드 설명 갱신
+    descArea.innerHTML = explainData[currentExplainStep].desc;
+    tapText.innerText = currentExplainStep === explainData.length - 1 ? '루틴 구조 보기 >' : '탭하여 계속 >';
+}
+
+// 바텀 시트 클릭 시 다음 단계로 진행
+document.getElementById('explain-bottom-card').addEventListener('click', () => {
+    if (currentExplainStep < explainData.length - 1) {
+        currentExplainStep++;
+        renderExplainStep();
+    } else {
+        // 완전한 온보딩 종료
+        localStorage.setItem('onboardingCompleted', 'true');
+        mainNav.style.display = 'flex';
+        switchView('view-home');
+    }
+});
+
+// --- 훈련 렌더링 및 타이머 (기존 코드 유지) ---
 const routine = [
     { id: 'bench', name: '플랫 벤치프레스', sets: 4, reps: '10~12회', rest: 60 },
     { id: 'incline', name: '인클라인 프레스', sets: 3, reps: '12회', rest: 60 },
