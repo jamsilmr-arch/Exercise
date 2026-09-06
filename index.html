@@ -7,21 +7,12 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- [화면 0-1] 스플래시 화면 (최초 진입 시) -->
+    <!-- [화면 0-1] 스플래시 화면 -->
     <div id="view-splash" class="view-container active">
+        <!-- 기존 스플래시 내용 유지 -->
         <main class="splash-main">
-            <p class="splash-sub">손 안의 트레이너</p>
-            <h1 class="splash-title">과부하</h1>
-            
-            <div class="splash-mockup">
-                <!-- 스플래시 중앙 폰 목업 UI -->
-                <div class="mockup-header">RO</div>
-                <div class="mockup-bar"></div>
-                <div class="mockup-card">
-                    <div style="font-size: 0.7rem; color: #6C5CE7; margin-bottom: 5px;">오늘 운동</div>
-                    <div style="font-size: 1.1rem; font-weight: bold;">Day 2</div>
-                </div>
-            </div>
+            <p class="splash-sub">손 안의 트레이너</p><h1 class="splash-title">과부하</h1>
+            <div class="splash-mockup"><div class="mockup-header">RO</div><div class="mockup-bar"></div><div class="mockup-card"><div style="font-size: 0.7rem; color: #6C5CE7; margin-bottom: 5px;">오늘 운동</div><div style="font-size: 1.1rem; font-weight: bold;">Day 2</div></div></div>
         </main>
         <div class="splash-footer">
             <button id="btn-start-onboarding" class="primary-btn">시작하기</button>
@@ -29,18 +20,12 @@
         </div>
     </div>
 
-    <!-- [화면 0-2] 인트로 (기능 소개 3단계) -->
+    <!-- [화면 0-2] 인트로 기능 소개 -->
     <div id="view-intro" class="view-container">
-        <div class="intro-top">
-            <button class="icon-btn">←</button>
-        </div>
-        <main id="intro-content-area" class="intro-content">
-            <!-- JS에서 동적으로 인트로 단계별 내용 렌더링 -->
-        </main>
+        <div class="intro-top"><button class="icon-btn">←</button></div>
+        <main id="intro-content-area" class="intro-content"></main>
         <div class="intro-footer">
-            <div id="intro-pagination" class="pagination-dots">
-                <div class="dot active"></div><div class="dot"></div><div class="dot"></div>
-            </div>
+            <div id="intro-pagination" class="pagination-dots"></div>
             <div class="wizard-footer-btns">
                 <button id="btn-intro-prev" class="btn-prev">이전</button>
                 <button id="btn-intro-next" class="btn-next">다음</button>
@@ -48,30 +33,22 @@
         </div>
     </div>
 
-    <!-- [화면 1] 설정 (맞춤형 루틴 온보딩 마법사) -->
+    <!-- [화면 1] 설정 (맞춤형 온보딩 마법사) -->
     <div id="view-settings" class="view-container">
         <header class="wizard-header">
             <div class="wizard-top">
-                <button class="icon-btn">←</button>
-                <span class="wizard-title">맞춤형 루틴을 생성해요</span>
+                <button class="icon-btn">←</button><span class="wizard-title">맞춤형 루틴을 생성해요</span>
             </div>
             <div class="progress-container">
-                <div class="progress-text">
-                    <span id="step-counter">질문 1/5</span>
-                    <span>맞춤 루틴 추천 준비</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div id="wizard-progress" class="progress-bar-fill" style="width: 20%;"></div>
-                </div>
+                <div class="progress-text"><span id="step-counter">질문 1/12</span><span>맞춤 루틴 추천 준비</span></div>
+                <div class="progress-bar-bg"><div id="wizard-progress" class="progress-bar-fill" style="width: 8.3%;"></div></div>
             </div>
         </header>
         <main class="wizard-content">
-            <h1 id="q-title" class="q-title">체중을 알려주세요</h1>
-            <p id="q-desc" class="q-desc">정확한 중량 추천을 위해 필요해요</p>
+            <h1 id="q-title" class="q-title"></h1>
+            <p id="q-desc" class="q-desc"></p>
             <div id="wizard-input-area"></div>
-            <div class="hint-box">
-                <span>💡</span><span id="q-hint">체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.</span>
-            </div>
+            <div class="hint-box"><span>💡</span><span id="q-hint"></span></div>
         </main>
         <div class="wizard-footer">
             <button id="btn-prev-step" class="btn-prev">이전</button>
@@ -79,18 +56,37 @@
         </div>
     </div>
 
+    <!-- [신규 화면 1-1] 로딩 화면 -->
+    <div id="view-loading" class="view-container flex-center">
+        <div class="loader-circle"></div>
+        <h2 class="loading-title">맞춤형 루틴을<br>생성하고 있어요</h2>
+        <p class="loading-desc">잠시만 기다려주세요.<br>곧 최적의 루틴 구조를 보여드릴게요.</p>
+    </div>
+
+    <!-- [신규 화면 1-2] 추천 루틴 분석 과정 -->
+    <div id="view-result-explain" class="view-container">
+        <header class="result-header">
+            <div class="r-top">추천 루틴</div>
+            <h1 class="r-title">질문을 기반으로<br>맞춤 루틴을 만들고 있어요</h1>
+            <div class="r-progress-container" id="explain-progress-bar">
+                <!-- JS에서 동적 바 삽입 -->
+            </div>
+        </header>
+        <main class="result-timeline" id="explain-timeline">
+            <!-- JS에서 타임라인 노드 삽입 -->
+        </main>
+        <div class="result-bottom-card" id="explain-bottom-card">
+            <div class="r-desc-text" id="explain-desc"></div>
+            <div class="r-tap-text" id="explain-tap-text">탭하여 계속 ></div>
+        </div>
+    </div>
+
     <!-- [화면 2] 홈 대시보드 -->
     <div id="view-home" class="view-container">
-        <header class="top-nav">
-            <div class="logo">40MIN</div>
-            <button class="tutorial-btn">루틴 수정</button>
-        </header>
+        <header class="top-nav"><div class="logo">40MIN</div><button class="tutorial-btn">루틴 수정</button></header>
         <main class="content-area">
             <h2 class="routine-title">직장인 점심 3분할 루틴</h2>
-            <div class="target-bar-container">
-                <div class="target-bar"></div>
-                <span class="target-text">목표: 린매스업 (체지방 14% 컷)</span>
-            </div>
+            <div class="target-bar-container"><div class="target-bar"></div><span class="target-text">목표: 린매스업</span></div>
             <div class="main-card">
                 <div class="card-badge">오늘 운동</div> <span class="card-day">Day 1 (밀기)</span>
                 <div class="card-stats">
@@ -105,18 +101,14 @@
     <!-- [화면 3] 실제 훈련 타이머 화면 -->
     <div id="view-workout" class="view-container">
         <header class="workout-header">
-            <button id="btn-back" class="icon-btn">←</button>
-            <h1>Day 1: 밀기 데이</h1>
-            <div id="global-timer">00:00</div>
+            <button id="btn-back" class="icon-btn">←</button><h1>Day 1: 밀기 데이</h1><div id="global-timer">00:00</div>
         </header>
         <main id="exercise-list" class="content-area"></main>
     </div>
 
-    <!-- [화면 4] 분석 (알고리즘) -->
+    <!-- [화면 4] 분석 -->
     <div id="view-analysis" class="view-container">
-        <header class="algo-header">
-            <h1 class="algo-title">최신 연구를 모두 분석해<br><span class="highlight">알고리즘으로 구현</span>했습니다.</h1>
-        </header>
+        <header class="algo-header"><h1 class="algo-title">최신 연구를 모두 분석해<br><span class="highlight">알고리즘으로 구현</span>했습니다.</h1></header>
         <main class="algo-content">
             <div class="metric-grid">
                 <div class="metric-card"><span class="m-label">중량</span><span class="m-value highlight">45</span><span class="m-unit">KG</span></div>
@@ -127,7 +119,7 @@
         </main>
     </div>
 
-    <!-- 하단 네비게이션 바 (온보딩 중에는 숨김 처리됨) -->
+    <!-- 하단 네비게이션 바 -->
     <nav class="bottom-nav" id="main-nav">
         <div class="nav-item active" data-target="view-home"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
         <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
