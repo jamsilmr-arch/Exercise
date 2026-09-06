@@ -324,8 +324,11 @@ function generateRecommendedRoutine() {
     timelineArea.innerHTML = html;
 }
 
+// (기존 코드의 타임라인 생성 로직 아래부분)
+
 document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
 
+// --- [수정됨] 누락되었던 DB 저장 로직 복구 및 페이지 이동 ---
 document.getElementById('btn-go-home').addEventListener('click', async () => { 
     const btn = document.getElementById('btn-go-home');
     btn.innerText = "저장 중...";
@@ -333,6 +336,7 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
 
     localStorage.setItem('onboardingCompleted', 'true');
     const currentUser = auth.currentUser;
+    
     if (currentUser) {
         const userWizardData = {};
         wizardSteps.forEach((step, index) => {
@@ -341,7 +345,9 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
                 value: step.values && step.values.length > 0 ? step.values : (step.value || '')
             };
         });
+        
         try {
+            // Firestore에 데이터 영구 저장
             await db.collection('users').doc(currentUser.uid).set({
                 onboardingCompleted: true,
                 wizardData: userWizardData,
@@ -351,5 +357,7 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
             console.error("Firestore 저장 실패:", error);
         }
     }
+
+    // 저장이 완료되면 실제 홈 화면 파일로 강제 이동
     window.location.href = 'home.html';
 });
