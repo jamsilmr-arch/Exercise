@@ -16,7 +16,7 @@ if (isFirstVisit) {
     switchView('view-home');
 }
 
-// 네비게이션
+// 네비게이션 설정
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
         const target = item.getAttribute('data-target');
@@ -56,7 +56,7 @@ document.getElementById('btn-intro-prev').addEventListener('click', () => {
     if (currentIntroStep > 0) { currentIntroStep--; renderIntroStep(); }
 });
 
-// --- [신규 완결판] 설정 마법사 12단계 및 동적 힌트 로직 ---
+// --- 설정 마법사 로직 (유지) ---
 const wizardSteps = [
     { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '72', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
     { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '29', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영해요.' },
@@ -69,7 +69,6 @@ const wizardSteps = [
     { type: 'slider', title: '근비대 vs 스트렝스,\n어느쪽이 목표인가요?', desc: '', value: 0, hint: '목표에 따라 세트당 반복 횟수(Reps)와 볼륨이 크게 달라져요.' },
     { type: 'multi', title: '강조/유지할 부위가\n있나요?', desc: '균형 잡힌 루틴을 원하면 선택하지 않아도 돼요 · 최대 3개', sections: [{id:'emph', name:'강조', color:'purple'}, {id:'maint', name:'유지', color:'green'}], items: ['가슴','어깨(전/측면)','어깨(후면)','등 중/상부','광배근','이두근','삼두근','전완','대퇴사두','햄스트링','둔근','복근','목','기립근','종아리','내전근'], values: [], hint: '선택하신 부위의 세트 수가 우선적으로 배정돼요.' },
     { type: 'list', title: '선호하는 중량대가 있나요?', desc: '알고리즘이 참고하는 초기 설정이에요', options: [{title:'초고중량', sub:''}, {title:'고중량', sub:''}, {title:'중간 중량', sub:'', badge:'추천'}, {title:'저중량', sub:''}, {title:'초저중량', sub:''}], value: null, hint: '처음 시작할 때 추천되는 기준 중량을 설정해요.' },
-    // 12단계 추가
     { type: 'grid-bool', title: '유산소 운동도\n하고 싶으신가요?', desc: '근력 운동을 마친 뒤에 이어서 할 수 있어요', options: ['네, 하고 싶어요', '아니요'], value: null, hint: '선택에 따라 점심 40분 외에 별도의 유산소 플랜을 제안해드려요.' }
 ];
 
@@ -97,112 +96,43 @@ function renderWizardStep() {
     if (step.type === 'input') {
         html = `<div class="input-box"><input type="number" class="input-val" value="${step.value}" placeholder="${step.placeholder}"><span class="input-unit">${step.unit}</span></div><div style="text-align:center; font-size:0.8rem; color:#666;">입력 후 다음을 눌러주세요</div>`;
         inputArea.innerHTML = html;
-    } 
-    else if (step.type === 'list') {
-        html = `<div class="list-options">` + step.options.map(opt => `
-            <div class="list-btn ${opt.title === step.value ? 'active' : ''}" data-value="${opt.title}">
-                <div class="list-text-area">
-                    <div class="list-title">${opt.title} ${opt.badge ? `<span class="list-badge">${opt.badge}</span>` : ''}</div>
-                    ${opt.sub ? `<div class="list-sub">${opt.sub}</div>` : ''}
-                </div>
-                <div class="radio-circle"></div>
-            </div>`).join('') + `</div>`;
+    } else if (step.type === 'list') {
+        html = `<div class="list-options">` + step.options.map(opt => `<div class="list-btn ${opt.title === step.value ? 'active' : ''}" data-value="${opt.title}"><div class="list-text-area"><div class="list-title">${opt.title} ${opt.badge ? `<span class="list-badge">${opt.badge}</span>` : ''}</div>${opt.sub ? `<div class="list-sub">${opt.sub}</div>` : ''}</div><div class="radio-circle"></div></div>`).join('') + `</div>`;
         inputArea.innerHTML = html;
-
-        inputArea.querySelectorAll('.list-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                inputArea.querySelectorAll('.list-btn').forEach(b => b.classList.remove('active'));
-                const target = e.currentTarget;
-                target.classList.add('active');
-                step.value = target.getAttribute('data-value');
-            });
-        });
-    }
-    else if (step.type.startsWith('grid')) {
+        inputArea.querySelectorAll('.list-btn').forEach(btn => btn.addEventListener('click', (e) => {
+            inputArea.querySelectorAll('.list-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active'); step.value = e.currentTarget.getAttribute('data-value');
+        }));
+    } else if (step.type.startsWith('grid')) {
         const isCol3 = step.type === 'grid-num' ? 'cols-3' : '';
         html = `<div class="grid-options ${isCol3}">` + step.options.map(opt => {
-            const val = opt.label || opt;
-            const iconStr = opt.icon ? `<div class="opt-icon">${opt.icon}</div>` : '';
-            const subStr = step.type === 'grid-num' ? `<span class="opt-sub">회/주</span>` : '';
+            const val = opt.label || opt; const iconStr = opt.icon ? `<div class="opt-icon">${opt.icon}</div>` : ''; const subStr = step.type === 'grid-num' ? `<span class="opt-sub">회/주</span>` : '';
             return `<div class="opt-btn ${val == step.value ? 'active' : ''}" data-value="${val}">${iconStr}${val}${subStr}</div>`;
         }).join('') + `</div>`;
         inputArea.innerHTML = html;
-
-        inputArea.querySelectorAll('.opt-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                inputArea.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-                const target = e.currentTarget;
-                target.classList.add('active');
-                step.value = target.getAttribute('data-value');
-            });
-        });
-    }
-    else if (step.type === 'slider') {
-        const defaultIdx = typeof step.value === 'number' ? step.value : 0;
-        const state = sliderMapping[defaultIdx];
-        
-        html = `
-            <div class="slider-container">
-                <div id="slider-display" class="slider-val-text">${state.title}</div>
-                <div id="slider-sub" class="slider-sub-text">${state.sub}</div>
-                
-                <div class="slider-track-wrap">
-                    <div class="slider-track-bg">
-                        <div class="dot"></div>
-                        <div class="dot"><div class="rec-badge">권장</div></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                    <input type="range" id="goal-slider" min="0" max="4" step="1" value="${defaultIdx}">
-                </div>
-                
-                <div class="slider-labels">
-                    <span>← 근비대</span>
-                    <span>스트렝스 →</span>
-                </div>
-            </div>`;
+        inputArea.querySelectorAll('.opt-btn').forEach(btn => btn.addEventListener('click', (e) => {
+            inputArea.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active'); step.value = e.currentTarget.getAttribute('data-value');
+        }));
+    } else if (step.type === 'slider') {
+        const defaultIdx = typeof step.value === 'number' ? step.value : 0; const state = sliderMapping[defaultIdx];
+        html = `<div class="slider-container"><div id="slider-display" class="slider-val-text">${state.title}</div><div id="slider-sub" class="slider-sub-text">${state.sub}</div><div class="slider-track-wrap"><div class="slider-track-bg"><div class="dot"></div><div class="dot"><div class="rec-badge">권장</div></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><input type="range" id="goal-slider" min="0" max="4" step="1" value="${defaultIdx}"></div><div class="slider-labels"><span>← 근비대</span><span>스트렝스 →</span></div></div>`;
         inputArea.innerHTML = html;
-        
         document.getElementById('goal-slider').addEventListener('input', (e) => {
-            const idx = parseInt(e.target.value);
-            step.value = idx;
+            const idx = parseInt(e.target.value); step.value = idx;
             document.getElementById('slider-display').innerText = sliderMapping[idx].title;
             document.getElementById('slider-sub').innerText = sliderMapping[idx].sub;
         });
-    }
-    else if (step.type === 'multi') {
-        html = step.sections.map(sec => `
-            <div class="chip-section">
-                <div class="chip-section-title c-${sec.color}">${sec.name}</div>
-                <div class="chip-grid">
-                    ${step.items.map(item => `<div class="chip-btn ${step.values.some(v => v.id === sec.id && v.val === item) ? `active-${sec.color}` : ''}" data-sec="${sec.id}" data-color="${sec.color}" data-val="${item}">${item}</div>`).join('')}
-                </div>
-            </div>
-        `).join('');
+    } else if (step.type === 'multi') {
+        html = step.sections.map(sec => `<div class="chip-section"><div class="chip-section-title c-${sec.color}">${sec.name}</div><div class="chip-grid">${step.items.map(item => `<div class="chip-btn ${step.values.some(v => v.id === sec.id && v.val === item) ? `active-${sec.color}` : ''}" data-sec="${sec.id}" data-color="${sec.color}" data-val="${item}">${item}</div>`).join('')}</div></div>`).join('');
         inputArea.innerHTML = html;
-
-        inputArea.querySelectorAll('.chip-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const target = e.currentTarget;
-                const sec = target.getAttribute('data-sec');
-                const val = target.getAttribute('data-val');
-                const color = target.getAttribute('data-color');
-                
-                const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
-                if (existingIdx > -1) {
-                    step.values.splice(existingIdx, 1);
-                    target.classList.remove(`active-${color}`);
-                } else {
-                    if (step.values.length >= 3) return alert('최대 3개까지만 선택 가능합니다.');
-                    step.values = step.values.filter(v => v.val !== val);
-                    step.values.push({id: sec, val: val});
-                    renderWizardStep(); 
-                }
-            });
-        });
+        inputArea.querySelectorAll('.chip-btn').forEach(btn => btn.addEventListener('click', (e) => {
+            const target = e.currentTarget; const sec = target.getAttribute('data-sec'); const val = target.getAttribute('data-val'); const color = target.getAttribute('data-color');
+            const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
+            if (existingIdx > -1) { step.values.splice(existingIdx, 1); target.classList.remove(`active-${color}`); } 
+            else { if (step.values.length >= 3) return alert('최대 3개까지만 선택 가능합니다.'); step.values = step.values.filter(v => v.val !== val); step.values.push({id: sec, val: val}); renderWizardStep(); }
+        }));
     }
-
     document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '루틴 보기' : '다음';
     document.getElementById('btn-prev-step').style.opacity = currentWizardStep === 0 ? '0.3' : '1';
 }
@@ -210,24 +140,17 @@ function renderWizardStep() {
 document.getElementById('btn-next-step').addEventListener('click', () => {
     const activeInput = document.querySelector('.input-val');
     if (activeInput) { wizardSteps[currentWizardStep].value = activeInput.value; }
-
-    if (currentWizardStep < wizardSteps.length - 1) {
-        currentWizardStep++; renderWizardStep();
-    } else {
-        // [신규] 온보딩 완료 시 로딩 화면 호출
-        showLoadingScreen();
-    }
+    if (currentWizardStep < wizardSteps.length - 1) { currentWizardStep++; renderWizardStep(); } 
+    else { showLoadingScreen(); } // 로딩 호출
 });
 document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
 });
 
-// --- [신규] 로딩 및 결과 분석(Timeline) 프로세스 ---
+// --- 분석 및 결과 노출 로직 (유지) ---
 function showLoadingScreen() {
     switchView('view-loading');
-    setTimeout(() => {
-        startResultExplain();
-    }, 2500); // 2.5초 대기
+    setTimeout(() => { startResultExplain(); }, 2500); 
 }
 
 const explainData = [
@@ -240,55 +163,99 @@ const explainData = [
 ];
 
 let currentExplainStep = 0;
-
-function startResultExplain() {
-    switchView('view-result-explain');
-    currentExplainStep = 0;
-    renderExplainStep();
-}
+function startResultExplain() { switchView('view-result-explain'); currentExplainStep = 0; renderExplainStep(); }
 
 function renderExplainStep() {
-    const timelineArea = document.getElementById('explain-timeline');
-    const progressBarArea = document.getElementById('explain-progress-bar');
-    const descArea = document.getElementById('explain-desc');
-    const tapText = document.getElementById('explain-tap-text');
-
-    // 상단 진행바 렌더링
-    progressBarArea.innerHTML = explainData.map((_, i) => `<div class="r-progress-bar ${i <= currentExplainStep ? 'active' : ''}"></div>`).join('') + `<span class="r-progress-text">${currentExplainStep + 1} / 6</span>`;
-
-    // 타임라인 렌더링 (현재 스텝까지만 노출)
+    document.getElementById('explain-progress-bar').innerHTML = explainData.map((_, i) => `<div class="r-progress-bar ${i <= currentExplainStep ? 'active' : ''}"></div>`).join('') + `<span class="r-progress-text">${currentExplainStep + 1} / 6</span>`;
     let timelineHtml = '';
     for (let i = 0; i <= currentExplainStep; i++) {
-        const item = explainData[i];
-        const isActive = i === currentExplainStep ? 'active' : '';
-        timelineHtml += `
-            <div class="rt-item ${isActive}">
-                <div class="rt-icon-wrap">${item.icon}</div>
-                <div class="rt-text">${item.title}</div>
+        timelineHtml += `<div class="rt-item ${i === currentExplainStep ? 'active' : ''}"><div class="rt-icon-wrap">${explainData[i].icon}</div><div class="rt-text">${explainData[i].title}</div></div>`;
+    }
+    document.getElementById('explain-timeline').innerHTML = timelineHtml;
+    document.getElementById('explain-desc').innerHTML = explainData[currentExplainStep].desc;
+    document.getElementById('explain-tap-text').innerText = currentExplainStep === explainData.length - 1 ? '루틴 구조 보기 >' : '탭하여 계속 >';
+}
+
+document.getElementById('explain-bottom-card').addEventListener('click', () => {
+    if (currentExplainStep < explainData.length - 1) { currentExplainStep++; renderExplainStep(); } 
+    else { generateRecommendedRoutine(); switchView('view-recommended-routine'); } // [수정됨] 루틴 구조 뷰로 이동
+});
+
+// --- [신규] 추천 루틴 타임라인 동적 생성 로직 ---
+function generateRecommendedRoutine() {
+    const gender = wizardSteps[2].value || '남성';
+    const frequency = wizardSteps[6].value || 3; 
+    const isCardio = wizardSteps[11].value === '네, 하고 싶어요';
+
+    // 분할 타이틀 동적 결정
+    let splitName = '밀기-당기기-하체';
+    if(frequency === 4) splitName = '상하체 2분할';
+    else if(frequency >= 5) splitName = '근육 부위별 분할';
+
+    document.getElementById('rec-subtitle').innerText = `주 ${frequency}회 (${splitName}) 루틴`;
+    document.getElementById('rec-chip-split').innerText = splitName;
+    document.getElementById('rec-chip-gender').innerText = gender;
+
+    const timelineArea = document.getElementById('rec-timeline-render');
+    let html = '';
+
+    // 점심 40분 3분할 기준 기본 운동 블록
+    const exerciseBlocks = [
+        { day: 'Day 1 (밀기)', count: 4, icons: ['🏋️‍♂️', '💪', '🏋️', '🧍‍♂️'] },
+        { day: 'Day 2 (당기기)', count: 4, icons: ['🤸‍♂️', '🧗', '💪', '🧍‍♂️'] },
+        { day: 'Day 3 (하체)', count: 3, icons: ['🦵', '🏃', '🏋️'] }
+    ];
+
+    for (let i = 0; i < frequency; i++) {
+        const block = exerciseBlocks[i % 3]; // 3분할 반복
+        const showCardio = isCardio && (i === 0 || i === 2); // 첫날과 셋째날에 유산소 배치
+        
+        let thumbHtml = block.icons.map(icon => `<div class="rtl-thumb">${icon}</div>`).join('');
+        if (showCardio) {
+            thumbHtml += `<div class="rtl-thumb cardio">🏃<span>유산소</span></div>`;
+        }
+
+        html += `
+            <div class="rtl-item">
+                <div class="rtl-circle"></div>
+                <div class="rtl-content">
+                    <div class="rtl-day-title">Day ${i + 1} <span class="rtl-day-sub">| 총 ${block.count}개 운동</span> ${showCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
+                    <div class="rtl-thumbnails">${thumbHtml}</div>
+                    ${showCardio ? '<div class="rtl-desc">유산소는 앱을 시작한 뒤 몇 가지만 답하면 종목과 시간이 정해져요.</div>' : ''}
+                </div>
             </div>
         `;
     }
-    timelineArea.innerHTML = timelineHtml;
 
-    // 하단 카드 설명 갱신
-    descArea.innerHTML = explainData[currentExplainStep].desc;
-    tapText.innerText = currentExplainStep === explainData.length - 1 ? '루틴 구조 보기 >' : '탭하여 계속 >';
+    // 마지막에 휴식 블록 추가
+    html += `
+        <div class="rtl-item">
+            <div class="rtl-circle" style="background:#555; border-color:#222; box-shadow:none;"></div>
+            <div class="rtl-content">
+                <div class="rtl-rest">휴식 | 1일</div>
+            </div>
+        </div>
+    `;
+    timelineArea.innerHTML = html;
 }
 
-// 바텀 시트 클릭 시 다음 단계로 진행
-document.getElementById('explain-bottom-card').addEventListener('click', () => {
-    if (currentExplainStep < explainData.length - 1) {
-        currentExplainStep++;
-        renderExplainStep();
-    } else {
-        // 완전한 온보딩 종료
+// 루틴 화면 뒤로가기
+document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
+
+// --- [신규] 로그인 연동 처리 ---
+document.getElementById('btn-go-login').addEventListener('click', () => { switchView('view-login'); });
+
+const loginBtns = document.querySelectorAll('.login-btn');
+loginBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        // 로그인 완료 -> 홈 대시보드 진입
         localStorage.setItem('onboardingCompleted', 'true');
         mainNav.style.display = 'flex';
         switchView('view-home');
-    }
+    });
 });
 
-// --- 훈련 렌더링 및 타이머 (기존 코드 유지) ---
+// --- 홈화면 타이머 로직 (기존 유지) ---
 const routine = [
     { id: 'bench', name: '플랫 벤치프레스', sets: 4, reps: '10~12회', rest: 60 },
     { id: 'incline', name: '인클라인 프레스', sets: 3, reps: '12회', rest: 60 },
