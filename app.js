@@ -6,7 +6,6 @@ function switchView(targetId) {
     window.scrollTo(0, 0);
 }
 
-// 최초 진입 체크
 const isFirstVisit = !localStorage.getItem('onboardingCompleted');
 if (isFirstVisit) {
     mainNav.style.display = 'none';
@@ -16,7 +15,6 @@ if (isFirstVisit) {
     switchView('view-home');
 }
 
-// 네비게이션
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
         const target = item.getAttribute('data-target');
@@ -30,7 +28,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 document.getElementById('btn-start-workout').addEventListener('click', () => switchView('view-workout'));
 document.getElementById('btn-back').addEventListener('click', () => switchView('view-home'));
 
-// --- 인트로 로직 (기존과 동일) ---
+// --- 인트로 로직 (유지) ---
 const introSteps = [
     { badge: '★ 과부하 알고리즘', title: '다 알아서 해드립니다', desc: '퍼포먼스와 회복 속도에 맞춰\n루틴을 자동 수정해줍니다', html: `<div class="intro-visual"><div class="neon-card" style="transform: rotate(-5deg) scale(0.9); position: absolute; z-index: 1; opacity: 0.5;"><div style="font-size:0.8rem; color:#888;">권장 중량 표시</div></div><div class="neon-card" style="position: relative; z-index: 2;"><div style="font-size:0.8rem; color:#6C5CE7; margin-bottom: 10px;">과부하 코칭</div><div style="font-size:1.2rem; font-weight:bold; margin-bottom: 5px;">세트 수를 줄일게요</div><div style="font-size:0.75rem; color:#888;">일시적 퍼포먼스 감소가 감지되어 회복을 돕습니다.</div></div></div>` },
     { badge: '★ 100% 맞춤형 코칭을 위한', title: '사용자\n데이터 분석', desc: '', html: `<div class="timeline"><div class="timeline-item active"><div class="tl-title">지금 - 1주차</div><div class="tl-desc">사용자에게 적절한 루틴을 파악하기 위한 데이터 수집 기간.</div></div><div class="timeline-item"><div class="tl-title">2주차 (8일)</div><div class="tl-desc">1대1 코칭 시작. 적절 중량, 횟수가 맞춤형으로 권장되기 시작해요.</div></div><div class="timeline-item"><div class="tl-title">2주차 (10-14일)</div><div class="tl-desc">데이터 수집 완료. 피로도에 따른 강도 조절 알고리즘 작동.</div></div></div>` },
@@ -56,19 +54,27 @@ document.getElementById('btn-intro-prev').addEventListener('click', () => {
     if (currentIntroStep > 0) { currentIntroStep--; renderIntroStep(); }
 });
 
-// --- [신규 완결판] 설정 마법사 11단계 로직 ---
+// --- [수정됨] 마법사 11단계 (전체 hint 배정, 슬라이더 5단계 구조화, value 공란 처리) ---
 const wizardSteps = [
-    { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '72', unit: 'kg' },
-    { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '29', unit: '세' },
-    { type: 'grid-gender', title: '성별을 선택해주세요', desc: '루틴 구성 방식이 달라져요', options: [{icon:'♂', label:'남성'}, {icon:'♀', label:'여성'}], value: null },
-    { type: 'input', title: '현재 체지방을\n알려주세요', desc: '정확하지 않아도 괜찮아요 · 대략적인 수치면 충분해요', value: '', placeholder: '18', unit: '%' },
-    { type: 'list', title: '운동 경력을\n알려주세요', desc: '목표 달성 기간 계산에 사용돼요', options: [{title:'초보자', sub:'운동 1-2년'}, {title:'중급자', sub:'운동 3-6년'}, {title:'상급자', sub:'7년 이상'}], value: null },
-    { type: 'list', title: '어떤 기구를\n사용할 수 있나요?', desc: '보유한 기구에 맞춰 루틴의 운동을 교체해드려요', options: [{title:'맨몸 운동만 가능해요', sub:'풀업 바 필요'}, {title:'덤벨과 바벨, 기본적인 프리웨이트만 있어요', sub:''}, {title:'덤벨, 바벨, 그리고 기본적인 머신만 있어요', sub:'전형적인 아파트 헬스장'}, {title:'일반적인 헬스장이에요', sub:'프리웨이트, 머신 케이블 기본적인 요소 다 있음'}, {title:'대형 헬스장이에요', sub:'웬만한 머신은 다 있음'}], value: null },
-    { type: 'grid-num', title: '주당 운동 횟수', desc: '일주일에 몇 번 운동할 수 있나요?', options: [1, 2, 3, 4, 5, 6], value: null },
-    { type: 'grid-bool', title: '신체 불균형이 있나요?', desc: '좌우 발달 차이가 있으면 한쪽 운동으로 보완해드려요', options: ['예, 있어요', '아니오'], value: null },
-    { type: 'slider', title: '근비대 vs 스트렝스,\n어느쪽이 목표인가요?', desc: '', value: '근비대 집중' },
-    { type: 'multi', title: '강조/유지할 부위가\n있나요?', desc: '균형 잡힌 루틴을 원하면 선택하지 않아도 돼요 · 최대 3개', sections: [{id:'emph', name:'강조', color:'purple'}, {id:'maint', name:'유지', color:'green'}], items: ['가슴','어깨(전/측면)','어깨(후면)','등 중/상부','광배근','이두근','삼두근','전완','대퇴사두','햄스트링','둔근','복근','목','기립근','종아리','내전근'], values: [] },
-    { type: 'list', title: '선호하는 중량대가 있나요?', desc: '알고리즘이 참고하는 초기 설정이에요', options: [{title:'초고중량', sub:''}, {title:'고중량', sub:''}, {title:'중간 중량', sub:'', badge:'추천'}, {title:'저중량', sub:''}, {title:'초저중량', sub:''}], value: null }
+    { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '72', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
+    { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '29', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영해요.' },
+    { type: 'grid-gender', title: '성별을 선택해주세요', desc: '루틴 구성 방식이 달라져요', options: [{icon:'♂', label:'남성'}, {icon:'♀', label:'여성'}], value: null, hint: '성별에 따라 근육 발달 속도와 권장 볼륨이 달라져요.' },
+    { type: 'input', title: '현재 체지방을\n알려주세요', desc: '정확하지 않아도 괜찮아요 · 대략적인 수치면 충분해요', value: '', placeholder: '18', unit: '%', hint: '인바디 결과가 있으면 그 수치를 넣어주세요.' },
+    { type: 'list', title: '운동 경력을\n알려주세요', desc: '목표 달성 기간 계산에 사용돼요', options: [{title:'초보자', sub:'운동 1-2년'}, {title:'중급자', sub:'운동 3-6년'}, {title:'상급자', sub:'7년 이상'}], value: null, hint: '운동 구력에 맞춰 점진적 과부하 사이클이 조정돼요.' },
+    { type: 'list', title: '어떤 기구를\n사용할 수 있나요?', desc: '보유한 기구에 맞춰 루틴의 운동을 교체해드려요', options: [{title:'맨몸 운동만 가능해요', sub:'풀업 바 필요'}, {title:'덤벨과 바벨, 기본적인 프리웨이트만 있어요', sub:''}, {title:'덤벨, 바벨, 그리고 기본적인 머신만 있어요', sub:'전형적인 아파트 헬스장'}, {title:'일반적인 헬스장이에요', sub:'프리웨이트, 머신 케이블 기본적인 요소 다 있음'}, {title:'대형 헬스장이에요', sub:'웬만한 머신은 다 있음'}], value: null, hint: '선택하신 환경에 맞춰 대체 가능한 운동을 추천해드려요.' },
+    { type: 'grid-num', title: '주당 운동 횟수', desc: '일주일에 몇 번 운동할 수 있나요?', options: [1, 2, 3, 4, 5, 6], value: null, hint: '선택하신 횟수에 맞춰 최적의 분할 루틴을 구성할게요.' },
+    { type: 'grid-bool', title: '신체 불균형이 있나요?', desc: '좌우 발달 차이가 있으면 한쪽 운동으로 보완해드려요', options: ['예, 있어요', '아니오'], value: null, hint: '불균형이 있다면 덤벨이나 머신 위주의 편측 운동을 추가해요.' },
+    { type: 'slider', title: '근비대 vs 스트렝스,\n어느쪽이 목표인가요?', desc: '', value: 0, hint: '목표에 따라 세트당 반복 횟수(Reps)와 볼륨이 크게 달라져요.' },
+    { type: 'multi', title: '강조/유지할 부위가\n있나요?', desc: '균형 잡힌 루틴을 원하면 선택하지 않아도 돼요 · 최대 3개', sections: [{id:'emph', name:'강조', color:'purple'}, {id:'maint', name:'유지', color:'green'}], items: ['가슴','어깨(전/측면)','어깨(후면)','등 중/상부','광배근','이두근','삼두근','전완','대퇴사두','햄스트링','둔근','복근','목','기립근','종아리','내전근'], values: [], hint: '선택하신 부위의 세트 수가 우선적으로 배정돼요.' },
+    { type: 'list', title: '선호하는 중량대가 있나요?', desc: '알고리즘이 참고하는 초기 설정이에요', options: [{title:'초고중량', sub:''}, {title:'고중량', sub:''}, {title:'중간 중량', sub:'', badge:'추천'}, {title:'저중량', sub:''}, {title:'초저중량', sub:''}], value: null, hint: '처음 시작할 때 추천되는 기준 중량을 설정해요.' }
+];
+
+const sliderMapping = [
+    { title: '근비대 집중', sub: '스트렝스 0 : 근비대 100' },
+    { title: '근비대 위주', sub: '스트렝스 25 : 근비대 75' },
+    { title: '성장 밸런스', sub: '스트렝스 50 : 근비대 50' },
+    { title: '스트렝스 위주', sub: '스트렝스 75 : 근비대 25' },
+    { title: '스트렝스 집중', sub: '스트렝스 100 : 근비대 0' }
 ];
 
 let currentWizardStep = 0;
@@ -77,18 +83,17 @@ function renderWizardStep() {
     const step = wizardSteps[currentWizardStep];
     document.getElementById('q-title').innerText = step.title;
     document.getElementById('q-desc').innerText = step.desc;
+    document.getElementById('q-hint').innerText = step.hint;
     document.getElementById('step-counter').innerText = `질문 ${currentWizardStep + 1}/${wizardSteps.length}`;
     document.getElementById('wizard-progress').style.width = `${((currentWizardStep + 1) / wizardSteps.length) * 100}%`;
 
     const inputArea = document.getElementById('wizard-input-area');
     let html = '';
 
-    // 1. 단일 숫자 입력
     if (step.type === 'input') {
         html = `<div class="input-box"><input type="number" class="input-val" value="${step.value}" placeholder="${step.placeholder}"><span class="input-unit">${step.unit}</span></div><div style="text-align:center; font-size:0.8rem; color:#666;">입력 후 다음을 눌러주세요</div>`;
         inputArea.innerHTML = html;
     } 
-    // 2. 리스트 형태 (라디오 버튼)
     else if (step.type === 'list') {
         html = `<div class="list-options">` + step.options.map(opt => `
             <div class="list-btn ${opt.title === step.value ? 'active' : ''}" data-value="${opt.title}">
@@ -109,7 +114,6 @@ function renderWizardStep() {
             });
         });
     }
-    // 3. 그리드형태 (성별 / 주당횟수 / 불균형)
     else if (step.type.startsWith('grid')) {
         const isCol3 = step.type === 'grid-num' ? 'cols-3' : '';
         html = `<div class="grid-options ${isCol3}">` + step.options.map(opt => {
@@ -129,27 +133,46 @@ function renderWizardStep() {
             });
         });
     }
-    // 4. 슬라이더
     else if (step.type === 'slider') {
-        html = `<div class="slider-container"><div id="slider-display" class="slider-val-text">${step.value}</div><div class="slider-sub-text">스트렝스 0 : 근비대 100</div><input type="range" id="goal-slider" min="0" max="100" value="0"><div class="slider-labels"><span>← 근비대</span><span>스트렝스 →</span></div></div>`;
+        const defaultIdx = typeof step.value === 'number' ? step.value : 0;
+        const state = sliderMapping[defaultIdx];
+        
+        html = `
+            <div class="slider-container">
+                <div id="slider-display" class="slider-val-text">${state.title}</div>
+                <div id="slider-sub" class="slider-sub-text">${state.sub}</div>
+                
+                <div class="slider-track-wrap">
+                    <div class="slider-track-bg">
+                        <div class="dot"></div>
+                        <div class="dot"><div class="rec-badge">권장</div></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <input type="range" id="goal-slider" min="0" max="4" step="1" value="${defaultIdx}">
+                </div>
+                
+                <div class="slider-labels">
+                    <span>← 근비대</span>
+                    <span>스트렝스 →</span>
+                </div>
+            </div>`;
         inputArea.innerHTML = html;
+        
         document.getElementById('goal-slider').addEventListener('input', (e) => {
-            const val = parseInt(e.target.value);
-            if (val < 33) step.value = '근비대 집중';
-            else if (val < 66) step.value = '근비대 / 스트렝스 균형';
-            else step.value = '스트렝스 집중';
-            document.getElementById('slider-display').innerText = step.value;
+            const idx = parseInt(e.target.value);
+            step.value = idx;
+            document.getElementById('slider-display').innerText = sliderMapping[idx].title;
+            document.getElementById('slider-sub').innerText = sliderMapping[idx].sub;
         });
     }
-    // 5. 멀티 칩 선택 (부위 강조/유지)
     else if (step.type === 'multi') {
         html = step.sections.map(sec => `
             <div class="chip-section">
                 <div class="chip-section-title c-${sec.color}">${sec.name}</div>
                 <div class="chip-grid">
-                    ${step.items.map(item => `
-                        <div class="chip-btn ${step.values.some(v => v.id === sec.id && v.val === item) ? `active-${sec.color}` : ''}" data-sec="${sec.id}" data-color="${sec.color}" data-val="${item}">${item}</div>
-                    `).join('')}
+                    ${step.items.map(item => `<div class="chip-btn ${step.values.some(v => v.id === sec.id && v.val === item) ? `active-${sec.color}` : ''}" data-sec="${sec.id}" data-color="${sec.color}" data-val="${item}">${item}</div>`).join('')}
                 </div>
             </div>
         `).join('');
@@ -168,10 +191,9 @@ function renderWizardStep() {
                     target.classList.remove(`active-${color}`);
                 } else {
                     if (step.values.length >= 3) return alert('최대 3개까지만 선택 가능합니다.');
-                    // 반대 섹션에 같은 부위가 있으면 삭제
                     step.values = step.values.filter(v => v.val !== val);
                     step.values.push({id: sec, val: val});
-                    renderWizardStep(); // 리렌더링으로 상태 동기화
+                    renderWizardStep(); 
                 }
             });
         });
@@ -197,7 +219,7 @@ document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
 });
 
-// --- 훈련 렌더링 및 타이머 (기존 유지) ---
+// --- 훈련 렌더링 및 타이머 (유지) ---
 const routine = [
     { id: 'bench', name: '플랫 벤치프레스', sets: 4, reps: '10~12회', rest: 60 },
     { id: 'incline', name: '인클라인 프레스', sets: 3, reps: '12회', rest: 60 },
