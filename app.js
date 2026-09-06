@@ -22,12 +22,10 @@ function switchView(targetId) {
     });
     
     const targetView = document.getElementById(targetId);
-    if (targetView) {
+    if(targetView) {
         targetView.classList.add('active');
         targetView.style.display = '';
         window.scrollTo(0, 0);
-    } else {
-        console.error("View not found:", targetId);
     }
 }
 
@@ -214,7 +212,6 @@ function renderExplainStep() {
     document.getElementById('explain-timeline').innerHTML = timelineHtml;
     document.getElementById('explain-desc').innerHTML = explainData[currentExplainStep].desc;
     
-    // [수정됨] 탭 텍스트 처리 최적화
     const tapText = document.getElementById('explain-tap-text');
     if (currentExplainStep === explainData.length - 1) {
         tapText.innerText = '루틴 구조 보기 >';
@@ -225,13 +222,14 @@ function renderExplainStep() {
     }
 }
 
-// [수정됨] 클릭 이벤트 핸들러 명시적 분기 및 예외 처리
-document.getElementById('explain-bottom-card').addEventListener('click', () => {
+// [수정됨] 화면 전환을 보장하기 위한 팝업 클릭 이벤트
+document.getElementById('explain-bottom-card').addEventListener('click', function(e) {
+    e.stopPropagation(); // 이벤트 버블링 차단
+    
     if (currentExplainStep < explainData.length - 1) { 
         currentExplainStep++; 
         renderExplainStep(); 
     } else { 
-        // 마지막 스텝일 때 다음 화면으로 이동
         generateRecommendedRoutine(); 
         switchView('view-recommended-routine'); 
     } 
@@ -269,10 +267,10 @@ function generateRecommendedRoutine() {
     const timelineArea = document.getElementById('rec-timeline-render');
     let html = '';
 
-    const exerciseBlocks = [
-        { day: 'Day 1 (밀기)', count: 4, exercises: [{ name: '시티드 로우', target: '등상부' }, { name: '체스트 프레스', target: '가슴' }, { name: '인클라인 머신', target: '가슴' }, { name: '랫풀다운', target: '광배근' }, { name: '덤벨 플라이', target: '가슴' }, { name: '체스트 로우', target: '광배근' }] },
-        { day: 'Day 2 (당기기)', count: 4, exercises: [{ name: '숄더 프레스', target: '어깨' }, { name: '프리처 컬', target: '이두' }, { name: '사레레', target: '어깨' }, { name: '덤벨 익스텐션', target: '삼두' }, { name: '바벨 컬', target: '이두' }, { name: '푸시다운', target: '삼두' }, { name: '페이스 풀', target: '어깨' }] },
-        { dayLabel: 'Day 3 (하체)', count: 3, exercises: [{ name: '백스쿼트', target: '대퇴사두' }, { name: '루마니안 데드', target: '햄스트링' }, { name: '레그 프레스', target: '하체' }, { name: '라잉 레그 컬', target: '햄스트링' }, { name: '카프 레이즈', target: '하체' }] }
+    const routineSchedule = [
+        { dayLabel: 'Day 1', count: 4, exercises: [{ name: '시티드 로우', target: '등상부' }, { name: '체스트 프레스', target: '가슴' }, { name: '인클라인 머신', target: '가슴' }, { name: '랫풀다운', target: '광배근' }, { name: '덤벨 플라이', target: '가슴' }, { name: '체스트 로우', target: '광배근' }] },
+        { dayLabel: 'Day 2', count: 4, exercises: [{ name: '숄더 프레스', target: '어깨' }, { name: '프리처 컬', target: '이두' }, { name: '사레레', target: '어깨' }, { name: '덤벨 익스텐션', target: '삼두' }, { name: '바벨 컬', target: '이두' }, { name: '푸시다운', target: '삼두' }, { name: '페이스 풀', target: '어깨' }] },
+        { dayLabel: 'Day 3', count: 3, exercises: [{ name: '백스쿼트', target: '대퇴사두' }, { name: '루마니안 데드', target: '햄스트링' }, { name: '레그 프레스', target: '하체' }, { name: '라잉 레그 컬', target: '햄스트링' }, { name: '카프 레이즈', target: '하체' }] }
     ];
 
     for (let i = 0; i < frequency; i++) {
@@ -288,7 +286,7 @@ function generateRecommendedRoutine() {
             <div class="rtl-item">
                 <div class="rtl-circle"></div>
                 <div class="rtl-content">
-                    <div class="rtl-day-title">${item.dayLabel || 'Day ' + (i+1)} <span class="rtl-day-sub">| 총 ${block.count}개 운동</span> ${showCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
+                    <div class="rtl-day-title">Day ${i + 1} <span class="rtl-day-sub">| 총 ${block.count}개 운동</span> ${showCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
                     <div class="rtl-thumbnails">${thumbHtml}</div>
                     ${showCardio ? '<div class="rtl-desc">유산소는 앱을 시작한 뒤 몇 가지만 답하면 종목과 시간이 정해져요.</div>' : ''}
                 </div>
