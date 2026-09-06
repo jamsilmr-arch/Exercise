@@ -160,8 +160,7 @@ input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 
 .loading-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; line-height: 1.4; }
 .loading-desc { font-size: 0.85rem; color: #888; line-height: 1.5; }
 
-/* --- [수정됨] 결과 분석 화면 스크롤 이슈 완전 해결 --- */
-/* 화면 밖으로 넘치지 않도록 전체 뷰포트 영역 높이 제한 */
+/* 결과 분석 화면 */
 #view-result-explain { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
 .result-header { padding: 20px 20px 10px; flex-shrink: 0; }
 .r-top { font-size: 0.8rem; color: #aaa; margin-bottom: 15px; text-align: center; }
@@ -171,8 +170,7 @@ input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 
 .r-progress-bar.active { background: #E50914; }
 .r-progress-text { font-size: 0.75rem; color: #E50914; margin-left: 10px; font-weight: bold; width: 35px; text-align: right; }
 
-/* 불필요한 280px 여백 제거 및 컨테이너 내부 스크롤 허용 */
-.result-timeline { padding: 0 20px; display: flex; flex-direction: column; gap: 0; padding-bottom: 120px; overflow-y: auto; flex: 1; }
+.result-timeline { padding: 0 20px; display: flex; flex-direction: column; gap: 0; padding-bottom: 140px; overflow-y: auto; flex: 1; }
 .rt-item { display: flex; align-items: center; gap: 20px; position: relative; opacity: 0; transform: translateY(10px); animation: fadeIn 0.3s forwards; margin-bottom: 30px; }
 .rt-item::after { content: ''; position: absolute; left: 24px; top: 50px; bottom: -30px; width: 2px; background: #222; }
 .rt-item:last-child::after { display: none; }
@@ -181,10 +179,12 @@ input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 
 .rt-text { font-size: 1.05rem; color: #555; transition: 0.3s; font-weight: normal; }
 .rt-item.active .rt-text { color: #fff; font-weight: bold; }
 
-.result-bottom-card { background: #141414; border: 1px solid #333; padding: 25px 20px; border-radius: 12px 12px 0 0; position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; cursor: pointer; animation: slideUp 0.3s; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); }
+/* 하단 팝업: 레이어 높이, 버튼 분리 */
+.result-bottom-card { background: #141414; border: 1px solid #333; padding: 25px 20px; border-radius: 12px 12px 0 0; position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; animation: slideUp 0.3s; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .r-desc-text { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 25px; white-space: pre-line; word-break: keep-all; pointer-events: none;}
-.r-tap-text { text-align: right; font-size: 0.8rem; color: #E50914; font-weight: bold; pointer-events: none;}
+/* 텍스트 우측 정렬 버튼으로 분리 변경 */
+.r-tap-btn { align-self: flex-end; font-size: 0.8rem; font-weight: bold; background: transparent; border: none; cursor: pointer; padding: 10px; color: #E50914; z-index: 200; outline: none; }
 
 /* 모의 그래프 */
 .mock-graph { margin-bottom: 20px; background: #0a0a0a; padding: 20px 15px; border-radius: 8px; border: 1px solid #222; width: 100%;}
