@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>40 Min Overload</title>
+    <title>40 Min Overload - 설정</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase App, Auth 및 Firestore 추가 -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <!-- [화면 0-1] 스플래시 화면 -->
     <div id="view-splash" class="view-container active no-scroll flex-center">
         <div class="splash-netflix-content">
             <p class="splash-sub">헬스 트레이닝 앱</p>
@@ -22,7 +20,6 @@
         </div>
     </div>
 
-    <!-- [화면 0-2] 계정 연동 (로그인) -->
     <div id="view-login" class="view-container flex-center no-scroll" style="padding: 40px;">
         <div class="login-logo font-pinyon">JHP</div>
         <h1 class="login-title">거의 다 왔어요</h1>
@@ -33,7 +30,6 @@
         </div>
     </div>
 
-    <!-- [화면 1] 설정 (맞춤형 온보딩 마법사) -->
     <div id="view-settings" class="view-container">
         <header class="wizard-header">
             <div class="wizard-top">
@@ -58,14 +54,12 @@
         </div>
     </div>
 
-    <!-- [화면 1-1] 로딩 화면 -->
     <div id="view-loading" class="view-container flex-center no-scroll">
         <div class="loader-circle"></div>
         <h2 class="loading-title">맞춤형 루틴을<br>생성하고 있어요</h2>
         <p class="loading-desc">잠시만 기다려주세요.<br>곧 최적의 루틴 구조를 보여드릴게요.</p>
     </div>
 
-    <!-- [화면 1-2] 추천 루틴 분석 과정 -->
     <div id="view-result-explain" class="view-container">
         <header class="result-header">
             <div class="r-top">추천 루틴</div>
@@ -79,7 +73,6 @@
         </div>
     </div>
 
-    <!-- [화면 1-3] 추천 루틴 완성 타임라인 -->
     <div id="view-recommended-routine" class="view-container">
         <header class="rec-header">
             <div class="r-top-nav"><button class="icon-btn" id="btn-rec-back">←</button><span class="r-nav-title">추천 루틴</span></div>
@@ -99,52 +92,6 @@
         </div>
     </div>
 
-    <!-- [화면 2] 홈 대시보드 -->
-    <div id="view-home" class="view-container">
-        <header class="top-nav"><div class="logo font-pinyon">JHP</div><button class="tutorial-btn">루틴 수정</button></header>
-        <main class="content-area">
-            <h2 class="routine-title">직장인 점심 3분할 루틴</h2>
-            <div class="target-bar-container"><div class="target-bar"></div><span class="target-text">목표: 린매스업</span></div>
-            <div class="main-card">
-                <div class="card-badge">오늘 운동</div> <span class="card-day">Day 1 (밀기)</span>
-                <div class="card-stats">
-                    <div class="stat-item"><span class="stat-icon">💪</span><span class="stat-value">4개 종목</span></div>
-                    <div class="stat-item"><span class="stat-icon">📊</span><span class="stat-value">14세트 (40분)</span></div>
-                </div>
-                <button id="btn-start-workout" class="primary-btn">오늘 운동 시작</button>
-            </div>
-        </main>
-    </div>
-
-    <!-- [화면 3] 실제 훈련 타이머 화면 -->
-    <div id="view-workout" class="view-container">
-        <header class="workout-header">
-            <button id="btn-back" class="icon-btn">←</button><h1>Day 1: 밀기 데이</h1><div id="global-timer">00:00</div>
-        </header>
-        <main id="exercise-list" class="content-area"></main>
-    </div>
-
-    <!-- [화면 4] 분석 -->
-    <div id="view-analysis" class="view-container">
-        <header class="algo-header"><h1 class="algo-title">최신 연구를 모두 분석해<br><span class="highlight">알고리즘으로 구현</span>했습니다.</h1></header>
-        <main class="algo-content">
-            <div class="metric-grid">
-                <div class="metric-card"><span class="m-label">중량</span><span class="m-value highlight">45</span><span class="m-unit">KG</span></div>
-                <div class="metric-card"><span class="m-label">횟수</span><span class="m-value highlight">12</span><span class="m-unit">REPS</span></div>
-                <div class="metric-card"><span class="m-label">세트</span><span class="m-value highlight">4</span><span class="m-unit">SETS</span></div>
-                <div class="metric-card"><span class="m-label">강도</span><span class="m-value highlight">2</span><span class="m-unit">RIR</span></div>
-            </div>
-        </main>
-    </div>
-
-    <!-- 하단 네비게이션 바 -->
-    <nav class="bottom-nav" id="main-nav">
-        <div class="nav-item active" data-target="view-home"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
-        <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
-        <div class="nav-item" data-target="view-analysis"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
-        <div class="nav-item" data-target="view-settings"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
-    </nav>
-
-    <script src="app.js"></script>
+    <script src="onboarding.js"></script>
 </body>
 </html>
