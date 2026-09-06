@@ -7,13 +7,12 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .highlight { color: #6C5CE7; font-weight: bold; }
 .content-area { padding: 0 20px; }
 
-/* 네비게이션 및 홈 (기존 유지) */
+/* 네비게이션 및 홈 */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0a0a0a; border-top: 1px solid #222; display: flex; justify-content: space-around; padding: 10px 0 25px 0; z-index: 1000; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666; font-size: 0.75rem; cursor: pointer; }
 .nav-item.active { color: #6C5CE7; }
 .nav-icon { font-size: 1.2rem; filter: grayscale(100%); opacity: 0.5; }
 .nav-item.active .nav-icon { filter: grayscale(0%); opacity: 1; }
-
 .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px; }
 .logo { font-size: 1.5rem; font-weight: 800; }
 .routine-title { font-size: 1.2rem; margin-bottom: 10px; font-weight: 600; }
@@ -29,7 +28,7 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .stat-value { font-size: 0.9rem; color: #ccc; }
 .primary-btn { width: 100%; padding: 16px; border: none; border-radius: 12px; background-color: #6C5CE7; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
 
-/* 훈련 화면 및 분석 화면 (기존 유지) */
+/* 훈련 화면 및 분석 화면 */
 .workout-header { display: flex; align-items: center; padding: 15px 20px; background: #030303; position: sticky; top: 0; z-index: 50; }
 .icon-btn { background: none; border: none; color: white; font-size: 1.5rem; padding-right: 15px; cursor: pointer; }
 #global-timer { font-size: 1.3rem; font-weight: bold; color: #888; margin-left: auto; }
@@ -56,7 +55,7 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .progress-bar-bg { height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: #6C5CE7; transition: width 0.3s ease; }
 .wizard-content { padding: 0 20px; padding-bottom: 100px; }
-.q-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; line-height: 1.4; white-space: pre-line; word-break: keep-all; }
+.q-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; line-height: 1.4; word-break: keep-all; white-space: pre-line; }
 .q-desc { font-size: 0.85rem; color: #888; margin-bottom: 30px; line-height: 1.4; word-break: keep-all; }
 
 /* Type 1: 인풋 (단일 숫자) */
@@ -65,30 +64,31 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .input-val::placeholder { color: #333; font-weight: normal; }
 .input-unit { font-size: 1.2rem; color: #888; font-weight: 500; margin-top: 15px; }
 input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
 
-/* Type 2: 그리드 버튼 (성별/불균형/주당횟수) */
+/* Type 2: 그리드 버튼 */
 .grid-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 .grid-options.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-.opt-btn { background: #121212; border: 1px solid #222; padding: 30px 10px; border-radius: 16px; color: white; font-size: 1.2rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; text-align: center; }
+.opt-btn { background: #121212; border: 1px solid #222; padding: 30px 10px; border-radius: 16px; color: white; font-size: 1.2rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; text-align: center; word-break: keep-all; }
 .opt-btn.active { background: rgba(108, 92, 231, 0.15); border-color: #6C5CE7; color: #6C5CE7; }
 .opt-icon { font-size: 2rem; margin-bottom: 5px; font-weight: normal; }
 .opt-sub { font-size: 0.75rem; color: #666; font-weight: normal; }
 .opt-btn.active .opt-sub { color: #6C5CE7; }
 
-/* Type 3: 리스트 라디오 버튼 (경력/기구/중량대) */
+/* Type 3: 리스트 라디오 버튼 */
 .list-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .list-btn { background: #121212; border: 1px solid #222; padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 .list-btn.active { background: rgba(108, 92, 231, 0.15); border-color: #6C5CE7; }
-.list-text-area { display: flex; flex-direction: column; gap: 5px; }
+.list-text-area { display: flex; flex-direction: column; gap: 5px; word-break: keep-all; }
 .list-title { font-size: 1rem; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 8px; }
 .list-sub { font-size: 0.8rem; color: #888; }
 .list-btn.active .list-title { color: #6C5CE7; }
-.radio-circle { width: 22px; height: 22px; border: 2px solid #444; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+.radio-circle { min-width: 22px; height: 22px; border: 2px solid #444; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
 .list-btn.active .radio-circle { border-color: #6C5CE7; }
 .list-btn.active .radio-circle::after { content: ''; width: 10px; height: 10px; background: #6C5CE7; border-radius: 50%; }
 .list-badge { background: #6C5CE7; color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 4px; font-weight: bold; }
 
-/* Type 4: 멀티 칩 선택 (부위 강조/유지) */
+/* Type 4: 멀티 칩 선택 */
 .chip-section { margin-bottom: 25px; }
 .chip-section-title { font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
 .chip-section-title.c-purple::before { content: '●'; color: #6C5CE7; font-size: 0.8rem; }
@@ -98,21 +98,27 @@ input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-i
 .chip-btn.active-purple { background: rgba(108, 92, 231, 0.15); border-color: #6C5CE7; color: #6C5CE7; font-weight: bold; }
 .chip-btn.active-green { background: rgba(0, 184, 148, 0.15); border-color: #00b894; color: #00b894; font-weight: bold; }
 
-/* Type 5: 슬라이더 */
+/* Type 5: 5단계 슬라이더 UI (레퍼런스 적용) */
 .slider-container { background: #121212; border: 1px solid #222; border-radius: 16px; padding: 40px 20px; margin-bottom: 20px; text-align: center; }
 .slider-val-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
 .slider-sub-text { font-size: 0.8rem; color: #888; margin-bottom: 30px; }
-input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #6C5CE7; cursor: pointer; margin-top: -10px; box-shadow: 0 0 10px rgba(108, 92, 231, 0.5); }
-input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #333; border-radius: 3px; }
+.slider-track-wrap { position: relative; margin: 40px 0; padding: 0 14px; }
+.slider-track-bg { position: absolute; top: 50%; left: 14px; right: 14px; transform: translateY(-50%); height: 10px; background: #6C5CE7; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; padding: 0 4px; pointer-events: none; z-index: 1; }
+.slider-track-bg .dot { width: 6px; height: 6px; background: rgba(0,0,0,0.5); border-radius: 50%; position: relative; }
+.rec-badge { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid #444; color: #999; font-size: 0.7rem; padding: 4px 12px; border-radius: 12px; white-space: nowrap; }
+.rec-badge::before { content: '▲'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); color: #444; font-size: 0.8rem; }
+input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; position: relative; z-index: 2; margin: 0; outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 32px; width: 32px; border-radius: 50%; background: #00cec9; border: 5px solid #121212; cursor: pointer; margin-top: -11px; box-shadow: 0 0 12px rgba(0, 206, 201, 0.4); }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 10px; background: transparent; cursor: pointer; }
 .slider-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-top: 15px; }
 
-/* 하단 버튼 및 인트로 (기존 유지) */
+/* 공통 하단 요소 */
+.hint-box { background: rgba(255, 255, 255, 0.03); border: 1px solid #222; border-radius: 12px; padding: 15px; display: flex; gap: 10px; font-size: 0.85rem; color: #aaa; align-items: flex-start; line-height: 1.4; margin-bottom: 100px; word-break: keep-all; }
 .wizard-footer { display: flex; gap: 10px; padding: 20px; position: fixed; bottom: 0; width: 100%; background: #030303; z-index: 100; padding-bottom: 30px; }
 .btn-prev { flex: 1; background: #1a1a1a; color: white; padding: 16px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; }
 .btn-next { flex: 2; background: #6C5CE7; color: white; padding: 16px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; }
 
-/* 스플래시 & 인트로 유지 */
+/* 스플래시 & 인트로 (유지) */
 .splash-main { display: flex; flex-direction: column; align-items: center; padding-top: 80px; flex: 1; }
 .splash-sub { font-size: 0.85rem; color: #888; letter-spacing: 2px; margin-bottom: 10px; }
 .splash-title { font-size: 2.5rem; font-weight: 900; margin-bottom: 40px; }
@@ -121,8 +127,6 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cur
 .mockup-bar { width: 100%; height: 8px; background: #222; border-radius: 4px; margin-bottom: 20px; }
 .mockup-card { background: #1a1a1a; padding: 15px; border-radius: 12px; }
 .splash-footer { padding: 20px; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #030303 80%, transparent); }
-.primary-btn { width: 100%; padding: 16px; border: none; border-radius: 12px; background: #6C5CE7; color: white; font-size: 1.1rem; font-weight: bold; }
-.secondary-btn { width: 100%; padding: 16px; border: 1px solid #333; border-radius: 12px; background: transparent; color: #888; font-size: 1rem; font-weight: bold; margin-top: 10px; }
 .intro-top { padding: 20px; display: flex; }
 .intro-content { padding: 0 30px; flex: 1; }
 .intro-badge { display: inline-block; background: rgba(108, 92, 231, 0.15); color: #6C5CE7; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-bottom: 15px; border: 1px solid rgba(108, 92, 231, 0.3); }
