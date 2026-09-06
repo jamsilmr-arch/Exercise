@@ -203,9 +203,23 @@ input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 
 .r-tap-text { text-align: right; font-size: 0.8rem; color: #E50914; font-weight: bold; }
 
 /* --- [수정됨] 모의 그래프 고도화 (비율 최적화) --- */
-.mock-graph { margin-bottom: 20px; background: #0a0a0a; padding: 20px 15px; border-radius: 8px; border: 1px solid #222; width: 100%;}
-/* viewBox를 100x30으로 변경하여 찌그러짐 방지 및 샤프한 선 렌더링 */
-.mock-graph-svg { width: 100%; height: auto; display: block; overflow: visible; margin-bottom: 15px; }
+.mock-graph { 
+    margin-bottom: 20px; 
+    background: #0a0a0a; 
+    padding: 20px 15px; 
+    border-radius: 8px; 
+    border: 1px solid #222; 
+    width: 100%;
+}
+/* SVG가 화면을 가리지 않도록 최대 높이(max-height) 고정 */
+.mock-graph-svg { 
+    width: 100%; 
+    height: auto; 
+    max-height: 80px; /* 추가: 세로 무한 확장 방지 */
+    display: block; 
+    overflow: visible; 
+    margin-bottom: 15px; 
+}
 .mock-graph-labels { display: flex; justify-content: space-between; margin-top: 15px; }
 .mgl { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .mgl-circ { width: 26px; height: 26px; background: #222; border-radius: 4px; font-size: 0.75rem; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #aaa; }
