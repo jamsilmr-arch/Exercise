@@ -1,18 +1,25 @@
-// --- 요소 선택 및 뷰 전환 ---
+// --- Firebase SDK 초기화 (실제 발급된 키 연동) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyAPF1e1n5jS6YALzl0bJDGmDvOH1jhSU_g",
+    authDomain: "exercise-abddb.firebaseapp.com",
+    projectId: "exercise-abddb",
+    storageBucket: "exercise-abddb.firebasestorage.app",
+    messagingSenderId: "887574653012",
+    appId: "1:887574653012:web:deac9acecc61763d325c1",
+    measurementId: "G-05SVZ9QPS9"
+};
+
+// Firebase 앱 초기화 및 Google Provider 인스턴스 생성
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// --- 뷰 전환 유틸 ---
 const mainNav = document.getElementById('main-nav');
-
-// [참고] 실제 구글 로그인을 연동하기 위해 Firebase Authentication을 사용하는 예시 뼈대입니다.
-// 실제 사용 시에는 HTML <head>에 Firebase SDK CDN을 삽입하고 아래 config를 채워야 합니다.
-/*
-  const firebaseConfig = { apiKey: "YOUR_API_KEY", authDomain: "YOUR_DOMAIN", projectId: "YOUR_PROJECT_ID" };
-  firebase.initializeApp(firebaseConfig);
-  const provider = new firebase.auth.GoogleAuthProvider();
-*/
-
 function switchView(targetId) {
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
-        view.style.display = 'none'; // Flex 겹침 차단
+        view.style.display = 'none';
     });
     
     const targetView = document.getElementById(targetId);
@@ -21,9 +28,8 @@ function switchView(targetId) {
     window.scrollTo(0, 0);
 }
 
-// 최초 진입 체크 (스플래시 화면 제어)
+// 최초 진입 체크
 const isOnboardingCompleted = localStorage.getItem('onboardingCompleted');
-
 if (!isOnboardingCompleted) {
     mainNav.style.display = 'none';
     switchView('view-splash');
@@ -32,37 +38,38 @@ if (!isOnboardingCompleted) {
     switchView('view-home');
 }
 
-// [수정됨] 스플래시 -> 구글 로그인 화면으로 이동
-document.getElementById('btn-go-login').addEventListener('click', () => { 
+// 스플래시 -> 로그인 화면 전환
+document.getElementById('btn-start-onboarding').addEventListener('click', () => { 
     switchView('view-login'); 
 });
 
-// [수정됨] 구글 로그인 버튼 이벤트 (실제 연동 시 이 부분에 Firebase 팝업 로직 호출)
+// 구글 실제 로그인 팝업 연동
 document.getElementById('btn-login-google').addEventListener('click', () => {
-    /* 
-      // 실제 구글 로그인 팝업 호출 로직 예시
-      firebase.auth().signInWithPopup(provider).then((result) => {
-          console.log("로그인 성공:", result.user);
-          startWizard(); // 로그인 성공 시 마법사로 진입
-      }).catch((error) => {
-          console.error("로그인 실패:", error);
-      });
-    */
-    
-    // 현재는 UI 시뮬레이션을 위해 클릭 시 바로 마법사로 넘김
-    startWizard();
+    auth.signInWithPopup(googleProvider)
+        .then((result) => {
+            const user = result.user;
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userName', user.displayName || '');
+            startWizard();
+        })
+        .catch((error) => {
+            if (error.code === 'auth/unauthorized-domain') {
+                alert('현재 접속 중인 도메인이 Firebase에 승인되지 않았습니다. Firebase 콘솔 > Authentication > Settings > Authorized domains에 추가해 주세요.');
+            } else if (error.code !== 'auth/popup-closed-by-user') {
+                alert('로그인 오류: ' + error.message);
+            }
+        });
 });
 
-// [수정됨] 로그인 없이 이용하기 버튼 클릭
+// 로그인 없이 이용하기
 document.getElementById('btn-skip-login').addEventListener('click', startWizard);
 
-// 설정 마법사 시작 함수
 function startWizard() {
     switchView('view-settings');
     renderWizardStep();
 }
 
-// 네비게이션 설정
+// 네비게이션
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
         const target = item.getAttribute('data-target');
@@ -76,8 +83,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 document.getElementById('btn-start-workout').addEventListener('click', () => switchView('view-workout'));
 document.getElementById('btn-back').addEventListener('click', () => switchView('view-home'));
 
-
-// --- 설정 마법사 로직 ---
+// --- 마법사 로직 ---
 const wizardSteps = [
     { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '72', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
     { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '29', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영해요.' },
@@ -90,7 +96,7 @@ const wizardSteps = [
     { type: 'slider', title: '근비대 vs 스트렝스,\n어느쪽이 목표인가요?', desc: '', value: 0, hint: '목표에 따라 세트당 반복 횟수(Reps)와 볼륨이 크게 달라져요.' },
     { type: 'multi', title: '강조/유지할 부위가\n있나요?', desc: '균형 잡힌 루틴을 원하면 선택하지 않아도 돼요 · 강조/유지 각 최대 3개', sections: [{id:'emph', name:'강조', color:'purple'}, {id:'maint', name:'유지', color:'green'}], items: ['가슴','어깨(전/측면)','어깨(후면)','등 중/상부','광배근','이두근','삼두근','전완','대퇴사두','햄스트링','둔근','복근','목','기립근','종아리','내전근'], values: [], hint: '선택하신 부위의 세트 수가 우선적으로 배정돼요.' },
     { type: 'list', title: '선호하는 중량대가 있나요?', desc: '알고리즘이 참고하는 초기 설정이에요', options: [{title:'초고중량', sub:''}, {title:'고중량', sub:''}, {title:'중간 중량', sub:'', badge:'추천'}, {title:'저중량', sub:''}, {title:'초저중량', sub:''}], value: null, hint: '처음 시작할 때 추천되는 기준 중량을 설정해요.' },
-    { type: 'grid-bool', title: '유산소 운동도\n하고 싶으신가요?', desc: '근력 운동을 마친 뒤에 이어서 할 수 있어요', options: ['네, 하고 싶어요', '아니요'], value: null, hint: '선택에 따라 점심 40분 외에 별도의 유산소 플랜을 제안해드려요.' }
+    { type: 'grid-bool', title: '유산소 운동도\n하고 싶으신가요?', desc: '근력 운동을 마친 뒤에 이어서 할 수 있어요', options: ['네, 하고 싶어요', '아니오'], value: null, hint: '선택에 따라 점심 40분 외에 별도의 유산소 플랜을 제안해드려요.' }
 ];
 
 const sliderMapping = [
@@ -151,7 +157,6 @@ function renderWizardStep() {
             const target = e.currentTarget; const sec = target.getAttribute('data-sec'); const val = target.getAttribute('data-val'); const color = target.getAttribute('data-color');
             const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
             
-            // 강조와 유지 각각 독립적으로 3개까지만 선택 가능
             if (existingIdx > -1) { 
                 step.values.splice(existingIdx, 1); 
                 target.classList.remove(`active-${color}`); 
@@ -173,7 +178,7 @@ document.getElementById('btn-next-step').addEventListener('click', () => {
     const activeInput = document.querySelector('.input-val');
     if (activeInput) { wizardSteps[currentWizardStep].value = activeInput.value; }
     if (currentWizardStep < wizardSteps.length - 1) { currentWizardStep++; renderWizardStep(); } 
-    else { showLoadingScreen(); } // 설정 완료 시 로딩 호출
+    else { showLoadingScreen(); }
 });
 document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
@@ -277,8 +282,6 @@ function generateRecommendedRoutine() {
 }
 
 document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
-
-// 앱 시작하기 버튼 클릭 시 홈 화면으로 이동 및 온보딩 완료 처리
 document.getElementById('btn-go-home').addEventListener('click', () => { 
     localStorage.setItem('onboardingCompleted', 'true');
     mainNav.style.display = 'flex';
