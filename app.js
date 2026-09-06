@@ -1,4 +1,4 @@
-// --- Firebase SDK 초기화 (실제 발급된 키 연동) ---
+// --- Firebase SDK 초기화 ---
 const firebaseConfig = {
     apiKey: "AIzaSyAPF1e1n5jS6YALzl0bJDGmDvOH1jhSU_g",
     authDomain: "exercise-abddb.firebaseapp.com",
@@ -9,7 +9,6 @@ const firebaseConfig = {
     measurementId: "G-05SVZ9QPS9"
 };
 
-// Firebase 앱 초기화 및 Google Provider 인스턴스 생성
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
@@ -43,7 +42,7 @@ document.getElementById('btn-start-onboarding').addEventListener('click', () => 
     switchView('view-login'); 
 });
 
-// 구글 실제 로그인 팝업 연동
+// 구글 로그인 팝업 연동
 document.getElementById('btn-login-google').addEventListener('click', () => {
     auth.signInWithPopup(googleProvider)
         .then((result) => {
@@ -96,7 +95,7 @@ const wizardSteps = [
     { type: 'slider', title: '근비대 vs 스트렝스,\n어느쪽이 목표인가요?', desc: '', value: 0, hint: '목표에 따라 세트당 반복 횟수(Reps)와 볼륨이 크게 달라져요.' },
     { type: 'multi', title: '강조/유지할 부위가\n있나요?', desc: '균형 잡힌 루틴을 원하면 선택하지 않아도 돼요 · 강조/유지 각 최대 3개', sections: [{id:'emph', name:'강조', color:'purple'}, {id:'maint', name:'유지', color:'green'}], items: ['가슴','어깨(전/측면)','어깨(후면)','등 중/상부','광배근','이두근','삼두근','전완','대퇴사두','햄스트링','둔근','복근','목','기립근','종아리','내전근'], values: [], hint: '선택하신 부위의 세트 수가 우선적으로 배정돼요.' },
     { type: 'list', title: '선호하는 중량대가 있나요?', desc: '알고리즘이 참고하는 초기 설정이에요', options: [{title:'초고중량', sub:''}, {title:'고중량', sub:''}, {title:'중간 중량', sub:'', badge:'추천'}, {title:'저중량', sub:''}, {title:'초저중량', sub:''}], value: null, hint: '처음 시작할 때 추천되는 기준 중량을 설정해요.' },
-    { type: 'grid-bool', title: '유산소 운동도\n하고 싶으신가요?', desc: '근력 운동을 마친 뒤에 이어서 할 수 있어요', options: ['네, 하고 싶어요', '아니오'], value: null, hint: '선택에 따라 점심 40분 외에 별도의 유산소 플랜을 제안해드려요.' }
+    { type: 'grid-bool', title: '유산소 운동도\n하고 싶으신가요?', desc: '근력 운동을 마친 뒤에 이어서 할 수 있어요', options: ['네, 하고 싶어요', '아니요'], value: null, hint: '선택에 따라 점심 40분 외에 별도의 유산소 플랜을 제안해드려요.' }
 ];
 
 const sliderMapping = [
@@ -250,10 +249,10 @@ function generateRecommendedRoutine() {
     const timelineArea = document.getElementById('rec-timeline-render');
     let html = '';
 
-    const exerciseBlocks = [
-        { day: 'Day 1 (밀기)', count: 4, exercises: [{ name: '시티드 로우', target: '등상부' }, { name: '체스트 프레스', target: '가슴' }, { name: '인클라인 머신', target: '가슴' }, { name: '랫풀다운', target: '광배근' }, { name: '덤벨 플라이', target: '가슴' }, { name: '체스트 로우', target: '광배근' }] },
-        { day: 'Day 2 (당기기)', count: 4, exercises: [{ name: '숄더 프레스', target: '어깨' }, { name: '프리처 컬', target: '이두' }, { name: '사레레', target: '어깨' }, { name: '덤벨 익스텐션', target: '삼두' }, { name: '바벨 컬', target: '이두' }, { name: '푸시다운', target: '삼두' }, { name: '페이스 풀', target: '어깨' }] },
-        { day: 'Day 3 (하체)', count: 3, exercises: [{ name: '백스쿼트', target: '대퇴사두' }, { name: '루마니안 데드', target: '햄스트링' }, { name: '레그 프레스', target: '하체' }, { name: '라잉 레그 컬', target: '햄스트링' }, { name: '카프 레이즈', target: '하체' }] }
+    const routineSchedule = [
+        { dayLabel: 'Day 1', count: 4, exercises: [{ name: '시티드 로우', target: '등상부' }, { name: '체스트 프레스', target: '가슴' }, { name: '인클라인 머신', target: '가슴' }, { name: '랫풀다운', target: '광배근' }, { name: '덤벨 플라이', target: '가슴' }, { name: '체스트 로우', target: '광배근' }] },
+        { dayLabel: 'Day 2', count: 4, exercises: [{ name: '숄더 프레스', target: '어깨' }, { name: '프리처 컬', target: '이두' }, { name: '사레레', target: '어깨' }, { name: '덤벨 익스텐션', target: '삼두' }, { name: '바벨 컬', target: '이두' }, { name: '푸시다운', target: '삼두' }, { name: '페이스 풀', target: '어깨' }] },
+        { dayLabel: 'Day 3', count: 3, exercises: [{ name: '백스쿼트', target: '대퇴사두' }, { name: '루마니안 데드', target: '햄스트링' }, { name: '레그 프레스', target: '하체' }, { name: '라잉 레그 컬', target: '햄스트링' }, { name: '카프 레이즈', target: '하체' }] }
     ];
 
     for (let i = 0; i < frequency; i++) {
@@ -282,6 +281,7 @@ function generateRecommendedRoutine() {
 }
 
 document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
+
 document.getElementById('btn-go-home').addEventListener('click', () => { 
     localStorage.setItem('onboardingCompleted', 'true');
     mainNav.style.display = 'flex';
