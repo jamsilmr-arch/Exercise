@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>40 Min Overload - 홈</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div id="view-home" class="view-container active">
+        <header class="top-nav">
+            <div class="logo font-pinyon">JHP</div>
+            <!-- 루틴 수정 버튼 클릭 시 onboarding으로 복귀 -->
+            <button class="tutorial-btn" id="btn-edit-routine">루틴 수정</button>
+        </header>
+        <main class="content-area">
+            <h2 class="routine-title">직장인 점심 3분할 루틴</h2>
+            <div class="target-bar-container"><div class="target-bar"></div><span class="target-text">목표: 린매스업</span></div>
+            <div class="main-card">
+                <div class="card-badge">오늘 운동</div> <span class="card-day">Day 1 (밀기)</span>
+                <div class="card-stats">
+                    <div class="stat-item"><span class="stat-icon">💪</span><span class="stat-value">4개 종목</span></div>
+                    <div class="stat-item"><span class="stat-icon">📊</span><span class="stat-value">14세트 (40분)</span></div>
+                </div>
+                <button id="btn-start-workout" class="primary-btn">오늘 운동 시작</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="view-workout" class="view-container">
+        <header class="workout-header">
+            <button id="btn-back" class="icon-btn">←</button><h1>Day 1: 밀기 데이</h1><div id="global-timer">00:00</div>
+        </header>
+        <main id="exercise-list" class="content-area"></main>
+    </div>
+
+    <div id="view-analysis" class="view-container">
+        <header class="algo-header"><h1 class="algo-title">최신 연구를 모두 분석해<br><span class="highlight">알고리즘으로 구현</span>했습니다.</h1></header>
+        <main class="algo-content">
+            <div class="metric-grid">
+                <div class="metric-card"><span class="m-label">중량</span><span class="m-value highlight">45</span><span class="m-unit">KG</span></div>
+                <div class="metric-card"><span class="m-label">횟수</span><span class="m-value highlight">12</span><span class="m-unit">REPS</span></div>
+                <div class="metric-card"><span class="m-label">세트</span><span class="m-value highlight">4</span><span class="m-unit">SETS</span></div>
+                <div class="metric-card"><span class="m-label">강도</span><span class="m-value highlight">2</span><span class="m-unit">RIR</span></div>
+            </div>
+        </main>
+    </div>
+
+    <nav class="bottom-nav" id="main-nav">
+        <div class="nav-item active" data-target="view-home"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
+        <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
+        <div class="nav-item" data-target="view-analysis"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
+        <div class="nav-item" id="btn-nav-settings"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
+    </nav>
+
+    <script src="home.js"></script>
+</body>
+</html>
