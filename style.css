@@ -1,4 +1,4 @@
-/* 공통 리셋 */
+/* 기본 리셋 */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif; user-select: none; }
 body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: transparent; padding-bottom: 90px; }
 
@@ -10,7 +10,7 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .highlight { color: #6C5CE7; font-weight: bold; }
 .content-area { padding: 0 20px; }
 
-/* 하단 네비 및 홈 대시보드 */
+/* 네비게이션 바 */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0a0a0a; border-top: 1px solid #222; display: flex; justify-content: space-around; padding: 10px 0 25px 0; z-index: 1000; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666; font-size: 0.75rem; cursor: pointer; }
 .nav-item.active { color: #6C5CE7; }
@@ -57,11 +57,11 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .progress-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-bottom: 10px; }
 .progress-bar-bg { height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: #6C5CE7; transition: width 0.3s ease; }
-.wizard-content { padding: 0 20px; padding-bottom: 120px; }
+.wizard-content { padding: 0 20px; padding-bottom: 180px; }
 .q-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; line-height: 1.4; word-break: keep-all; white-space: pre-line; }
 .q-desc { font-size: 0.85rem; color: #888; margin-bottom: 30px; line-height: 1.4; word-break: keep-all; }
 
-/* 마법사 폼 요소 */
+/* 마법사 폼 컴포넌트 */
 .input-box { background: #121212; border: 1px solid #222; border-radius: 16px; padding: 40px 20px; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; }
 .input-val { background: transparent; border: none; color: white; font-size: 3.5rem; font-weight: bold; width: 160px; text-align: center; outline: none; }
 .input-val::placeholder { color: #333; font-weight: normal; }
@@ -94,6 +94,8 @@ input[type="number"] { -moz-appearance: textfield; }
 .chip-btn { background: #121212; border: 1px solid #333; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; color: #ccc; cursor: pointer; }
 .chip-btn.active-purple { background: rgba(108, 92, 231, 0.15); border-color: #6C5CE7; color: #6C5CE7; font-weight: bold; }
 .chip-btn.active-green { background: rgba(0, 184, 148, 0.15); border-color: #00b894; color: #00b894; font-weight: bold; }
+
+/* 5단계 슬라이더 UI */
 .slider-container { background: #121212; border: 1px solid #222; border-radius: 16px; padding: 40px 20px; margin-bottom: 20px; text-align: center; }
 .slider-val-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
 .slider-sub-text { font-size: 0.8rem; color: #888; margin-bottom: 30px; }
@@ -107,7 +109,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 32px
 input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 10px; background: transparent; cursor: pointer; }
 .slider-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-top: 15px; }
 
-/* 힌트 박스 및 버튼 */
+/* 힌트 박스 및 마법사 버튼 */
 .wizard-footer { display: flex; flex-direction: column; gap: 15px; padding: 0px 20px 30px; position: fixed; bottom: 0; width: 100%; background: #030303; z-index: 100; }
 .hint-box { background: rgba(255, 255, 255, 0.03); border: 1px solid #222; border-radius: 12px; padding: 15px; display: flex; gap: 10px; font-size: 0.85rem; color: #aaa; align-items: flex-start; line-height: 1.4; word-break: keep-all; margin: 0; }
 .wizard-footer-btns { display: flex; gap: 10px; width: 100%; }
@@ -167,15 +169,8 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 10px; ba
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .r-desc-text { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 25px; white-space: pre-line; word-break: keep-all; }
 .r-tap-text { text-align: right; font-size: 0.8rem; color: #6C5CE7; font-weight: bold; }
-.mock-graph { margin-bottom: 15px; background: #0a0a12; padding: 15px; border-radius: 12px; border: 1px solid #222; }
-.mock-graph-labels { display: flex; justify-content: space-between; margin-top: 10px; }
-.mgl { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-.mgl-circ { width: 24px; height: 24px; background: #222; border-radius: 8px; font-size: 0.7rem; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #aaa; }
-.mgl-circ.green { background: rgba(0, 184, 148, 0.2); color: #00b894; border: 1px solid #00b894; }
-.mgl-txt { font-size: 0.65rem; color: #666; }
-.mgl-txt.green { color: #00b894; font-weight: bold; }
 
-/* 추천 루틴 타임라인 뷰 */
+/* --- [추천 루틴 타임라인 & 상세 해부도 카드 UI] --- */
 .rec-header { padding: 20px; position: sticky; top: 0; background: #030303; z-index: 10; }
 .r-top-nav { display: flex; align-items: center; margin-bottom: 20px; }
 .r-nav-title { flex: 1; text-align: center; font-size: 1rem; font-weight: bold; padding-right: 30px; }
@@ -185,33 +180,50 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 10px; ba
 .r-chips { display: flex; gap: 8px; margin-bottom: 25px; }
 .r-chip { background: rgba(108, 92, 231, 0.15); color: #a29bfe; font-size: 0.75rem; padding: 6px 12px; border-radius: 20px; font-weight: bold; border: 1px solid rgba(108, 92, 231, 0.3); }
 .r-preview-text { font-size: 0.8rem; color: #888; }
-.rec-timeline-area { padding: 0 20px; padding-bottom: 120px; display: flex; flex-direction: column; }
-.rtl-item { display: flex; align-items: flex-start; gap: 15px; position: relative; margin-bottom: 30px; }
-.rtl-item::after { content: ''; position: absolute; left: 11px; top: 30px; bottom: -35px; width: 2px; background: #6C5CE7; opacity: 0.5; }
+.rec-timeline-area { padding: 0 20px; padding-bottom: 140px; display: flex; flex-direction: column; }
+.rtl-item { display: flex; align-items: flex-start; gap: 15px; position: relative; margin-bottom: 35px; }
+.rtl-item::after { content: ''; position: absolute; left: 11px; top: 30px; bottom: -40px; width: 2px; background: #6C5CE7; opacity: 0.4; }
 .rtl-item:last-child::after { display: none; }
 .rtl-circle { width: 24px; height: 24px; background: #6C5CE7; border-radius: 50%; box-shadow: 0 0 10px rgba(108, 92, 231, 0.5); border: 4px solid #030303; position: relative; z-index: 2; margin-top: 2px; flex-shrink: 0; }
-.rtl-content { flex: 1; }
+.rtl-content { flex: 1; min-width: 0; }
 .rtl-day-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 .rtl-day-sub { font-size: 0.85rem; color: #888; font-weight: normal; }
-.badge-cardio { background: rgba(108, 92, 231, 0.2); color: #a29bfe; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; }
+.badge-cardio { background: rgba(108, 92, 231, 0.25); color: #a29bfe; font-size: 0.7rem; padding: 3px 8px; border-radius: 8px; font-weight: bold; }
 
-/* 썸네일 개선 및 타겟 부위 라벨 스타일 */
-.rtl-thumbnails { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
+/* 가로 스와이프 컨테이너 */
+.rtl-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
 .rtl-thumbnails::-webkit-scrollbar { display: none; }
-.rtl-thumb { width: 75px; height: 75px; background: #121212; border: 1px solid #333; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.5rem; flex-shrink: 0; position: relative; }
-.rtl-thumb .target-label { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 0.55rem; color: #888; background: #222; padding: 2px 6px; border-radius: 4px; white-space: nowrap; font-weight: bold;}
+
+/* 상세 해부도 운동 카드 (레퍼런스 100% 모방) */
+.rtl-thumb { 
+    width: 95px; height: 95px; 
+    background: #111116; border: 1px solid #28283a; 
+    border-radius: 14px; display: flex; flex-direction: column; 
+    justify-content: space-between; align-items: center; 
+    flex-shrink: 0; position: relative; padding: 8px 6px; 
+    scroll-snap-align: start; box-shadow: 0 4px 10px rgba(0,0,0,0.4); 
+}
+.rtl-thumb svg { width: 55px; height: 55px; }
+.rtl-thumb .ro-watermark { position: absolute; bottom: 6px; right: 6px; font-size: 0.55rem; color: #444; font-weight: 900; letter-spacing: 0.5px; }
+.rtl-thumb .target-label { font-size: 0.65rem; color: #aaa; font-weight: 600; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 유산소 전용 카드 (보라색 점선) */
 .rtl-thumb.cardio { border: 1px dashed #6C5CE7; background: rgba(108, 92, 231, 0.05); }
-.rtl-thumb.cardio .target-label { color: #6C5CE7; background: transparent; }
+.rtl-thumb.cardio .target-label { color: #a29bfe; }
 
-.rtl-rest { background: rgba(108, 92, 231, 0.2); padding: 15px; border-radius: 12px; font-weight: bold; color: #ccc; }
-.rtl-desc { font-size: 0.75rem; color: #666; line-height: 1.4; word-break: keep-all; }
-.rec-footer { position: fixed; bottom: 0; width: 100%; padding: 20px; background: linear-gradient(to top, #030303 80%, transparent); z-index: 100; }
+/* 휴식 노드 */
+.rtl-rest-node { background: rgba(108, 92, 231, 0.15); border: 1px solid rgba(108, 92, 231, 0.3); padding: 16px; border-radius: 14px; font-weight: bold; color: #dcdde1; font-size: 0.95rem; }
+.rtl-desc { font-size: 0.8rem; color: #777; line-height: 1.4; word-break: keep-all; }
 
-/* 로그인 화면 */
-.login-logo { font-size: 2.5rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 40px; text-align: center; }
+/* 하단 플로팅 버튼 및 힌트 */
+.rec-footer { position: fixed; bottom: 0; width: 100%; padding: 15px 20px 30px; background: linear-gradient(to top, #030303 90%, transparent); z-index: 100; text-align: center; }
+.scroll-down-hint { font-size: 0.8rem; color: #888; margin-bottom: 12px; font-weight: 500; }
+
+/* 구글 단일 로그인 */
+.login-logo { font-size: 2.2rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 30px; text-align: center; }
 .login-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; text-align: center; }
-.login-desc { font-size: 0.85rem; color: #888; margin-bottom: 50px; text-align: center; }
-.login-btns { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 320px; margin: 0 auto; }
-.login-btn { width: 100%; padding: 18px 20px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 15px; border: 1px solid #333; background: #1a1a1a; color: #fff; transition: 0.2s; }
+.login-desc { font-size: 0.85rem; color: #888; margin-bottom: 45px; text-align: center; }
+.login-btns { width: 100%; max-width: 320px; margin: 0 auto; }
+.login-btn { width: 100%; padding: 18px 20px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 15px; border: 1px solid #444; background: #1a1a1a; color: #fff; transition: 0.2s; }
 .login-btn:active { transform: scale(0.98); }
-.login-btn .btn-icon { font-size: 1.2rem; display: flex; justify-content: center; align-items: center; width: 24px; }
+.login-btn .btn-icon { font-size: 1.2rem; font-weight: 900; color: #4285F4; }
