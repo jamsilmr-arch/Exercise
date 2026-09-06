@@ -1,8 +1,14 @@
 // --- 요소 선택 및 뷰 전환 ---
 const mainNav = document.getElementById('main-nav');
 function switchView(targetId) {
-    document.querySelectorAll('.view-container').forEach(view => view.classList.remove('active'));
-    document.getElementById(targetId).classList.add('active');
+    document.querySelectorAll('.view-container').forEach(view => {
+        view.classList.remove('active');
+        view.style.display = 'none'; // 강제 숨김 처리 추가
+    });
+    
+    const targetView = document.getElementById(targetId);
+    targetView.classList.add('active');
+    targetView.style.display = ''; // 강제 표시 처리 (CSS에 맡김)
     window.scrollTo(0, 0);
 }
 
@@ -17,12 +23,12 @@ if (!isOnboardingCompleted) {
     switchView('view-home');
 }
 
-// [수정됨] 스플래시 화면에서 구글 로그인 화면으로 전환
-document.getElementById('btn-go-login').addEventListener('click', () => { 
+// [수정됨] 스플래시 화면 버튼 클릭 시 구글 로그인 화면으로 우선 이동
+document.getElementById('btn-start-onboarding').addEventListener('click', () => { 
     switchView('view-login'); 
 });
 
-// [수정됨] 로그인 버튼 또는 로그인 없이 이용하기 버튼 클릭 시 마법사 뷰로 이동
+// [수정됨] 로그인 / 스킵 버튼 클릭 시 맞춤 설정 마법사로 진입
 document.getElementById('btn-login-google').addEventListener('click', startWizard);
 document.getElementById('btn-skip-login').addEventListener('click', startWizard);
 
@@ -44,6 +50,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 });
 document.getElementById('btn-start-workout').addEventListener('click', () => switchView('view-workout'));
 document.getElementById('btn-back').addEventListener('click', () => switchView('view-home'));
+
 
 // --- 설정 마법사 로직 ---
 const wizardSteps = [
@@ -129,7 +136,7 @@ function renderWizardStep() {
             }
         }));
     }
-    document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '루틴 보기' : '다음';
+    document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '루틴 생성하기' : '다음';
     document.getElementById('btn-prev-step').style.opacity = currentWizardStep === 0 ? '0.3' : '1';
 }
 
@@ -137,13 +144,13 @@ document.getElementById('btn-next-step').addEventListener('click', () => {
     const activeInput = document.querySelector('.input-val');
     if (activeInput) { wizardSteps[currentWizardStep].value = activeInput.value; }
     if (currentWizardStep < wizardSteps.length - 1) { currentWizardStep++; renderWizardStep(); } 
-    else { showLoadingScreen(); }
+    else { showLoadingScreen(); } // 로딩 화면으로 이동
 });
 document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
 });
 
-// --- 분석 및 결과 노출 로직 ---
+// --- 로딩 및 분석 화면 프로세스 ---
 function showLoadingScreen() {
     switchView('view-loading');
     setTimeout(() => { startResultExplain(); }, 2500); 
@@ -209,24 +216,18 @@ function generateRecommendedRoutine() {
     const timelineArea = document.getElementById('rec-timeline-render');
     let html = '';
 
-    const routineSchedule = [
-        { dayLabel: 'Day 1', count: 6, hasCardio: isCardio, exercises: [{ name: '시티드 로우', target: '등상부' }, { name: '체스트 프레스', target: '가슴' }, { name: '인클라인 머신', target: '가슴' }, { name: '랫풀다운', target: '광배근' }, { name: '덤벨 플라이', target: '가슴' }, { name: '체스트 로우', target: '광배근' }] },
-        { dayLabel: 'Day 2', count: 7, hasCardio: false, exercises: [{ name: '숄더 프레스', target: '어깨' }, { name: '프리처 컬', target: '이두' }, { name: '사레레', target: '어깨' }, { name: '덤벨 익스텐션', target: '삼두' }, { name: '바벨 컬', target: '이두' }, { name: '푸시다운', target: '삼두' }, { name: '페이스 풀', target: '어깨' }] },
-        { dayLabel: 'Day 3', count: 5, hasCardio: isCardio, exercises: [{ name: '백스쿼트', target: '대퇴사두' }, { name: '루마니안 데드', target: '햄스트링' }, { name: '레그 프레스', target: '하체' }, { name: '라잉 레그 컬', target: '햄스트링' }, { name: '카프 레이즈', target: '하체' }] },
-        { isRest: true, label: '휴식 | 1일' },
-        { dayLabel: 'Day 1a', count: 6, hasCardio: false, exercises: [{ name: '인클라인 벤치', target: '가슴' }, { name: '스미스 머신 프레스', target: '가슴' }, { name: '어시스트 풀업', target: '광배근' }, { name: '덤벨 로우', target: '등상부' }, { name: '크로스오버', target: '가슴' }, { name: '클로즈그립 랫풀', target: '광배근' }] },
-        { dayLabel: 'Day 2a', count: 7, hasCardio: isCardio, exercises: [{ name: '머신 숄프', target: '어깨' }, { name: '해머 컬', target: '이두' }, { name: '케이블 사레레', target: '어깨' }, { name: '케이블 익스텐션', target: '삼두' }, { name: '이지바 컬', target: '이두' }, { name: '어시스트 딥스', target: '삼두' }, { name: '리버스 펙덱', target: '어깨' }] },
-        { dayLabel: 'Day 3a', count: 5, hasCardio: false, exercises: [{ name: '핵 스쿼트', target: '대퇴사두' }, { name: '스티프 데드', target: '햄스트링' }, { name: '워킹 런지', target: '하체' }, { name: '레그 익스텐션', target: '대퇴사두' }, { name: '시티드 레그 컬', target: '햄스트링' }] }
+    const exerciseBlocks = [
+        { day: 'Day 1 (밀기)', count: 4, icons: ['🏋️‍♂️', '💪', '🏋️', '🧍‍♂️'] },
+        { day: 'Day 2 (당기기)', count: 4, icons: ['🤸‍♂️', '🧗', '💪', '🧍‍♂️'] },
+        { day: 'Day 3 (하체)', count: 3, icons: ['🦵', '🏃', '🏋️'] }
     ];
 
-    routineSchedule.forEach(item => {
-        if (item.isRest) {
-            html += `<div class="rtl-item"><div class="rtl-circle" style="background:#444; border-color:#222; box-shadow:none;"></div><div class="rtl-content"><div class="rtl-rest-node">${item.label}</div></div></div>`;
-            return;
-        }
-
-        let thumbHtml = item.exercises.map(ex => `<div class="rtl-thumb">${getExerciseSVG(ex.target)}<div class="target-label">${ex.name}</div><div class="ro-watermark">RO</div></div>`).join('');
-        if (item.hasCardio) {
+    for (let i = 0; i < frequency; i++) {
+        const block = exerciseBlocks[i % 3];
+        const showCardio = isCardio && (i === 0 || i === 2); 
+        
+        let thumbHtml = block.icons.map(icon => `<div class="rtl-thumb">${getExerciseSVG('가슴')}<div class="target-label">임시종목</div><div class="ro-watermark">RO</div></div>`).join('');
+        if (showCardio) {
             thumbHtml += `<div class="rtl-thumb cardio"><svg viewBox="0 0 60 60"><path d="M12 45 L48 45" stroke="#E50914" stroke-width="3" stroke-dasharray="3,3"/><circle cx="34" cy="14" r="5" fill="#888"/><path d="M30 20 L38 32 L34 44 M26 28 L20 38" stroke="#E50914" stroke-width="3" fill="none"/></svg><div class="target-label" style="color:#E50914;">유산소</div><div class="ro-watermark">RO</div></div>`;
         }
 
@@ -234,18 +235,20 @@ function generateRecommendedRoutine() {
             <div class="rtl-item">
                 <div class="rtl-circle"></div>
                 <div class="rtl-content">
-                    <div class="rtl-day-title">${item.dayLabel} <span class="rtl-day-sub">| 총 ${item.count}개 운동</span> ${item.hasCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
+                    <div class="rtl-day-title">Day ${i + 1} <span class="rtl-day-sub">| 총 ${block.count}개 운동</span> ${showCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
                     <div class="rtl-thumbnails">${thumbHtml}</div>
-                    ${item.hasCardio ? '<div class="rtl-desc">유산소는 앱을 시작한 뒤 몇 가지만 답하면 종목과 시간이 정해져요.</div>' : ''}
+                    ${showCardio ? '<div class="rtl-desc">유산소는 앱을 시작한 뒤 몇 가지만 답하면 종목과 시간이 정해져요.</div>' : ''}
                 </div>
             </div>
         `;
-    });
+    }
+
+    html += `<div class="rtl-item"><div class="rtl-circle" style="background:#444; border-color:#222; box-shadow:none;"></div><div class="rtl-content"><div class="rtl-rest-node">휴식 | 1일</div></div></div>`;
     timelineArea.innerHTML = html;
 }
 
 document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
-// 앱 시작하기 버튼 클릭 시 홈 화면으로 이동 및 온보딩 플래그 저장
+// 앱 시작하기 버튼 클릭 시 홈 화면으로 이동 및 온보딩 완료 처리
 document.getElementById('btn-go-home').addEventListener('click', () => { 
     localStorage.setItem('onboardingCompleted', 'true');
     mainNav.style.display = 'flex';
