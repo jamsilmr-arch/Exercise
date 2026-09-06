@@ -29,7 +29,7 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 /* --- Pinyon Script 폰트 클래스 --- */
 .font-pinyon { font-family: 'Pinyon Script', cursive !important; font-weight: normal; }
 
-/* --- [수정됨] 스플래시 화면 (Pinyon Script 단독 넷플릭스 톤) --- */
+/* --- 스플래시 화면 --- */
 #view-splash { background-color: #000000; }
 .splash-netflix-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: -60px; }
 .splash-netflix-logo { 
@@ -150,139 +150,21 @@ input[type="number"] { -moz-appearance: textfield; }
 .chip-btn.active-purple { background: rgba(229, 9, 20, 0.15); border-color: #E50914; color: #E50914; font-weight: bold; }
 .chip-btn.active-green { background: #333; border-color: #555; color: #fff; font-weight: bold; }
 
-/* 5단계 슬라이더 트랙 & 정밀 정렬 UI */
-.slider-container { 
-    background: #141414; 
-    border: 1px solid #333; 
-    border-radius: 12px; 
-    padding: 40px 20px 50px 20px; 
-    margin-bottom: 20px; 
-    text-align: center; 
-}
+/* 5단계 슬라이더 트랙 UI */
+.slider-container { background: #141414; border: 1px solid #333; border-radius: 12px; padding: 40px 20px 50px 20px; margin-bottom: 20px; text-align: center; }
 .slider-val-text { font-size: 1.25rem; font-weight: bold; margin-bottom: 8px; }
 .slider-sub-text { font-size: 0.85rem; color: #888; margin-bottom: 35px; }
+.slider-track-wrap { position: relative; height: 40px; margin: 30px 10px 45px 10px; display: flex; align-items: center; }
+.slider-track-bg { position: absolute; left: 14px; right: 14px; top: 50%; transform: translateY(-50%); height: 6px; background: #2a2a2a; border-radius: 3px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 1; }
+.slider-track-bg .dot { width: 6px; height: 6px; background: #444; border-radius: 50%; position: relative; display: flex; justify-content: center; align-items: center; }
+.rec-badge { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); background: #E50914; color: #ffffff; font-size: 0.72rem; padding: 3px 10px; border-radius: 4px; white-space: nowrap; font-weight: bold; display: flex; justify-content: center; line-height: 1.2; }
+.rec-badge::before { content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 5px solid #E50914; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 40px; background: transparent; position: relative; z-index: 2; margin: 0; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; height: 28px; width: 28px; border-radius: 50%; background: #E50914; border: 4px solid #141414; box-shadow: 0 0 10px rgba(229, 9, 20, 0.5); cursor: pointer; margin-top: 0; }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: transparent; }
+input[type=range]::-moz-range-thumb { height: 24px; width: 24px; border-radius: 50%; background: #E50914; border: 4px solid #141414; cursor: pointer; }
+.slider-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: #777; margin-top: 10px; }
 
-/* 트랙 래퍼: 높이를 40px로 고정하고 내부 요소를 수직 중앙 정렬 */
-.slider-track-wrap { 
-    position: relative; 
-    height: 40px;
-    margin: 30px 10px 45px 10px; 
-    display: flex;
-    align-items: center;
-}
-
-/* 배경 회색 트랙: thumb 너비(28px)의 절반인 좌우 14px 패딩으로 thumb 중심과 정확히 일치 */
-.slider-track-bg { 
-    position: absolute; 
-    left: 14px; 
-    right: 14px; 
-    top: 50%;
-    transform: translateY(-50%);
-    height: 6px; 
-    background: #2a2a2a; 
-    border-radius: 3px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    pointer-events: none; 
-    z-index: 1; 
-}
-
-/* 각 단계별 점(Dot) */
-.slider-track-bg .dot { 
-    width: 6px; 
-    height: 6px; 
-    background: #444; 
-    border-radius: 50%; 
-    position: relative; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* 권장 뱃지: 점(Dot) 기준 정확한 수평/수직 정렬 */
-.rec-badge { 
-    position: absolute; 
-    top: 26px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    background: #E50914; 
-    color: #ffffff; 
-    font-size: 0.72rem; 
-    padding: 3px 10px; 
-    border-radius: 4px; 
-    white-space: nowrap; 
-    font-weight: bold; 
-    display: flex;
-    justify-content: center;
-    line-height: 1.2;
-}
-
-/* 권장 상단 화살표 (▲) */
-.rec-badge::before { 
-    content: ''; 
-    position: absolute; 
-    top: -5px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    width: 0; 
-    height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-bottom: 5px solid #E50914;
-}
-
-/* 슬라이더 인풋: 트랙과 동일한 높이(40px)에서 수직 정중앙 렌더링 */
-input[type=range] { 
-    -webkit-appearance: none; 
-    appearance: none;
-    width: 100%; 
-    height: 40px;
-    background: transparent; 
-    position: relative; 
-    z-index: 2; 
-    margin: 0; 
-    outline: none; 
-    cursor: pointer;
-}
-
-/* 웹킷 브라우저 전용 Thumb 수직/수평 정렬 */
-input[type=range]::-webkit-slider-thumb { 
-    -webkit-appearance: none; 
-    appearance: none;
-    height: 28px; 
-    width: 28px; 
-    border-radius: 50%; 
-    background: #E50914; 
-    border: 4px solid #141414; 
-    box-shadow: 0 0 10px rgba(229, 9, 20, 0.5); 
-    cursor: pointer; 
-    margin-top: 0; /* 강제 음수 마진 제거로 수직 중앙 안착 */
-}
-
-input[type=range]::-webkit-slider-runnable-track { 
-    width: 100%; 
-    height: 6px; 
-    background: transparent; 
-}
-
-/* 모질라 파이어폭스 대응 */
-input[type=range]::-moz-range-thumb {
-    height: 24px;
-    width: 24px;
-    border-radius: 50%;
-    background: #E50914;
-    border: 4px solid #141414;
-    cursor: pointer;
-}
-
-.slider-labels { 
-    display: flex; 
-    justify-content: space-between; 
-    font-size: 0.78rem; 
-    color: #777; 
-    margin-top: 10px; 
-}
 /* 힌트 박스 및 마법사 버튼 */
 .wizard-footer { display: flex; flex-direction: column; gap: 15px; padding: 0px 20px 30px; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); z-index: 100; border-top: 1px solid #222; }
 .hint-box { padding: 15px 0 0 0; display: flex; gap: 10px; font-size: 0.85rem; color: #aaa; align-items: flex-start; line-height: 1.4; word-break: keep-all; margin: 0; }
@@ -296,7 +178,7 @@ input[type=range]::-moz-range-thumb {
 .loading-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; line-height: 1.4; }
 .loading-desc { font-size: 0.85rem; color: #888; line-height: 1.5; }
 
-/* 결과 분석 화면 */
+/* --- [수정됨] 결과 분석 화면 (타임라인 간격 여유있게 배치) --- */
 .result-header { padding: 20px 20px 10px; }
 .r-top { font-size: 0.8rem; color: #aaa; margin-bottom: 15px; text-align: center; }
 .r-title { font-size: 1.4rem; font-weight: bold; line-height: 1.4; margin-bottom: 25px; word-break: keep-all; }
@@ -305,9 +187,10 @@ input[type=range]::-moz-range-thumb {
 .r-progress-bar.active { background: #E50914; }
 .r-progress-text { font-size: 0.75rem; color: #E50914; margin-left: 10px; font-weight: bold; width: 35px; text-align: right; }
 
-.result-timeline { padding: 0 20px; display: flex; flex-direction: column; gap: 0; padding-bottom: 280px; }
-.rt-item { display: flex; align-items: center; gap: 20px; position: relative; opacity: 0; transform: translateY(10px); animation: fadeIn 0.3s forwards; margin-bottom: 30px; }
-.rt-item::after { content: ''; position: absolute; left: 24px; top: 50px; bottom: -30px; width: 2px; background: #222; }
+.result-timeline { padding: 0 20px; display: flex; flex-direction: column; gap: 0; padding-bottom: 380px; /* 팝업카드 공간 고려 패딩 대폭 증가 */ }
+/* 노드 간격을 기존 30px에서 50px로 넓혀 여유롭게 배치 */
+.rt-item { display: flex; align-items: center; gap: 20px; position: relative; opacity: 0; transform: translateY(10px); animation: fadeIn 0.3s forwards; margin-bottom: 50px; }
+.rt-item::after { content: ''; position: absolute; left: 24px; top: 50px; bottom: -50px; width: 2px; background: #222; }
 .rt-item:last-child::after { display: none; }
 .rt-icon-wrap { width: 50px; height: 50px; background: #141414; border: 1px solid #333; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; position: relative; z-index: 2; transition: 0.3s; }
 .rt-item.active .rt-icon-wrap { border-color: #E50914; box-shadow: 0 0 15px rgba(229, 9, 20, 0.4); background: rgba(229, 9, 20, 0.1); }
@@ -319,10 +202,11 @@ input[type=range]::-moz-range-thumb {
 .r-desc-text { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 25px; white-space: pre-line; word-break: keep-all; }
 .r-tap-text { text-align: right; font-size: 0.8rem; color: #E50914; font-weight: bold; }
 
-/* 모의 그래프 */
-.mock-graph { margin-bottom: 20px; background: #0a0a0a; padding: 20px 15px; border-radius: 8px; border: 1px solid #222; }
-.mock-graph-svg { width: 100%; height: 50px; overflow: visible; margin-bottom: 10px; }
-.mock-graph-labels { display: flex; justify-content: space-between; margin-top: 10px; }
+/* --- [수정됨] 모의 그래프 고도화 (비율 최적화) --- */
+.mock-graph { margin-bottom: 20px; background: #0a0a0a; padding: 20px 15px; border-radius: 8px; border: 1px solid #222; width: 100%;}
+/* viewBox를 100x30으로 변경하여 찌그러짐 방지 및 샤프한 선 렌더링 */
+.mock-graph-svg { width: 100%; height: auto; display: block; overflow: visible; margin-bottom: 15px; }
+.mock-graph-labels { display: flex; justify-content: space-between; margin-top: 15px; }
 .mgl { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .mgl-circ { width: 26px; height: 26px; background: #222; border-radius: 4px; font-size: 0.75rem; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #aaa; }
 .mgl-circ.active { background: rgba(229, 9, 20, 0.2); color: #E50914; border: 1px solid #E50914; }
