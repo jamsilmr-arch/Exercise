@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <!-- [화면 0-1] 스플래시 화면 (Pinyon Script 단독 적용) -->
+    <!-- [화면 0-1] 스플래시 화면 -->
     <div id="view-splash" class="view-container active no-scroll flex-center">
         <div class="splash-netflix-content">
             <p class="splash-sub">헬스 트레이닝 앱</p>
@@ -74,7 +74,8 @@
         <main class="result-timeline" id="explain-timeline"></main>
         <div class="result-bottom-card" id="explain-bottom-card">
             <div class="r-desc-text" id="explain-desc"></div>
-            <div class="r-tap-text" id="explain-tap-text">탭하여 계속 ></div>
+            <!-- 버튼 영역을 완전히 분리하여 클릭 이벤트를 강제로 보장 -->
+            <button class="r-tap-btn" id="explain-tap-text">탭하여 계속 ></button>
         </div>
     </div>
 
