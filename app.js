@@ -29,27 +29,67 @@ function switchView(targetId) {
     }
 }
 
-// 최초 진입 체크
-const isOnboardingCompleted = localStorage.getItem('onboardingCompleted');
-if (!isOnboardingCompleted) {
-    mainNav.style.display = 'none';
-    switchView('view-splash');
-} else {
-    mainNav.style.display = 'flex';
-    switchView('view-home');
-}
+// --- [수정됨] 최초 진입 및 자동 로그인 체크 로직 ---
+// 1. Firebase 인증 상태 리스너가 유저 상태를 확인합니다.
+auth.onAuthStateChanged((user) => {
+    const isOnboardingCompleted = localStorage.getItem('onboardingCompleted');
 
-document.getElementById('btn-start-onboarding').addEventListener('click', () => { switchView('view-login'); });
-
-document.getElementById('btn-login-google').addEventListener('click', () => {
-    auth.signInWithPopup(googleProvider).then((result) => {
-        localStorage.setItem('userEmail', result.user.email);
-        startWizard();
-    }).catch((error) => {
-        if (error.code !== 'auth/popup-closed-by-user') alert('로그인 오류: ' + error.message);
-    });
+    if (user) {
+        // 이미 구글 로그인이 되어 있는 상태
+        localStorage.setItem('userEmail', user.email);
+        localStorage.setItem('userName', user.displayName || '');
+        
+        // 온보딩까지 마친 유저라면 바로 홈 대시보드로 이동
+        if (isOnboardingCompleted === 'true') {
+            mainNav.style.display = 'flex';
+            switchView('view-home');
+        } else {
+            // 로그인만 하고 설정을 안 끝낸 유저라면 마법사로 이동
+            mainNav.style.display = 'none';
+            startWizard();
+        }
+    } else {
+        // 구글 로그인이 안 된 상태
+        if (isOnboardingCompleted === 'true') {
+            // '로그인 없이 이용하기'로 진입하여 온보딩을 마친 유저
+            mainNav.style.display = 'flex';
+            switchView('view-home');
+        } else {
+            // 완전 첫 방문 유저
+            mainNav.style.display = 'none';
+            switchView('view-splash');
+        }
+    }
 });
 
+// 스플래시 화면에서 '앱 시작하기' 클릭 시 로그인 화면으로 이동
+document.getElementById('btn-start-onboarding').addEventListener('click', () => { 
+    switchView('view-login'); 
+});
+
+// 구글 로그인 팝업 연동
+document.getElementById('btn-login-google').addEventListener('click', () => {
+    // 세션 지속성 설정 (브라우저 종료 후에도 로그인 유지)
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            return auth.signInWithPopup(googleProvider);
+        })
+        .then((result) => {
+            const user = result.user;
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userName', user.displayName || '');
+            startWizard();
+        })
+        .catch((error) => {
+            if (error.code === 'auth/unauthorized-domain') {
+                alert('현재 접속 중인 도메인이 Firebase에 승인되지 않았습니다. Firebase 콘솔 > Authentication > Settings > Authorized domains에 추가해 주세요.');
+            } else if (error.code !== 'auth/popup-closed-by-user') {
+                alert('로그인 오류: ' + error.message);
+            }
+        });
+});
+
+// 로그인 없이 이용하기
 document.getElementById('btn-skip-login').addEventListener('click', startWizard);
 
 function startWizard() {
@@ -57,6 +97,7 @@ function startWizard() {
     renderWizardStep();
 }
 
+// 하단 네비게이션 탭 전환
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
         const target = item.getAttribute('data-target');
@@ -67,8 +108,10 @@ document.querySelectorAll('.nav-item').forEach(item => {
         }
     });
 });
+
 document.getElementById('btn-start-workout').addEventListener('click', () => switchView('view-workout'));
 document.getElementById('btn-back').addEventListener('click', () => switchView('view-home'));
+
 
 // --- 마법사 로직 ---
 const wizardSteps = [
@@ -217,14 +260,11 @@ document.getElementById('explain-tap-text').onclick = function() {
     } 
 };
 
-
-// --- [수정됨] 실제 운동 해부학 이미지 URL 맵핑 로직 ---
-// 외부 웹 URL 이미지 주소로 교체하여 브라우저 환경에서 깨지지 않게 렌더링합니다.
+// 운동 해부학 이미지 맵핑
 function getExerciseImage(target) {
     let imgUrl = "";
     let exerciseName = "";
 
-    // 가슴, 어깨, 팔, 하체, 햄스트링, 등 (Unsplash의 실제 피트니스 고화질 이미지로 대체)
     if (target.includes('가슴')) {
         imgUrl = "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400"; 
         exerciseName = "벤치 프레스 & 플라이";
