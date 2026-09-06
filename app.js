@@ -150,7 +150,7 @@ function renderWizardStep() {
             } else { 
                 // 해당 섹션(강조 또는 유지)에 이미 3개가 선택되어 있는지 확인
                 const secValues = step.values.filter(v => v.id === sec);
-                if (secValues.length >= 3) {
+                if (secValues.length >= 6) {
                     return alert('각 항목당 최대 3개까지만 선택 가능합니다.'); 
                 }
                 
