@@ -26,11 +26,11 @@ function switchView(targetId) {
     }
 }
 
-// 홈 진입 시 권한 검증 로직 (설정 없이 주소 쳐서 들어온 유저 차단)
+// 홈 진입 시 권한 검증
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
         if (localStorage.getItem('onboardingCompleted') !== 'true') {
-            window.location.href = 'index.html'; // 권한 없음 -> 온보딩으로 복귀
+            window.location.href = 'index.html';
         } else {
             switchView('view-home');
         }
@@ -61,7 +61,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     });
 });
 
-// 설정 및 루틴 수정 시 마법사(index.html)로 복귀
+// 설정 및 루틴 수정 시 마법사로 복귀
 document.getElementById('btn-nav-settings').addEventListener('click', () => {
     window.location.href = 'index.html?edit=true';
 });
