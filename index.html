@@ -9,7 +9,6 @@
 <body>
     <!-- [화면 0-1] 스플래시 화면 -->
     <div id="view-splash" class="view-container active">
-        <!-- 기존 스플래시 내용 유지 -->
         <main class="splash-main">
             <p class="splash-sub">손 안의 트레이너</p><h1 class="splash-title">과부하</h1>
             <div class="splash-mockup"><div class="mockup-header">RO</div><div class="mockup-bar"></div><div class="mockup-card"><div style="font-size: 0.7rem; color: #6C5CE7; margin-bottom: 5px;">오늘 운동</div><div style="font-size: 1.1rem; font-weight: bold;">Day 2</div></div></div>
@@ -36,9 +35,7 @@
     <!-- [화면 1] 설정 (맞춤형 온보딩 마법사) -->
     <div id="view-settings" class="view-container">
         <header class="wizard-header">
-            <div class="wizard-top">
-                <button class="icon-btn">←</button><span class="wizard-title">맞춤형 루틴을 생성해요</span>
-            </div>
+            <div class="wizard-top"><button class="icon-btn">←</button><span class="wizard-title">맞춤형 루틴을 생성해요</span></div>
             <div class="progress-container">
                 <div class="progress-text"><span id="step-counter">질문 1/12</span><span>맞춤 루틴 추천 준비</span></div>
                 <div class="progress-bar-bg"><div id="wizard-progress" class="progress-bar-fill" style="width: 8.3%;"></div></div>
@@ -56,28 +53,55 @@
         </div>
     </div>
 
-    <!-- [신규 화면 1-1] 로딩 화면 -->
+    <!-- [화면 1-1] 로딩 화면 -->
     <div id="view-loading" class="view-container flex-center">
         <div class="loader-circle"></div>
         <h2 class="loading-title">맞춤형 루틴을<br>생성하고 있어요</h2>
         <p class="loading-desc">잠시만 기다려주세요.<br>곧 최적의 루틴 구조를 보여드릴게요.</p>
     </div>
 
-    <!-- [신규 화면 1-2] 추천 루틴 분석 과정 -->
+    <!-- [화면 1-2] 추천 루틴 분석 과정 -->
     <div id="view-result-explain" class="view-container">
         <header class="result-header">
             <div class="r-top">추천 루틴</div>
             <h1 class="r-title">질문을 기반으로<br>맞춤 루틴을 만들고 있어요</h1>
-            <div class="r-progress-container" id="explain-progress-bar">
-                <!-- JS에서 동적 바 삽입 -->
-            </div>
+            <div class="r-progress-container" id="explain-progress-bar"></div>
         </header>
-        <main class="result-timeline" id="explain-timeline">
-            <!-- JS에서 타임라인 노드 삽입 -->
-        </main>
+        <main class="result-timeline" id="explain-timeline"></main>
         <div class="result-bottom-card" id="explain-bottom-card">
             <div class="r-desc-text" id="explain-desc"></div>
             <div class="r-tap-text" id="explain-tap-text">탭하여 계속 ></div>
+        </div>
+    </div>
+
+    <!-- [신규 화면 1-3] 추천 루틴 완성 타임라인 -->
+    <div id="view-recommended-routine" class="view-container">
+        <header class="rec-header">
+            <div class="r-top-nav"><button class="icon-btn" id="btn-rec-back">←</button><span class="r-nav-title">추천 루틴</span></div>
+            <div class="r-badge">✓ 루틴 구성 완료</div>
+            <h1 class="r-main-title">사용자님을 위한<br>루틴 구조예요</h1>
+            <h2 class="r-sub-title" id="rec-subtitle">주 3회 (밀기-당기기-하체) 루틴</h2>
+            <div class="r-chips">
+                <span class="r-chip" id="rec-chip-split">밀기-당기기-하체</span>
+                <span class="r-chip" id="rec-chip-gender">남성</span>
+            </div>
+            <div class="r-preview-text">루틴 미리보기 (1주 기준)</div>
+        </header>
+        <main class="rec-timeline-area" id="rec-timeline-render"></main>
+        <div class="rec-footer">
+            <button id="btn-go-login" class="primary-btn">앱 시작하기</button>
+        </div>
+    </div>
+
+    <!-- [신규 화면 1-4] 계정 연동 (로그인) -->
+    <div id="view-login" class="view-container flex-center" style="padding: 40px;">
+        <div class="login-logo">40MIN</div>
+        <h1 class="login-title">거의 다 왔어요</h1>
+        <p class="login-desc">방금 만든 루틴을 계정에 저장할게요</p>
+        <div class="login-btns">
+            <button class="login-btn google"><span class="btn-icon">G</span> Google로 시작하기</button>
+            <button class="login-btn kakao"><span class="btn-icon">💬</span> 카카오로 시작하기</button>
+            <button class="login-btn email"><span class="btn-icon">✉️</span> 이메일로 로그인</button>
         </div>
     </div>
 
@@ -86,7 +110,7 @@
         <header class="top-nav"><div class="logo">40MIN</div><button class="tutorial-btn">루틴 수정</button></header>
         <main class="content-area">
             <h2 class="routine-title">직장인 점심 3분할 루틴</h2>
-            <div class="target-bar-container"><div class="target-bar"></div><span class="target-text">목표: 린매스업</span></div>
+            <div class="target-bar-container"><div class="target-bar"></div><span class="target-text">목표: 린매스업 (체지방 14% 컷)</span></div>
             <div class="main-card">
                 <div class="card-badge">오늘 운동</div> <span class="card-day">Day 1 (밀기)</span>
                 <div class="card-stats">
