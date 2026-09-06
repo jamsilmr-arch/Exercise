@@ -219,46 +219,44 @@ document.getElementById('explain-tap-text').onclick = function() {
 
 
 // --- [수정됨] 실제 운동 해부학 이미지 URL 맵핑 로직 ---
-// 전달받은 이미지 파일들을 종류별로 구분하여 카드에 렌더링합니다.
+// 외부 웹 URL 이미지 주소로 교체하여 브라우저 환경에서 깨지지 않게 렌더링합니다.
 function getExerciseImage(target) {
     let imgUrl = "";
     let exerciseName = "";
 
-    // 첨부해주신 이미지들을 부위별 테마에 맞게 맵핑
+    // 가슴, 어깨, 팔, 하체, 햄스트링, 등 (Unsplash의 실제 피트니스 고화질 이미지로 대체)
     if (target.includes('가슴')) {
-        imgUrl = "C45A9DA2-2086-41D6-8FC8-219DDA16B2B3.jpg";
+        imgUrl = "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400"; 
         exerciseName = "벤치 프레스 & 플라이";
     } else if (target.includes('어깨')) {
-        imgUrl = "FC162EA6-C244-432B-A942-7399DCF0AC4C.jpg";
+        imgUrl = "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=400";
         exerciseName = "숄더 프레스 & 레이즈";
     } else if (target.includes('팔') || target.includes('이두') || target.includes('삼두')) {
-        imgUrl = "E49276D6-8A26-4095-B5A5-14CF5F2EFA0E.jpg";
+        imgUrl = "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=400";
         exerciseName = "암 컬 & 익스텐션";
     } else if (target.includes('하체') || target.includes('대퇴')) {
-        imgUrl = "62D9BB87-7ACF-4E83-83C1-34BB9ADB5300.jpg";
+        imgUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400";
         exerciseName = "스쿼트 & 런지";
     } else if (target.includes('햄스트링') || target.includes('엉덩이')) {
-        imgUrl = "9A6AD6CB-4475-46E1-897E-27E00C78AC58.jpg";
+        imgUrl = "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=400";
         exerciseName = "데드리프트 & 컬";
     } else if (target.includes('등') || target.includes('광배')) {
-        imgUrl = "DF8E27B8-8A41-46A6-A42A-E84A0FDC3673.jpg";
+        imgUrl = "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=400";
         exerciseName = "랫풀다운 & 로우";
     } else if (target.includes('삼두 보조') || target.includes('어시스트')) {
-        imgUrl = "159D12F7-6CD5-4D22-A181-E612D00AD2B2.jpg";
+        imgUrl = "https://images.unsplash.com/photo-1532029837206-abbe267e56f2?auto=format&fit=crop&q=80&w=400";
         exerciseName = "오버헤드 익스텐션";
     } else {
-        // 기본값 (가슴)
-        imgUrl = "C45A9DA2-2086-41D6-8FC8-219DDA16B2B3.jpg";
+        imgUrl = "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=400";
         exerciseName = "프리웨이트 컴파운드";
     }
     
-    // 객체 형태로 반환하여 썸네일 박스 안에 삽입
     return { url: imgUrl, name: exerciseName };
 }
 
 function generateRecommendedRoutine() {
     const gender = wizardSteps[2].value || '남성';
-    const frequency = wizardSteps[6].value || 5; // 레퍼런스 이미지(주 5회) 반영
+    const frequency = wizardSteps[6].value || 5; 
     const isCardio = wizardSteps[11].value === '네, 하고 싶어요' || true;
 
     let splitName = '몸통-말단-하체';
@@ -272,7 +270,6 @@ function generateRecommendedRoutine() {
     const timelineArea = document.getElementById('rec-timeline-render');
     let html = '';
 
-    // 레퍼런스 화면(가로 스와이프 그리드)에 맞춘 데이별 데이터 배열
     const dayData = [
         { label: 'Day 1', count: 6, hasCardio: true,  targets: ['가슴', '등', '어깨 보조', '삼두 보조'] },
         { label: 'Day 2', count: 7, hasCardio: false, targets: ['팔', '이두', '삼두', '전완'] },
@@ -284,7 +281,6 @@ function generateRecommendedRoutine() {
     const visibleDays = dayData.slice(0, frequency);
 
     visibleDays.forEach(day => {
-        // 가로 스크롤 영역 안에 이미지 카드들을 생성
         let thumbHtml = day.targets.map(target => {
             const exerciseInfo = getExerciseImage(target);
             return `
@@ -296,7 +292,6 @@ function generateRecommendedRoutine() {
         }).join('');
 
         if (day.hasCardio) {
-            // 유산소 카드는 검정색 더미 UI로 렌더링
             thumbHtml += `
                 <div class="rtl-thumb cardio">
                     <svg viewBox="0 0 60 60"><path d="M12 45 L48 45" stroke="#a29bfe" stroke-width="3" stroke-dasharray="3,3"/><circle cx="34" cy="18" r="4" fill="#888"/><path d="M30 24 L38 36 L34 48 M26 32 L20 42" stroke="#a29bfe" stroke-width="3" fill="none"/></svg>
