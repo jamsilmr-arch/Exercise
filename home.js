@@ -26,11 +26,17 @@ function switchView(targetId) {
     }
 }
 
-// 홈 진입 시 권한 검증
+// [수정됨] 페이지 로드 시 하얀 바탕(또는 숨김 처리)으로 대기
+document.querySelectorAll('.view-container').forEach(view => {
+    view.style.display = 'none';
+    view.classList.remove('active');
+});
+
+// 홈 진입 시 권한 검증 (강력 새로고침 대응)
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
         if (localStorage.getItem('onboardingCompleted') !== 'true') {
-            window.location.href = 'index.html';
+            window.location.replace('index.html'); // 권한 없음 -> 온보딩으로 복귀
         } else {
             switchView('view-home');
         }
@@ -38,12 +44,13 @@ auth.onAuthStateChanged(async (user) => {
         try {
             const userDoc = await db.collection('users').doc(user.uid).get();
             if (!userDoc.exists || !userDoc.data().onboardingCompleted) {
-                window.location.href = 'index.html';
+                window.location.replace('index.html');
             } else {
                 localStorage.setItem('onboardingCompleted', 'true');
                 switchView('view-home');
             }
         } catch(e) {
+            console.error(e);
             switchView('view-home');
         }
     }
