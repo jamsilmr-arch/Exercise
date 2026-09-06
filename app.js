@@ -40,7 +40,6 @@ let currentIntroStep = 0;
 const introArea = document.getElementById('intro-content-area');
 const introDots = document.getElementById('intro-pagination');
 document.getElementById('btn-start-onboarding').addEventListener('click', () => { 
-    // 인트로를 본 적이 없다면 노출, 아니면 바로 설정 마법사로 직행
     if(!localStorage.getItem('introSeen')){
         switchView('view-intro'); 
         renderIntroStep();
@@ -99,7 +98,6 @@ function renderWizardStep() {
     const step = wizardSteps[currentWizardStep];
     document.getElementById('q-title').innerText = step.title;
     document.getElementById('q-desc').innerText = step.desc;
-    // 하단 힌트 영역 초기화 연동
     document.getElementById('q-hint').innerText = step.hint;
     document.getElementById('step-counter').innerText = `질문 ${currentWizardStep + 1}/${wizardSteps.length}`;
     document.getElementById('wizard-progress').style.width = `${((currentWizardStep + 1) / wizardSteps.length) * 100}%`;
@@ -144,18 +142,13 @@ function renderWizardStep() {
             const target = e.currentTarget; const sec = target.getAttribute('data-sec'); const val = target.getAttribute('data-val'); const color = target.getAttribute('data-color');
             const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
             
-            // 강조와 유지 각각 독립적으로 3개까지만 선택 가능
             if (existingIdx > -1) { 
                 step.values.splice(existingIdx, 1); 
                 target.classList.remove(`active-${color}`); 
             } else { 
                 const secValues = step.values.filter(v => v.id === sec);
                 if (secValues.length >= 3) return alert('각 항목당 최대 3개까지만 선택 가능합니다.'); 
-                
-                // 반대쪽 영역에 이미 선택되어 있으면 해제
-                step.values = step.values.filter(v => v.val !== val); 
-                step.values.push({id: sec, val: val}); 
-                renderWizardStep(); 
+                step.values = step.values.filter(v => v.val !== val); step.values.push({id: sec, val: val}); renderWizardStep(); 
             }
         }));
     }
@@ -167,16 +160,15 @@ document.getElementById('btn-next-step').addEventListener('click', () => {
     const activeInput = document.querySelector('.input-val');
     if (activeInput) { wizardSteps[currentWizardStep].value = activeInput.value; }
     if (currentWizardStep < wizardSteps.length - 1) { currentWizardStep++; renderWizardStep(); } 
-    else { showLoadingScreen(); } // 로딩 호출로 자동 전환
+    else { showLoadingScreen(); }
 });
 document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
 });
 
-// --- 분석 및 결과 (자동 전환 처리) ---
+// --- 분석 및 결과 노출 로직 ---
 function showLoadingScreen() {
     switchView('view-loading');
-    // 로딩 화면에서 2.5초 대기 후 자동으로 다음 화면(타임라인 설명 뷰)으로 전환됨
     setTimeout(() => { startResultExplain(); }, 2500); 
 }
 
@@ -208,7 +200,7 @@ document.getElementById('explain-bottom-card').addEventListener('click', () => {
     else { generateRecommendedRoutine(); switchView('view-recommended-routine'); } 
 });
 
-// --- 추천 루틴 타임라인 동적 생성 로직 ---
+// --- 추천 루틴 타임라인 동적 생성 로직 (상세 썸네일 적용) ---
 function generateRecommendedRoutine() {
     const gender = wizardSteps[2].value || '남성';
     const frequency = wizardSteps[6].value || 3; 
@@ -225,19 +217,20 @@ function generateRecommendedRoutine() {
     const timelineArea = document.getElementById('rec-timeline-render');
     let html = '';
 
+    // 각 썸네일에 타겟 부위 정보 추가
     const exerciseBlocks = [
-        { day: 'Day 1 (밀기)', count: 4, icons: ['🏋️‍♂️', '💪', '🏋️', '🧍‍♂️'] },
-        { day: 'Day 2 (당기기)', count: 4, icons: ['🤸‍♂️', '🧗', '💪', '🧍‍♂️'] },
-        { day: 'Day 3 (하체)', count: 3, icons: ['🦵', '🏃', '🏋️'] }
+        { day: 'Day 1 (밀기)', count: 4, exercises: [{icon:'🏋️‍♂️', target:'가슴'}, {icon:'💪', target:'전면어깨'}, {icon:'🏋️', target:'측면어깨'}, {icon:'🧍‍♂️', target:'삼두'}] },
+        { day: 'Day 2 (당기기)', count: 4, exercises: [{icon:'🤸‍♂️', target:'광배근'}, {icon:'🧗', target:'등상부'}, {icon:'💪', target:'후면어깨'}, {icon:'🧍‍♂️', target:'이두'}] },
+        { day: 'Day 3 (하체)', count: 3, exercises: [{icon:'🦵', target:'대퇴사두'}, {icon:'🏃', target:'햄스트링'}, {icon:'🏋️', target:'종아리'}] }
     ];
 
     for (let i = 0; i < frequency; i++) {
         const block = exerciseBlocks[i % 3];
         const showCardio = isCardio && (i === 0 || i === 2); 
         
-        let thumbHtml = block.icons.map(icon => `<div class="rtl-thumb">${icon}</div>`).join('');
+        let thumbHtml = block.exercises.map(ex => `<div class="rtl-thumb">${ex.icon}<div class="target-label">${ex.target}</div></div>`).join('');
         if (showCardio) {
-            thumbHtml += `<div class="rtl-thumb cardio">🏃<span>유산소</span></div>`;
+            thumbHtml += `<div class="rtl-thumb cardio">🏃<div class="target-label">유산소</div></div>`;
         }
 
         html += `
