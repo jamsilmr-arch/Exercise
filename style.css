@@ -68,6 +68,7 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .input-unit { font-size: 1.2rem; color: #888; font-weight: 500; margin-top: 15px; }
 input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }
+
 .grid-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 .grid-options.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
 .opt-btn { background: #121212; border: 1px solid #222; padding: 30px 10px; border-radius: 16px; color: white; font-size: 1.2rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; text-align: center; word-break: keep-all; }
@@ -75,6 +76,7 @@ input[type="number"] { -moz-appearance: textfield; }
 .opt-icon { font-size: 2rem; margin-bottom: 5px; font-weight: normal; }
 .opt-sub { font-size: 0.75rem; color: #666; font-weight: normal; }
 .opt-btn.active .opt-sub { color: #6C5CE7; }
+
 .list-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .list-btn { background: #121212; border: 1px solid #222; padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 .list-btn.active { background: rgba(108, 92, 231, 0.15); border-color: #6C5CE7; }
@@ -86,6 +88,7 @@ input[type="number"] { -moz-appearance: textfield; }
 .list-btn.active .radio-circle { border-color: #6C5CE7; }
 .list-btn.active .radio-circle::after { content: ''; width: 10px; height: 10px; background: #6C5CE7; border-radius: 50%; }
 .list-badge { background: #6C5CE7; color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 4px; font-weight: bold; }
+
 .chip-section { margin-bottom: 25px; }
 .chip-section-title { font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
 .chip-section-title.c-purple::before { content: '●'; color: #6C5CE7; font-size: 0.8rem; }
@@ -95,7 +98,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .chip-btn.active-purple { background: rgba(108, 92, 231, 0.15); border-color: #6C5CE7; color: #6C5CE7; font-weight: bold; }
 .chip-btn.active-green { background: rgba(0, 184, 148, 0.15); border-color: #00b894; color: #00b894; font-weight: bold; }
 
-/* 5단계 슬라이더 UI */
 .slider-container { background: #121212; border: 1px solid #222; border-radius: 16px; padding: 40px 20px; margin-bottom: 20px; text-align: center; }
 .slider-val-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
 .slider-sub-text { font-size: 0.8rem; color: #888; margin-bottom: 30px; }
@@ -109,7 +111,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 32px
 input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 10px; background: transparent; cursor: pointer; }
 .slider-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-top: 15px; }
 
-/* 힌트 박스 및 마법사 버튼 */
+/* 하단 플로팅 버튼 */
 .wizard-footer { display: flex; flex-direction: column; gap: 15px; padding: 0px 20px 30px; position: fixed; bottom: 0; width: 100%; background: #030303; z-index: 100; }
 .hint-box { background: rgba(255, 255, 255, 0.03); border: 1px solid #222; border-radius: 12px; padding: 15px; display: flex; gap: 10px; font-size: 0.85rem; color: #aaa; align-items: flex-start; line-height: 1.4; word-break: keep-all; margin: 0; }
 .wizard-footer-btns { display: flex; gap: 10px; width: 100%; }
@@ -149,7 +151,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 10px; ba
 .loading-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; line-height: 1.4; }
 .loading-desc { font-size: 0.85rem; color: #888; line-height: 1.5; }
 
-/* 결과 분석 화면 */
+/* --- [수정됨] 결과 분석 화면 (타임라인 간격 및 디자인 고도화) --- */
 .result-header { padding: 20px 20px 10px; }
 .r-top { font-size: 0.8rem; color: #aaa; margin-bottom: 15px; text-align: center; }
 .r-title { font-size: 1.4rem; font-weight: bold; line-height: 1.4; margin-bottom: 25px; word-break: keep-all; }
@@ -157,20 +159,35 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 10px; ba
 .r-progress-bar { flex: 1; height: 4px; background: #333; border-radius: 2px; }
 .r-progress-bar.active { background: #6C5CE7; }
 .r-progress-text { font-size: 0.75rem; color: #6C5CE7; margin-left: 10px; font-weight: bold; width: 35px; text-align: right; }
-.result-timeline { padding: 0 20px; display: flex; flex-direction: column; gap: 0; padding-bottom: 250px; }
-.rt-item { display: flex; align-items: flex-start; gap: 15px; position: relative; opacity: 0; transform: translateY(10px); animation: fadeIn 0.3s forwards; }
-.rt-item::after { content: ''; position: absolute; left: 24px; top: 50px; bottom: -20px; width: 2px; background: #222; }
+
+.result-timeline { padding: 0 20px; display: flex; flex-direction: column; gap: 0; padding-bottom: 280px; }
+.rt-item { display: flex; align-items: center; gap: 20px; position: relative; opacity: 0; transform: translateY(10px); animation: fadeIn 0.3s forwards; margin-bottom: 30px; } /* 마진 늘림 */
+/* 아이콘 중앙을 관통하는 세로 연결선 */
+.rt-item::after { content: ''; position: absolute; left: 24px; top: 50px; bottom: -30px; width: 2px; background: #222; }
 .rt-item:last-child::after { display: none; }
-.rt-icon-wrap { width: 50px; height: 50px; background: #121212; border: 1px solid #333; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; position: relative; z-index: 2; transition: 0.3s; }
-.rt-item.active .rt-icon-wrap { border-color: #6C5CE7; box-shadow: 0 0 15px rgba(108, 92, 231, 0.4); }
-.rt-text { padding-top: 15px; font-size: 1rem; color: #555; transition: 0.3s; font-weight: normal; }
+.rt-icon-wrap { width: 50px; height: 50px; background: #121212; border: 1px solid #333; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; position: relative; z-index: 2; transition: 0.3s; }
+.rt-item.active .rt-icon-wrap { border-color: #6C5CE7; box-shadow: 0 0 15px rgba(108, 92, 231, 0.4); background: rgba(108, 92, 231, 0.1); }
+.rt-text { font-size: 1.05rem; color: #555; transition: 0.3s; font-weight: normal; }
 .rt-item.active .rt-text { color: #fff; font-weight: bold; }
+
+/* 팝업 카드 및 모의 그래프 */
 .result-bottom-card { background: #151522; border: 1px solid #2a2a4a; padding: 25px 20px; border-radius: 16px 16px 0 0; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; cursor: pointer; animation: slideUp 0.3s; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .r-desc-text { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 25px; white-space: pre-line; word-break: keep-all; }
 .r-tap-text { text-align: right; font-size: 0.8rem; color: #6C5CE7; font-weight: bold; }
 
-/* --- [추천 루틴 타임라인 & 상세 해부도 카드 UI] --- */
+/* [수정됨] 5주차 그래프 디자인 깔끔하게 개선 */
+.mock-graph { margin-bottom: 20px; background: #1a1a2e; padding: 20px 15px; border-radius: 12px; border: 1px solid #2a2a4a; }
+.mock-graph-svg { width: 100%; height: 50px; overflow: visible; margin-bottom: 10px; }
+.mock-graph-labels { display: flex; justify-content: space-between; margin-top: 10px; }
+.mgl { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.mgl-circ { width: 26px; height: 26px; background: #222; border-radius: 8px; font-size: 0.75rem; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #aaa; }
+.mgl-circ.active { background: rgba(108, 92, 231, 0.2); color: #a29bfe; border: 1px solid #6C5CE7; }
+.mgl-circ.green { background: rgba(0, 184, 148, 0.2); color: #00b894; border: 1px solid #00b894; }
+.mgl-txt { font-size: 0.65rem; color: #666; }
+.mgl-txt.green { color: #00b894; font-weight: bold; }
+
+/* 추천 루틴 타임라인 뷰 */
 .rec-header { padding: 20px; position: sticky; top: 0; background: #030303; z-index: 10; }
 .r-top-nav { display: flex; align-items: center; margin-bottom: 20px; }
 .r-nav-title { flex: 1; text-align: center; font-size: 1rem; font-weight: bold; padding-right: 30px; }
@@ -190,36 +207,20 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 10px; ba
 .rtl-day-sub { font-size: 0.85rem; color: #888; font-weight: normal; }
 .badge-cardio { background: rgba(108, 92, 231, 0.25); color: #a29bfe; font-size: 0.7rem; padding: 3px 8px; border-radius: 8px; font-weight: bold; }
 
-/* 가로 스와이프 컨테이너 */
 .rtl-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
 .rtl-thumbnails::-webkit-scrollbar { display: none; }
-
-/* 상세 해부도 운동 카드 (레퍼런스 100% 모방) */
-.rtl-thumb { 
-    width: 95px; height: 95px; 
-    background: #111116; border: 1px solid #28283a; 
-    border-radius: 14px; display: flex; flex-direction: column; 
-    justify-content: space-between; align-items: center; 
-    flex-shrink: 0; position: relative; padding: 8px 6px; 
-    scroll-snap-align: start; box-shadow: 0 4px 10px rgba(0,0,0,0.4); 
-}
+.rtl-thumb { width: 95px; height: 95px; background: #111116; border: 1px solid #28283a; border-radius: 14px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; padding: 8px 6px; scroll-snap-align: start; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
 .rtl-thumb svg { width: 55px; height: 55px; }
 .rtl-thumb .ro-watermark { position: absolute; bottom: 6px; right: 6px; font-size: 0.55rem; color: #444; font-weight: 900; letter-spacing: 0.5px; }
 .rtl-thumb .target-label { font-size: 0.65rem; color: #aaa; font-weight: 600; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* 유산소 전용 카드 (보라색 점선) */
 .rtl-thumb.cardio { border: 1px dashed #6C5CE7; background: rgba(108, 92, 231, 0.05); }
 .rtl-thumb.cardio .target-label { color: #a29bfe; }
-
-/* 휴식 노드 */
 .rtl-rest-node { background: rgba(108, 92, 231, 0.15); border: 1px solid rgba(108, 92, 231, 0.3); padding: 16px; border-radius: 14px; font-weight: bold; color: #dcdde1; font-size: 0.95rem; }
 .rtl-desc { font-size: 0.8rem; color: #777; line-height: 1.4; word-break: keep-all; }
-
-/* 하단 플로팅 버튼 및 힌트 */
 .rec-footer { position: fixed; bottom: 0; width: 100%; padding: 15px 20px 30px; background: linear-gradient(to top, #030303 90%, transparent); z-index: 100; text-align: center; }
 .scroll-down-hint { font-size: 0.8rem; color: #888; margin-bottom: 12px; font-weight: 500; }
 
-/* 구글 단일 로그인 */
+/* 로그인 화면 */
 .login-logo { font-size: 2.2rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 30px; text-align: center; }
 .login-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; text-align: center; }
 .login-desc { font-size: 0.85rem; color: #888; margin-bottom: 45px; text-align: center; }
