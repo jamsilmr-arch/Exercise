@@ -16,7 +16,7 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 .content-area { padding: 0 20px; }
 
 /* 탭바가 있는 뷰에만 하단 여백 적용 */
-#view-home, #view-analysis, #view-settings { padding-bottom: 110px; }
+#view-home, #view-analysis { padding-bottom: 110px; }
 
 /* 하단 네비게이션 바 */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.9); border-top: 1px solid #222; display: flex; justify-content: space-around; padding: 10px 0 25px 0; z-index: 1000; backdrop-filter: blur(10px); }
@@ -25,12 +25,24 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 .nav-icon { font-size: 1.2rem; filter: grayscale(100%); opacity: 0.5; }
 .nav-item.active .nav-icon { filter: grayscale(0%); opacity: 1; }
 
-/* --- [신규] 넷플릭스 스타일 스플래시 화면 --- */
+/* --- [신규] 완전히 심플해진 스플래시 화면 --- */
 #view-splash { background-color: #000000; }
-.splash-netflix-logo { font-size: 3.5rem; font-weight: 900; color: #E50914; letter-spacing: 2px; text-align: center; margin-bottom: 20px; transform: scaleY(1.1); /* 약간 길쭉한 넷플릭스 폰트 느낌 */ }
-.splash-netflix-footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 40px 20px; background: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent); }
-.netflix-start-btn { width: 100%; padding: 18px; border: none; border-radius: 4px; background-color: #E50914; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; letter-spacing: 1px;}
-.netflix-start-btn:active { transform: scale(0.98); background-color: #B20710; }
+.splash-content { padding-bottom: 100px; }
+.splash-sub { font-size: 0.8rem; color: #666; letter-spacing: 1px; margin-bottom: 5px; }
+.splash-title { font-size: 2.2rem; font-weight: 900; color: #fff; letter-spacing: -1px;}
+.splash-footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; }
+.splash-btn { width: 100%; padding: 18px; border: none; border-radius: 4px; background-color: #E50914; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s;}
+.splash-btn:active { transform: scale(0.98); background-color: #B20710; }
+
+/* --- 로그인 화면 (+로그인 없이 이용하기 버튼) --- */
+.login-logo { font-size: 2.5rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 40px; text-align: center; color: #E50914; transform: scaleY(1.1); }
+.login-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; text-align: center; }
+.login-desc { font-size: 0.85rem; color: #888; margin-bottom: 45px; text-align: center; }
+.login-btns { width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; align-items: center;}
+.login-btn { width: 100%; padding: 18px 20px; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 15px; border: 1px solid #444; background: #141414; color: #fff; transition: 0.2s; }
+.login-btn:active { transform: scale(0.98); }
+.login-btn .btn-icon { font-size: 1.2rem; font-weight: 900; color: #4285F4; }
+.login-btn-skip { background: transparent; border: none; color: #888; font-size: 0.9rem; text-decoration: underline; cursor: pointer; padding: 10px;}
 
 /* 홈 대시보드 */
 .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px; }
@@ -70,7 +82,7 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 /* 설정 탭 마법사 헤더 */
 .wizard-header { padding: 20px; }
 .wizard-top { display: flex; align-items: center; margin-bottom: 30px; }
-.wizard-title { font-size: 1.1rem; font-weight: 600; flex: 1; text-align: center; padding-right: 25px; }
+.wizard-title { font-size: 1.1rem; font-weight: 600; text-align: right; width: 100%; color: #fff;}
 .progress-container { margin-bottom: 10px; }
 .progress-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-bottom: 10px; }
 .progress-bar-bg { height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
@@ -116,7 +128,7 @@ input[type="number"] { -moz-appearance: textfield; }
 .chip-btn.active-purple { background: rgba(229, 9, 20, 0.15); border-color: #E50914; color: #E50914; font-weight: bold; }
 .chip-btn.active-green { background: #333; border-color: #555; color: #fff; font-weight: bold; }
 
-/* 5단계 슬라이더 UI (넷플릭스 톤) */
+/* 5단계 슬라이더 UI */
 .slider-container { background: #141414; border: 1px solid #333; border-radius: 12px; padding: 40px 20px; margin-bottom: 20px; text-align: center; }
 .slider-val-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
 .slider-sub-text { font-size: 0.8rem; color: #888; margin-bottom: 30px; }
@@ -130,20 +142,20 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 28px
 input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: transparent; cursor: pointer; }
 .slider-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-top: 15px; }
 
-/* 힌트 박스 및 마법사 버튼 */
+/* 마법사 하단 고정 요소 */
 .wizard-footer { display: flex; flex-direction: column; gap: 15px; padding: 0px 20px 30px; position: fixed; bottom: 0; width: 100%; background: #000; z-index: 100; border-top: 1px solid #222; }
 .hint-box { padding: 15px 0 0 0; display: flex; gap: 10px; font-size: 0.85rem; color: #aaa; align-items: flex-start; line-height: 1.4; word-break: keep-all; margin: 0; }
 .wizard-footer-btns { display: flex; gap: 10px; width: 100%; }
 .btn-prev { flex: 1; background: #222; color: white; padding: 16px; border-radius: 4px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
 .btn-next { flex: 2; background: #E50914; color: white; padding: 16px; border-radius: 4px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
 
-/* 로딩 화면 (flex 충돌 해결 완료) */
+/* 로딩 화면 */
 .loader-circle { width: 60px; height: 60px; border: 3px solid #222; border-top-color: #E50914; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 30px; box-shadow: 0 0 15px rgba(229, 9, 20, 0.2); }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; line-height: 1.4; }
 .loading-desc { font-size: 0.85rem; color: #888; line-height: 1.5; }
 
-/* 결과 분석 화면 (타임라인 수정) */
+/* 결과 분석 화면 */
 .result-header { padding: 20px 20px 10px; }
 .r-top { font-size: 0.8rem; color: #aaa; margin-bottom: 15px; text-align: center; }
 .r-title { font-size: 1.4rem; font-weight: bold; line-height: 1.4; margin-bottom: 25px; word-break: keep-all; }
@@ -164,7 +176,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; bac
 .r-desc-text { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 25px; white-space: pre-line; word-break: keep-all; }
 .r-tap-text { text-align: right; font-size: 0.8rem; color: #E50914; font-weight: bold; }
 
-/* 모의 그래프 고도화 */
+/* 모의 그래프 */
 .mock-graph { margin-bottom: 20px; background: #0a0a0a; padding: 20px 15px; border-radius: 8px; border: 1px solid #222; }
 .mock-graph-svg { width: 100%; height: 50px; overflow: visible; margin-bottom: 10px; }
 .mock-graph-labels { display: flex; justify-content: space-between; margin-top: 10px; }
@@ -207,12 +219,3 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; bac
 .rtl-desc { font-size: 0.8rem; color: #777; line-height: 1.4; word-break: keep-all; }
 .rec-footer { position: fixed; bottom: 0; width: 100%; padding: 15px 20px 30px; background: linear-gradient(to top, #000 90%, transparent); z-index: 100; text-align: center; border-top: 1px solid #222;}
 .scroll-down-hint { font-size: 0.8rem; color: #888; margin-bottom: 12px; font-weight: 500; }
-
-/* 구글 단일 로그인 */
-.login-logo { font-size: 2.5rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 40px; text-align: center; color: #E50914; transform: scaleY(1.1); }
-.login-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; text-align: center; }
-.login-desc { font-size: 0.85rem; color: #888; margin-bottom: 45px; text-align: center; }
-.login-btns { width: 100%; max-width: 320px; margin: 0 auto; }
-.login-btn { width: 100%; padding: 18px 20px; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 15px; border: 1px solid #444; background: #141414; color: #fff; transition: 0.2s; }
-.login-btn:active { transform: scale(0.98); }
-.login-btn .btn-icon { font-size: 1.2rem; font-weight: 900; color: #4285F4; }
