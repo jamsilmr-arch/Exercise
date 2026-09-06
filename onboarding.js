@@ -17,6 +17,7 @@ const googleProvider = new firebase.auth.GoogleAuthProvider();
 const urlParams = new URLSearchParams(window.location.search);
 const isEditMode = urlParams.get('edit') === 'true';
 
+// 화면 전환 함수
 function switchView(targetId) {
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
@@ -30,6 +31,13 @@ function switchView(targetId) {
     }
 }
 
+// [수정됨] 페이지 진입 시 모든 화면을 숨기고 파이어베이스 응답을 기다립니다.
+document.querySelectorAll('.view-container').forEach(view => {
+    view.style.display = 'none';
+    view.classList.remove('active');
+});
+
+// Firebase 로그인 상태 확인 (강력 새로고침 대응)
 auth.onAuthStateChanged(async (user) => {
     if (isEditMode) {
         switchView('view-settings');
@@ -38,6 +46,7 @@ auth.onAuthStateChanged(async (user) => {
     }
 
     if (user) {
+        // 구글 로그인 되어있는 상태
         document.querySelector('#view-loading .loading-title').innerText = '계정 정보를 불러오고 있어요';
         document.querySelector('#view-loading .loading-desc').innerText = '잠시만 기다려주세요.';
         switchView('view-loading');
@@ -45,26 +54,32 @@ auth.onAuthStateChanged(async (user) => {
         try {
             const userDoc = await db.collection('users').doc(user.uid).get();
             if (userDoc.exists && userDoc.data().onboardingCompleted) {
+                // 작성 기록이 있다면 홈으로 바로 리다이렉트
                 localStorage.setItem('onboardingCompleted', 'true');
-                window.location.href = 'home.html';
+                window.location.replace('home.html');
             } else {
+                // 작성 기록이 없으면 마법사 띄움
                 switchView('view-settings');
                 renderWizardStep();
             }
         } catch (error) {
+            console.error(error);
             switchView('view-settings');
             renderWizardStep();
         }
     } else {
+        // 로그인 되지 않은 상태
         const localCompleted = localStorage.getItem('onboardingCompleted');
         if (localCompleted === 'true') {
-            window.location.href = 'home.html';
+            window.location.replace('home.html');
         } else {
+            // 완전 첫 방문 (이제서야 스플래시 화면을 띄움)
             switchView('view-splash');
         }
     }
 });
 
+// 버튼 이벤트 리스너들
 document.getElementById('btn-start-onboarding').addEventListener('click', () => { switchView('view-login'); });
 
 document.getElementById('btn-login-google').addEventListener('click', () => {
@@ -155,6 +170,7 @@ function renderWizardStep() {
         inputArea.querySelectorAll('.chip-btn').forEach(btn => btn.addEventListener('click', (e) => {
             const target = e.currentTarget; const sec = target.getAttribute('data-sec'); const val = target.getAttribute('data-val'); const color = target.getAttribute('data-color');
             const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
+            
             if (existingIdx > -1) { 
                 step.values.splice(existingIdx, 1); 
                 target.classList.remove(`active-${color}`); 
@@ -181,6 +197,7 @@ document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
 });
 
+// --- 로딩 및 분석 화면 ---
 function showLoadingScreen() {
     document.querySelector('#view-loading .loading-title').innerHTML = '맞춤형 루틴을<br>생성하고 있어요';
     document.querySelector('#view-loading .loading-desc').innerHTML = '잠시만 기다려주세요.<br>곧 최적의 루틴 구조를 보여드릴게요.';
@@ -229,32 +246,30 @@ document.getElementById('explain-tap-text').onclick = function() {
     } 
 };
 
-// --- [수정됨] 직관적이고 역동적인 운동 부위별 이미지 맵핑 ---
 function getExerciseImage(target) {
     let imgUrl = "";
     let exerciseName = "";
 
-    // 사용자가 한눈에 동작을 이해할 수 있는 명확한 피트니스 동작 이미지 사용
     if (target.includes('가슴')) {
-        imgUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400"; // 벤치프레스 역동적 앵글
+        imgUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400";
         exerciseName = "벤치 프레스 & 플라이";
     } else if (target.includes('어깨')) {
-        imgUrl = "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=400"; // 바벨 숄더 프레스 자세
+        imgUrl = "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=400";
         exerciseName = "숄더 프레스 & 레이즈";
     } else if (target.includes('팔') || target.includes('이두') || target.includes('삼두')) {
-        imgUrl = "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=400"; // 팔 근육 포커스 덤벨 컬
+        imgUrl = "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=400";
         exerciseName = "암 컬 & 익스텐션";
     } else if (target.includes('하체') || target.includes('대퇴')) {
-        imgUrl = "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=400"; // 중량 백스쿼트
+        imgUrl = "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=400";
         exerciseName = "스쿼트 & 런지";
     } else if (target.includes('햄스트링') || target.includes('엉덩이')) {
-        imgUrl = "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=400"; // 데드리프트 준비 자세
+        imgUrl = "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=400";
         exerciseName = "데드리프트 & 컬";
     } else if (target.includes('등') || target.includes('광배')) {
-        imgUrl = "https://images.unsplash.com/photo-1598971639058-fab354c681f7?auto=format&fit=crop&q=80&w=400"; // 턱걸이/랫풀다운 뒷모습
+        imgUrl = "https://images.unsplash.com/photo-1598971639058-fab354c681f7?auto=format&fit=crop&q=80&w=400";
         exerciseName = "랫풀다운 & 로우";
     } else if (target.includes('삼두 보조') || target.includes('어시스트')) {
-        imgUrl = "https://images.unsplash.com/photo-1532029837206-abbe267e56f2?auto=format&fit=crop&q=80&w=400"; // 케이블 푸시다운
+        imgUrl = "https://images.unsplash.com/photo-1532029837206-abbe267e56f2?auto=format&fit=crop&q=80&w=400";
         exerciseName = "케이블 푸시다운";
     } else {
         imgUrl = "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=400";
@@ -351,5 +366,5 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
             console.error("Firestore 저장 실패:", error);
         }
     }
-    window.location.href = 'home.html';
+    window.location.replace('home.html');
 });
