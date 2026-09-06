@@ -84,7 +84,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 document.getElementById('btn-start-workout').addEventListener('click', () => switchView('view-workout'));
 document.getElementById('btn-back').addEventListener('click', () => switchView('view-home'));
 
-// --- 마법사 로직 (가이드 수치 변경) ---
+// --- 마법사 로직 ---
 const wizardSteps = [
     { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '70', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
     { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '20', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영해요.' },
@@ -222,9 +222,8 @@ function renderExplainStep() {
     }
 }
 
-document.getElementById('explain-bottom-card').addEventListener('click', function(e) {
-    e.stopPropagation();
-    
+// [수정됨] 클릭 이벤트를 텍스트 버튼(.r-tap-btn)에 직접 바인딩
+document.getElementById('explain-tap-text').addEventListener('click', function(e) {
     if (currentExplainStep < explainData.length - 1) { 
         currentExplainStep++; 
         renderExplainStep(); 
