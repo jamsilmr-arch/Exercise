@@ -17,7 +17,6 @@ const googleProvider = new firebase.auth.GoogleAuthProvider();
 const urlParams = new URLSearchParams(window.location.search);
 const isEditMode = urlParams.get('edit') === 'true';
 
-// 화면 전환 함수
 function switchView(targetId) {
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
@@ -31,22 +30,30 @@ function switchView(targetId) {
     }
 }
 
-// [수정됨] 페이지 진입 시 모든 화면을 숨기고 파이어베이스 응답을 기다립니다.
+// 화면 렌더링 전 모두 숨김 (깜빡임 방지)
 document.querySelectorAll('.view-container').forEach(view => {
     view.style.display = 'none';
     view.classList.remove('active');
 });
 
-// Firebase 로그인 상태 확인 (강력 새로고침 대응)
+// --- [핵심 수정] 무한루프 튕김 방지 로직 ---
 auth.onAuthStateChanged(async (user) => {
+    // 1. 루틴 수정 모드로 진입 시 묻지도 따지지도 않고 마법사 오픈
     if (isEditMode) {
         switchView('view-settings');
         renderWizardStep();
         return;
     }
 
+    // 2. 브라우저 캐시에 완료 기록이 있다면 DB가 실패했더라도 홈으로 직행 (무한루프 방어)
+    const localCompleted = localStorage.getItem('onboardingCompleted') === 'true';
+    if (localCompleted) {
+        window.location.replace('home.html');
+        return;
+    }
+
+    // 3. 브라우저 캐시가 날아갔을 경우, 로그인된 계정의 DB를 확인하여 복구 시도
     if (user) {
-        // 구글 로그인 되어있는 상태
         document.querySelector('#view-loading .loading-title').innerText = '계정 정보를 불러오고 있어요';
         document.querySelector('#view-loading .loading-desc').innerText = '잠시만 기다려주세요.';
         switchView('view-loading');
@@ -54,32 +61,23 @@ auth.onAuthStateChanged(async (user) => {
         try {
             const userDoc = await db.collection('users').doc(user.uid).get();
             if (userDoc.exists && userDoc.data().onboardingCompleted) {
-                // 작성 기록이 있다면 홈으로 바로 리다이렉트
                 localStorage.setItem('onboardingCompleted', 'true');
                 window.location.replace('home.html');
             } else {
-                // 작성 기록이 없으면 마법사 띄움
                 switchView('view-settings');
                 renderWizardStep();
             }
         } catch (error) {
-            console.error(error);
+            console.error("DB 로드 에러:", error);
             switchView('view-settings');
             renderWizardStep();
         }
     } else {
-        // 로그인 되지 않은 상태
-        const localCompleted = localStorage.getItem('onboardingCompleted');
-        if (localCompleted === 'true') {
-            window.location.replace('home.html');
-        } else {
-            // 완전 첫 방문 (이제서야 스플래시 화면을 띄움)
-            switchView('view-splash');
-        }
+        // 완전 첫 방문 유저
+        switchView('view-splash');
     }
 });
 
-// 버튼 이벤트 리스너들
 document.getElementById('btn-start-onboarding').addEventListener('click', () => { switchView('view-login'); });
 
 document.getElementById('btn-login-google').addEventListener('click', () => {
@@ -170,7 +168,6 @@ function renderWizardStep() {
         inputArea.querySelectorAll('.chip-btn').forEach(btn => btn.addEventListener('click', (e) => {
             const target = e.currentTarget; const sec = target.getAttribute('data-sec'); const val = target.getAttribute('data-val'); const color = target.getAttribute('data-color');
             const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
-            
             if (existingIdx > -1) { 
                 step.values.splice(existingIdx, 1); 
                 target.classList.remove(`active-${color}`); 
