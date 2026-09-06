@@ -1,21 +1,21 @@
-/* 공통 리셋 (글로벌 스크롤 방지용 margin 초기화) */
+/* 공통 리셋 */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Helvetica Neue", sans-serif; user-select: none; }
 body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: transparent; margin: 0; }
 
-/* 뷰 전환 로직 및 100dvh 설정으로 모바일 스크롤 완벽 대응 */
-.view-container { display: none; min-height: 100dvh; position: relative; }
-.view-container.active { display: block; animation: fadeIn 0.3s ease; }
-.view-container.active.flex-center { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+/* 뷰 전환 로직 수정 (화면 겹침 완벽 해결) 
+   주의: active 클래스가 없는 화면은 무조건 display: none 처리해야 함 */
+.view-container { display: none !important; min-height: 100dvh; position: relative; width: 100%; }
+.view-container.active { display: block !important; animation: fadeIn 0.3s ease; }
+.view-container.active.flex-center { display: flex !important; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
 
-/* 강제 스크롤 방지용 클래스 (스플래시, 로딩, 로그인 화면 전용) */
-.view-container.no-scroll { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+/* 강제 스크롤 방지용 클래스 */
+.view-container.no-scroll { height: 100dvh; overflow: hidden; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 /* 전역 하이라이트 컬러를 넷플릭스 레드로 변경 */
 .highlight { color: #E50914; font-weight: bold; }
 .content-area { padding: 0 20px; }
-
-/* 탭바가 있는 뷰에만 하단 여백 적용 */
 #view-home, #view-analysis { padding-bottom: 110px; }
 
 /* 하단 네비게이션 바 */
@@ -25,14 +25,14 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 .nav-icon { font-size: 1.2rem; filter: grayscale(100%); opacity: 0.5; }
 .nav-item.active .nav-icon { filter: grayscale(0%); opacity: 1; }
 
-/* --- [신규] 완전히 심플해진 스플래시 화면 --- */
+/* --- [신규] 넷플릭스 스타일 스플래시 화면 --- */
 #view-splash { background-color: #000000; }
-.splash-content { padding-bottom: 100px; }
-.splash-sub { font-size: 0.8rem; color: #666; letter-spacing: 1px; margin-bottom: 5px; }
-.splash-title { font-size: 2.2rem; font-weight: 900; color: #fff; letter-spacing: -1px;}
-.splash-footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; }
-.splash-btn { width: 100%; padding: 18px; border: none; border-radius: 4px; background-color: #E50914; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s;}
-.splash-btn:active { transform: scale(0.98); background-color: #B20710; }
+.splash-netflix-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: -60px; }
+.splash-netflix-logo { font-size: 4rem; font-weight: 900; color: #E50914; letter-spacing: 2px; text-align: center; transform: scaleY(1.1); margin: 0; }
+.splash-sub { font-size: 0.9rem; color: #666; letter-spacing: 2px; margin-bottom: 5px; }
+.splash-netflix-footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 40px 20px; background: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent); }
+.netflix-start-btn { width: 100%; padding: 18px; border: none; border-radius: 4px; background-color: #E50914; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; letter-spacing: 1px;}
+.netflix-start-btn:active { transform: scale(0.98); background-color: #B20710; }
 
 /* --- 로그인 화면 (+로그인 없이 이용하기 버튼) --- */
 .login-logo { font-size: 2.5rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 40px; text-align: center; color: #E50914; transform: scaleY(1.1); }
@@ -82,7 +82,7 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 /* 설정 탭 마법사 헤더 */
 .wizard-header { padding: 20px; }
 .wizard-top { display: flex; align-items: center; margin-bottom: 30px; }
-.wizard-title { font-size: 1.1rem; font-weight: 600; text-align: right; width: 100%; color: #fff;}
+.wizard-title { font-size: 1.1rem; font-weight: 600; flex: 1; color: #fff;}
 .progress-container { margin-bottom: 10px; }
 .progress-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-bottom: 10px; }
 .progress-bar-bg { height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
@@ -142,7 +142,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 28px
 input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: transparent; cursor: pointer; }
 .slider-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-top: 15px; }
 
-/* 마법사 하단 고정 요소 */
+/* 힌트 박스 및 마법사 버튼 */
 .wizard-footer { display: flex; flex-direction: column; gap: 15px; padding: 0px 20px 30px; position: fixed; bottom: 0; width: 100%; background: #000; z-index: 100; border-top: 1px solid #222; }
 .hint-box { padding: 15px 0 0 0; display: flex; gap: 10px; font-size: 0.85rem; color: #aaa; align-items: flex-start; line-height: 1.4; word-break: keep-all; margin: 0; }
 .wizard-footer-btns { display: flex; gap: 10px; width: 100%; }
