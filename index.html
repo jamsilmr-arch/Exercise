@@ -7,22 +7,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- [화면 0-1] 스플래시 화면 -->
-    <div id="view-splash" class="view-container active">
-        <main class="splash-main">
-            <p class="splash-sub">손 안의 트레이너</p>
-            <h1 class="splash-title">점진적 성장</h1>
-            <div class="splash-mockup">
-                <div class="mockup-header">Rapid Overload</div>
-                <div class="mockup-bar"></div>
-                <div class="mockup-card">
-                    <div style="font-size: 0.7rem; color: #6C5CE7; margin-bottom: 5px;">오늘 운동</div>
-                    <div style="font-size: 1.1rem; font-weight: bold;">Day 2</div>
-                </div>
+    <!-- [화면 0-1] 스플래시 화면 (스크롤 방지 no-scroll 적용 및 전면 재설계) -->
+    <div id="view-splash" class="view-container active no-scroll">
+        <div class="splash-glow"></div>
+        <div class="splash-content">
+            <div class="splash-badge">40 MIN OVERLOAD</div>
+            <h1 class="splash-title">가장 확실한<br><span class="highlight">점진적 성장</span></h1>
+            <p class="splash-desc">직장인 점심시간 40분 컷.<br>당신만의 린매스업 루틴을 설계하세요.</p>
+            
+            <div class="splash-visual">
+                <svg viewBox="0 0 100 100" class="splash-svg">
+                    <!-- 배경 원 -->
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#222" stroke-width="2"/>
+                    <!-- 진행률 원 (애니메이션) -->
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#6C5CE7" stroke-width="4" stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round">
+                        <animate attributeName="stroke-dashoffset" from="283" to="50" dur="1.5s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"/>
+                    </circle>
+                    <!-- 우상향 그래프 -->
+                    <path d="M 30,60 L 45,50 L 55,55 L 70,35" fill="none" stroke="#00b894" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="70" cy="35" r="4" fill="#00b894"/>
+                </svg>
             </div>
-        </main>
+        </div>
         <div class="splash-footer">
-            <button id="btn-start-onboarding" class="primary-btn">시작하기</button>
+            <button id="btn-start-onboarding" class="primary-btn">루틴 설계 시작하기</button>
         </div>
     </div>
 
@@ -62,8 +70,8 @@
         </div>
     </div>
 
-    <!-- [화면 1-1] 로딩 화면 -->
-    <div id="view-loading" class="view-container flex-center">
+    <!-- [화면 1-1] 로딩 화면 (스크롤 방지 적용) -->
+    <div id="view-loading" class="view-container flex-center no-scroll">
         <div class="loader-circle"></div>
         <h2 class="loading-title">맞춤형 루틴을<br>생성하고 있어요</h2>
         <p class="loading-desc">잠시만 기다려주세요.<br>곧 최적의 루틴 구조를 보여드릴게요.</p>
@@ -83,15 +91,15 @@
         </div>
     </div>
 
-    <!-- [화면 1-3] 추천 루틴 완성 타임라인 (Day 1~3 & Day 1a~3a) -->
+    <!-- [화면 1-3] 추천 루틴 완성 타임라인 -->
     <div id="view-recommended-routine" class="view-container">
         <header class="rec-header">
             <div class="r-top-nav"><button class="icon-btn" id="btn-rec-back">←</button><span class="r-nav-title">추천 루틴</span></div>
             <div class="r-badge">✓ 루틴 구성 완료</div>
             <h1 class="r-main-title">사용자님을 위한<br>루틴 구조예요</h1>
-            <h2 class="r-sub-title" id="rec-subtitle">주 6회 (몸통-말단-하체) 루틴</h2>
+            <h2 class="r-sub-title" id="rec-subtitle">주 3회 (밀기-당기기-하체) 루틴</h2>
             <div class="r-chips">
-                <span class="r-chip" id="rec-chip-split">몸통-말단-하체</span>
+                <span class="r-chip" id="rec-chip-split">밀기-당기기-하체</span>
                 <span class="r-chip" id="rec-chip-gender">남성</span>
             </div>
             <div class="r-preview-text">루틴 미리보기 (1주 기준)</div>
@@ -103,8 +111,8 @@
         </div>
     </div>
 
-    <!-- [화면 1-4] 계정 연동 (구글 단일 로그인) -->
-    <div id="view-login" class="view-container flex-center" style="padding: 40px;">
+    <!-- [화면 1-4] 계정 연동 (스크롤 방지 적용) -->
+    <div id="view-login" class="view-container flex-center no-scroll" style="padding: 40px;">
         <div class="login-logo">Rapid Overload</div>
         <h1 class="login-title">거의 다 왔어요</h1>
         <p class="login-desc">방금 만든 루틴을 계정에 저장할게요</p>
