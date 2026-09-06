@@ -14,7 +14,6 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-// 홈 화면에서 "루틴 수정" 버튼을 눌러 돌아왔는지 파악하는 변수
 const urlParams = new URLSearchParams(window.location.search);
 const isEditMode = urlParams.get('edit') === 'true';
 
@@ -31,7 +30,6 @@ function switchView(targetId) {
     }
 }
 
-// 자동 로그인 및 홈 화면 우회 로직
 auth.onAuthStateChanged(async (user) => {
     if (isEditMode) {
         switchView('view-settings');
@@ -48,7 +46,7 @@ auth.onAuthStateChanged(async (user) => {
             const userDoc = await db.collection('users').doc(user.uid).get();
             if (userDoc.exists && userDoc.data().onboardingCompleted) {
                 localStorage.setItem('onboardingCompleted', 'true');
-                window.location.href = 'home.html'; // 홈으로 직행
+                window.location.href = 'home.html';
             } else {
                 switchView('view-settings');
                 renderWizardStep();
@@ -60,7 +58,7 @@ auth.onAuthStateChanged(async (user) => {
     } else {
         const localCompleted = localStorage.getItem('onboardingCompleted');
         if (localCompleted === 'true') {
-            window.location.href = 'home.html'; // 홈으로 직행
+            window.location.href = 'home.html';
         } else {
             switchView('view-splash');
         }
@@ -231,31 +229,33 @@ document.getElementById('explain-tap-text').onclick = function() {
     } 
 };
 
+// --- [수정됨] 직관적이고 역동적인 운동 부위별 이미지 맵핑 ---
 function getExerciseImage(target) {
     let imgUrl = "";
     let exerciseName = "";
 
+    // 사용자가 한눈에 동작을 이해할 수 있는 명확한 피트니스 동작 이미지 사용
     if (target.includes('가슴')) {
-        imgUrl = "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400"; 
+        imgUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400"; // 벤치프레스 역동적 앵글
         exerciseName = "벤치 프레스 & 플라이";
     } else if (target.includes('어깨')) {
-        imgUrl = "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=400"; // 바벨 숄더 프레스 자세
         exerciseName = "숄더 프레스 & 레이즈";
     } else if (target.includes('팔') || target.includes('이두') || target.includes('삼두')) {
-        imgUrl = "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=400"; // 팔 근육 포커스 덤벨 컬
         exerciseName = "암 컬 & 익스텐션";
     } else if (target.includes('하체') || target.includes('대퇴')) {
-        imgUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=400"; // 중량 백스쿼트
         exerciseName = "스쿼트 & 런지";
     } else if (target.includes('햄스트링') || target.includes('엉덩이')) {
-        imgUrl = "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=400"; // 데드리프트 준비 자세
         exerciseName = "데드리프트 & 컬";
     } else if (target.includes('등') || target.includes('광배')) {
-        imgUrl = "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://images.unsplash.com/photo-1598971639058-fab354c681f7?auto=format&fit=crop&q=80&w=400"; // 턱걸이/랫풀다운 뒷모습
         exerciseName = "랫풀다운 & 로우";
     } else if (target.includes('삼두 보조') || target.includes('어시스트')) {
-        imgUrl = "https://images.unsplash.com/photo-1532029837206-abbe267e56f2?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "오버헤드 익스텐션";
+        imgUrl = "https://images.unsplash.com/photo-1532029837206-abbe267e56f2?auto=format&fit=crop&q=80&w=400"; // 케이블 푸시다운
+        exerciseName = "케이블 푸시다운";
     } else {
         imgUrl = "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=400";
         exerciseName = "프리웨이트 컴파운드";
@@ -324,11 +324,8 @@ function generateRecommendedRoutine() {
     timelineArea.innerHTML = html;
 }
 
-// (기존 코드의 타임라인 생성 로직 아래부분)
-
 document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
 
-// --- [수정됨] 누락되었던 DB 저장 로직 복구 및 페이지 이동 ---
 document.getElementById('btn-go-home').addEventListener('click', async () => { 
     const btn = document.getElementById('btn-go-home');
     btn.innerText = "저장 중...";
@@ -336,7 +333,6 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
 
     localStorage.setItem('onboardingCompleted', 'true');
     const currentUser = auth.currentUser;
-    
     if (currentUser) {
         const userWizardData = {};
         wizardSteps.forEach((step, index) => {
@@ -345,9 +341,7 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
                 value: step.values && step.values.length > 0 ? step.values : (step.value || '')
             };
         });
-        
         try {
-            // Firestore에 데이터 영구 저장
             await db.collection('users').doc(currentUser.uid).set({
                 onboardingCompleted: true,
                 wizardData: userWizardData,
@@ -357,7 +351,5 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
             console.error("Firestore 저장 실패:", error);
         }
     }
-
-    // 저장이 완료되면 실제 홈 화면 파일로 강제 이동
     window.location.href = 'home.html';
 });
