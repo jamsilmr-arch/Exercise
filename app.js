@@ -1,4 +1,3 @@
-
 // --- 요소 선택 및 뷰 전환 ---
 const mainNav = document.getElementById('main-nav');
 function switchView(targetId) {
