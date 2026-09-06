@@ -1,18 +1,27 @@
 // --- 요소 선택 및 뷰 전환 ---
 const mainNav = document.getElementById('main-nav');
+
+// [참고] 실제 구글 로그인을 연동하기 위해 Firebase Authentication을 사용하는 예시 뼈대입니다.
+// 실제 사용 시에는 HTML <head>에 Firebase SDK CDN을 삽입하고 아래 config를 채워야 합니다.
+/*
+  const firebaseConfig = { apiKey: "YOUR_API_KEY", authDomain: "YOUR_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+  firebase.initializeApp(firebaseConfig);
+  const provider = new firebase.auth.GoogleAuthProvider();
+*/
+
 function switchView(targetId) {
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
-        view.style.display = 'none'; // 강제 숨김 처리 추가
+        view.style.display = 'none'; // Flex 겹침 차단
     });
     
     const targetView = document.getElementById(targetId);
     targetView.classList.add('active');
-    targetView.style.display = ''; // 강제 표시 처리 (CSS에 맡김)
+    targetView.style.display = '';
     window.scrollTo(0, 0);
 }
 
-// 최초 진입 체크 (스플래시 제어)
+// 최초 진입 체크 (스플래시 화면 제어)
 const isOnboardingCompleted = localStorage.getItem('onboardingCompleted');
 
 if (!isOnboardingCompleted) {
@@ -23,15 +32,31 @@ if (!isOnboardingCompleted) {
     switchView('view-home');
 }
 
-// [수정됨] 스플래시 화면 버튼 클릭 시 구글 로그인 화면으로 우선 이동
-document.getElementById('btn-start-onboarding').addEventListener('click', () => { 
+// [수정됨] 스플래시 -> 구글 로그인 화면으로 이동
+document.getElementById('btn-go-login').addEventListener('click', () => { 
     switchView('view-login'); 
 });
 
-// [수정됨] 로그인 / 스킵 버튼 클릭 시 맞춤 설정 마법사로 진입
-document.getElementById('btn-login-google').addEventListener('click', startWizard);
+// [수정됨] 구글 로그인 버튼 이벤트 (실제 연동 시 이 부분에 Firebase 팝업 로직 호출)
+document.getElementById('btn-login-google').addEventListener('click', () => {
+    /* 
+      // 실제 구글 로그인 팝업 호출 로직 예시
+      firebase.auth().signInWithPopup(provider).then((result) => {
+          console.log("로그인 성공:", result.user);
+          startWizard(); // 로그인 성공 시 마법사로 진입
+      }).catch((error) => {
+          console.error("로그인 실패:", error);
+      });
+    */
+    
+    // 현재는 UI 시뮬레이션을 위해 클릭 시 바로 마법사로 넘김
+    startWizard();
+});
+
+// [수정됨] 로그인 없이 이용하기 버튼 클릭
 document.getElementById('btn-skip-login').addEventListener('click', startWizard);
 
+// 설정 마법사 시작 함수
 function startWizard() {
     switchView('view-settings');
     renderWizardStep();
@@ -126,17 +151,21 @@ function renderWizardStep() {
             const target = e.currentTarget; const sec = target.getAttribute('data-sec'); const val = target.getAttribute('data-val'); const color = target.getAttribute('data-color');
             const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
             
+            // 강조와 유지 각각 독립적으로 3개까지만 선택 가능
             if (existingIdx > -1) { 
                 step.values.splice(existingIdx, 1); 
                 target.classList.remove(`active-${color}`); 
             } else { 
                 const secValues = step.values.filter(v => v.id === sec);
-                if (secValues.length >= 3) return alert('각 항목당 최대 3개까지만 선택 가능합니다.'); 
-                step.values = step.values.filter(v => v.val !== val); step.values.push({id: sec, val: val}); renderWizardStep(); 
+                if (secValues.length >= 3) return alert('해당 영역은 최대 3개까지만 선택 가능합니다.'); 
+                
+                step.values = step.values.filter(v => v.val !== val); 
+                step.values.push({id: sec, val: val}); 
+                renderWizardStep(); 
             }
         }));
     }
-    document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '루틴 생성하기' : '다음';
+    document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '루틴 추천받기' : '다음';
     document.getElementById('btn-prev-step').style.opacity = currentWizardStep === 0 ? '0.3' : '1';
 }
 
@@ -144,7 +173,7 @@ document.getElementById('btn-next-step').addEventListener('click', () => {
     const activeInput = document.querySelector('.input-val');
     if (activeInput) { wizardSteps[currentWizardStep].value = activeInput.value; }
     if (currentWizardStep < wizardSteps.length - 1) { currentWizardStep++; renderWizardStep(); } 
-    else { showLoadingScreen(); } // 로딩 화면으로 이동
+    else { showLoadingScreen(); } // 설정 완료 시 로딩 호출
 });
 document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
@@ -217,16 +246,16 @@ function generateRecommendedRoutine() {
     let html = '';
 
     const exerciseBlocks = [
-        { day: 'Day 1 (밀기)', count: 4, icons: ['🏋️‍♂️', '💪', '🏋️', '🧍‍♂️'] },
-        { day: 'Day 2 (당기기)', count: 4, icons: ['🤸‍♂️', '🧗', '💪', '🧍‍♂️'] },
-        { day: 'Day 3 (하체)', count: 3, icons: ['🦵', '🏃', '🏋️'] }
+        { day: 'Day 1 (밀기)', count: 4, exercises: [{ name: '시티드 로우', target: '등상부' }, { name: '체스트 프레스', target: '가슴' }, { name: '인클라인 머신', target: '가슴' }, { name: '랫풀다운', target: '광배근' }, { name: '덤벨 플라이', target: '가슴' }, { name: '체스트 로우', target: '광배근' }] },
+        { day: 'Day 2 (당기기)', count: 4, exercises: [{ name: '숄더 프레스', target: '어깨' }, { name: '프리처 컬', target: '이두' }, { name: '사레레', target: '어깨' }, { name: '덤벨 익스텐션', target: '삼두' }, { name: '바벨 컬', target: '이두' }, { name: '푸시다운', target: '삼두' }, { name: '페이스 풀', target: '어깨' }] },
+        { day: 'Day 3 (하체)', count: 3, exercises: [{ name: '백스쿼트', target: '대퇴사두' }, { name: '루마니안 데드', target: '햄스트링' }, { name: '레그 프레스', target: '하체' }, { name: '라잉 레그 컬', target: '햄스트링' }, { name: '카프 레이즈', target: '하체' }] }
     ];
 
     for (let i = 0; i < frequency; i++) {
         const block = exerciseBlocks[i % 3];
         const showCardio = isCardio && (i === 0 || i === 2); 
         
-        let thumbHtml = block.icons.map(icon => `<div class="rtl-thumb">${getExerciseSVG('가슴')}<div class="target-label">임시종목</div><div class="ro-watermark">RO</div></div>`).join('');
+        let thumbHtml = block.exercises.map(ex => `<div class="rtl-thumb">${getExerciseSVG(ex.target)}<div class="target-label">${ex.name}</div><div class="ro-watermark">RO</div></div>`).join('');
         if (showCardio) {
             thumbHtml += `<div class="rtl-thumb cardio"><svg viewBox="0 0 60 60"><path d="M12 45 L48 45" stroke="#E50914" stroke-width="3" stroke-dasharray="3,3"/><circle cx="34" cy="14" r="5" fill="#888"/><path d="M30 20 L38 32 L34 44 M26 28 L20 38" stroke="#E50914" stroke-width="3" fill="none"/></svg><div class="target-label" style="color:#E50914;">유산소</div><div class="ro-watermark">RO</div></div>`;
         }
@@ -248,6 +277,7 @@ function generateRecommendedRoutine() {
 }
 
 document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
+
 // 앱 시작하기 버튼 클릭 시 홈 화면으로 이동 및 온보딩 완료 처리
 document.getElementById('btn-go-home').addEventListener('click', () => { 
     localStorage.setItem('onboardingCompleted', 'true');
