@@ -26,33 +26,37 @@ function switchView(targetId) {
     }
 }
 
-// [수정됨] 페이지 로드 시 하얀 바탕(또는 숨김 처리)으로 대기
+// 화면 렌더링 전 모두 숨김 (깜빡임 방지)
 document.querySelectorAll('.view-container').forEach(view => {
     view.style.display = 'none';
     view.classList.remove('active');
 });
 
-// 홈 진입 시 권한 검증 (강력 새로고침 대응)
+// --- [핵심 수정] 무조건 내쫓는 대신 캐시를 우선 신뢰 ---
 auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-        if (localStorage.getItem('onboardingCompleted') !== 'true') {
-            window.location.replace('index.html'); // 권한 없음 -> 온보딩으로 복귀
+    const localCompleted = localStorage.getItem('onboardingCompleted') === 'true';
+
+    if (!localCompleted) {
+        // 로컬 기록이 없으면 DB에서 교차 확인
+        if (user) {
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists && userDoc.data().onboardingCompleted) {
+                    localStorage.setItem('onboardingCompleted', 'true');
+                    switchView('view-home');
+                } else {
+                    window.location.replace('index.html');
+                }
+            } catch(e) {
+                window.location.replace('index.html');
+            }
         } else {
-            switchView('view-home');
+            // 로컬 기록도 없고 로그인도 안 되어있으면 스플래시로 쫓아냄
+            window.location.replace('index.html');
         }
     } else {
-        try {
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            if (!userDoc.exists || !userDoc.data().onboardingCompleted) {
-                window.location.replace('index.html');
-            } else {
-                localStorage.setItem('onboardingCompleted', 'true');
-                switchView('view-home');
-            }
-        } catch(e) {
-            console.error(e);
-            switchView('view-home');
-        }
+        // 로컬에 완료 기록이 있으면, DB 실패 여부와 상관없이 무조건 홈 띄움
+        switchView('view-home');
     }
 });
 
