@@ -30,29 +30,24 @@ function switchView(targetId) {
     }
 }
 
-// 화면 렌더링 전 모두 숨김 (깜빡임 방지)
 document.querySelectorAll('.view-container').forEach(view => {
     view.style.display = 'none';
     view.classList.remove('active');
 });
 
-// --- [핵심 수정] 무한루프 튕김 방지 로직 ---
 auth.onAuthStateChanged(async (user) => {
-    // 1. 루틴 수정 모드로 진입 시 묻지도 따지지도 않고 마법사 오픈
     if (isEditMode) {
         switchView('view-settings');
         renderWizardStep();
         return;
     }
 
-    // 2. 브라우저 캐시에 완료 기록이 있다면 DB가 실패했더라도 홈으로 직행 (무한루프 방어)
     const localCompleted = localStorage.getItem('onboardingCompleted') === 'true';
     if (localCompleted) {
         window.location.replace('home.html');
         return;
     }
 
-    // 3. 브라우저 캐시가 날아갔을 경우, 로그인된 계정의 DB를 확인하여 복구 시도
     if (user) {
         document.querySelector('#view-loading .loading-title').innerText = '계정 정보를 불러오고 있어요';
         document.querySelector('#view-loading .loading-desc').innerText = '잠시만 기다려주세요.';
@@ -73,7 +68,6 @@ auth.onAuthStateChanged(async (user) => {
             renderWizardStep();
         }
     } else {
-        // 완전 첫 방문 유저
         switchView('view-splash');
     }
 });
@@ -95,7 +89,6 @@ function startWizard() {
     renderWizardStep();
 }
 
-// --- 마법사 로직 ---
 const wizardSteps = [
     { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '70', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
     { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '20', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영해요.' },
@@ -190,11 +183,24 @@ document.getElementById('btn-next-step').addEventListener('click', () => {
     if (currentWizardStep < wizardSteps.length - 1) { currentWizardStep++; renderWizardStep(); } 
     else { showLoadingScreen(); }
 });
+
+// --- [수정됨] 뒤로가기 클릭 시 홈으로 빠져나가는 로직 반영 ---
 document.getElementById('btn-prev-step').addEventListener('click', () => {
-    if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
+    if (currentWizardStep > 0) { 
+        currentWizardStep--; 
+        renderWizardStep(); 
+    } else {
+        // 첫 번째 화면에서 '이전'을 눌렀을 때
+        if (isEditMode) {
+            // 수정 모드로 들어왔다면 변경 없이 홈 화면으로 탈출
+            window.location.replace('home.html');
+        } else {
+            // 처음 로그인 중이라면 시작 화면으로
+            switchView('view-login');
+        }
+    }
 });
 
-// --- 로딩 및 분석 화면 ---
 function showLoadingScreen() {
     document.querySelector('#view-loading .loading-title').innerHTML = '맞춤형 루틴을<br>생성하고 있어요';
     document.querySelector('#view-loading .loading-desc').innerHTML = '잠시만 기다려주세요.<br>곧 최적의 루틴 구조를 보여드릴게요.';
@@ -243,33 +249,35 @@ document.getElementById('explain-tap-text').onclick = function() {
     } 
 };
 
+// --- [수정됨] 동작을 확실히 알아볼 수 있는 운동 애니메이션(GIF) 적용 ---
+// 해당 근육 부위가 빨간색으로 강조되며 움직이는 직관적인 애니메이션 파일입니다.
 function getExerciseImage(target) {
     let imgUrl = "";
     let exerciseName = "";
 
     if (target.includes('가슴')) {
-        imgUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif"; 
         exerciseName = "벤치 프레스 & 플라이";
     } else if (target.includes('어깨')) {
-        imgUrl = "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif";
         exerciseName = "숄더 프레스 & 레이즈";
-    } else if (target.includes('팔') || target.includes('이두') || target.includes('삼두')) {
-        imgUrl = "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=400";
+    } else if (target.includes('삼두')) {
+        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/6/63/Pushdown_animation.gif";
+        exerciseName = "트라이셉스 익스텐션";
+    } else if (target.includes('팔') || target.includes('이두')) {
+        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif";
         exerciseName = "암 컬 & 익스텐션";
     } else if (target.includes('하체') || target.includes('대퇴')) {
-        imgUrl = "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/8/82/Squat_animation.gif";
         exerciseName = "스쿼트 & 런지";
     } else if (target.includes('햄스트링') || target.includes('엉덩이')) {
-        imgUrl = "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/0/04/Deadlift_animation.gif";
         exerciseName = "데드리프트 & 컬";
     } else if (target.includes('등') || target.includes('광배')) {
-        imgUrl = "https://images.unsplash.com/photo-1598971639058-fab354c681f7?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif";
         exerciseName = "랫풀다운 & 로우";
-    } else if (target.includes('삼두 보조') || target.includes('어시스트')) {
-        imgUrl = "https://images.unsplash.com/photo-1532029837206-abbe267e56f2?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "케이블 푸시다운";
     } else {
-        imgUrl = "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=400";
+        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif";
         exerciseName = "프리웨이트 컴파운드";
     }
     
@@ -293,10 +301,10 @@ function generateRecommendedRoutine() {
     let html = '';
 
     const dayData = [
-        { label: 'Day 1', count: 6, hasCardio: true,  targets: ['가슴', '등', '어깨 보조', '삼두 보조'] },
+        { label: 'Day 1', count: 6, hasCardio: true,  targets: ['가슴', '등', '어깨', '삼두'] },
         { label: 'Day 2', count: 7, hasCardio: false, targets: ['팔', '이두', '삼두', '전완'] },
         { label: 'Day 3', count: 5, hasCardio: true,  targets: ['하체', '햄스트링', '대퇴사두'] },
-        { label: 'Day 4', count: 6, hasCardio: false, targets: ['가슴', '어깨', '삼두 보조'] },
+        { label: 'Day 4', count: 6, hasCardio: false, targets: ['가슴', '어깨', '삼두'] },
         { label: 'Day 5', count: 7, hasCardio: true,  targets: ['등', '팔', '이두', '전완'] }
     ];
 
