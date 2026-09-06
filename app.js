@@ -39,10 +39,8 @@ if (!isOnboardingCompleted) {
     switchView('view-home');
 }
 
-// 스플래시 -> 로그인
 document.getElementById('btn-start-onboarding').addEventListener('click', () => { switchView('view-login'); });
 
-// 구글 로그인
 document.getElementById('btn-login-google').addEventListener('click', () => {
     auth.signInWithPopup(googleProvider).then((result) => {
         localStorage.setItem('userEmail', result.user.email);
@@ -52,7 +50,6 @@ document.getElementById('btn-login-google').addEventListener('click', () => {
     });
 });
 
-// 스킵 로그인
 document.getElementById('btn-skip-login').addEventListener('click', startWizard);
 
 function startWizard() {
@@ -60,7 +57,6 @@ function startWizard() {
     renderWizardStep();
 }
 
-// 네비게이션
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
         const target = item.getAttribute('data-target');
@@ -154,7 +150,6 @@ function renderWizardStep() {
             } else { 
                 const secValues = step.values.filter(v => v.id === sec);
                 if (secValues.length >= 3) return alert('해당 영역은 최대 3개까지만 선택 가능합니다.'); 
-                
                 step.values = step.values.filter(v => v.val !== val); 
                 step.values.push({id: sec, val: val}); 
                 renderWizardStep(); 
@@ -212,7 +207,6 @@ function renderExplainStep() {
     }
 }
 
-// [수정됨] 클릭 이벤트 단일화: 다른 요소의 이벤트리스너 삭제하고 버튼 객체에만 확실하게 연결
 document.getElementById('explain-tap-text').onclick = function() {
     if (currentExplainStep < explainData.length - 1) { 
         currentExplainStep++; 
@@ -223,30 +217,49 @@ document.getElementById('explain-tap-text').onclick = function() {
     } 
 };
 
-// --- 타겟 부위별 인체/근육 더미 이미지 (실제 이미지 교체용) ---
-function getBodyDummySVG(target) {
-    let highlightColor = "rgba(229, 9, 20, 0.7)";
-    let pathData = "";
-    
+
+// --- [수정됨] 실제 운동 해부학 이미지 URL 맵핑 로직 ---
+// 전달받은 이미지 파일들을 종류별로 구분하여 카드에 렌더링합니다.
+function getExerciseImage(target) {
+    let imgUrl = "";
+    let exerciseName = "";
+
+    // 첨부해주신 이미지들을 부위별 테마에 맞게 맵핑
     if (target.includes('가슴')) {
-        pathData = `<circle cx="30" cy="18" r="4" fill="#aaa"/><path d="M22 28 Q30 32 38 28 L35 45 L25 45 Z" fill="${highlightColor}"/><path d="M18 25 L22 28 M42 25 L38 28" stroke="#aaa" stroke-width="3"/>`;
-    } else if (target.includes('등') || target.includes('광배')) {
-        pathData = `<circle cx="30" cy="18" r="4" fill="#aaa"/><path d="M20 28 Q30 25 40 28 L35 45 L25 45 Z" fill="${highlightColor}"/><path d="M20 28 L25 45 M40 28 L35 45" stroke="#aaa" stroke-width="2"/>`;
+        imgUrl = "C45A9DA2-2086-41D6-8FC8-219DDA16B2B3.jpg";
+        exerciseName = "벤치 프레스 & 플라이";
     } else if (target.includes('어깨')) {
-        pathData = `<circle cx="30" cy="18" r="4" fill="#aaa"/><path d="M22 28 L38 28 L35 45 L25 45 Z" fill="#444"/><circle cx="18" cy="27" r="5" fill="${highlightColor}"/><circle cx="42" cy="27" r="5" fill="${highlightColor}"/>`;
-    } else if (target.includes('하체') || target.includes('대퇴') || target.includes('햄스트링')) {
-        pathData = `<circle cx="30" cy="12" r="4" fill="#aaa"/><path d="M25 20 L35 20 L33 35 L27 35 Z" fill="#444"/><rect x="25" y="37" width="4" height="15" fill="${highlightColor}"/><rect x="31" y="37" width="4" height="15" fill="${highlightColor}"/>`;
+        imgUrl = "FC162EA6-C244-432B-A942-7399DCF0AC4C.jpg";
+        exerciseName = "숄더 프레스 & 레이즈";
+    } else if (target.includes('팔') || target.includes('이두') || target.includes('삼두')) {
+        imgUrl = "E49276D6-8A26-4095-B5A5-14CF5F2EFA0E.jpg";
+        exerciseName = "암 컬 & 익스텐션";
+    } else if (target.includes('하체') || target.includes('대퇴')) {
+        imgUrl = "62D9BB87-7ACF-4E83-83C1-34BB9ADB5300.jpg";
+        exerciseName = "스쿼트 & 런지";
+    } else if (target.includes('햄스트링') || target.includes('엉덩이')) {
+        imgUrl = "9A6AD6CB-4475-46E1-897E-27E00C78AC58.jpg";
+        exerciseName = "데드리프트 & 컬";
+    } else if (target.includes('등') || target.includes('광배')) {
+        imgUrl = "DF8E27B8-8A41-46A6-A42A-E84A0FDC3673.jpg";
+        exerciseName = "랫풀다운 & 로우";
+    } else if (target.includes('삼두 보조') || target.includes('어시스트')) {
+        imgUrl = "159D12F7-6CD5-4D22-A181-E612D00AD2B2.jpg";
+        exerciseName = "오버헤드 익스텐션";
     } else {
-        pathData = `<circle cx="30" cy="18" r="4" fill="#aaa"/><path d="M22 28 L38 28 L35 45 L25 45 Z" fill="${highlightColor}"/>`;
+        // 기본값 (가슴)
+        imgUrl = "C45A9DA2-2086-41D6-8FC8-219DDA16B2B3.jpg";
+        exerciseName = "프리웨이트 컴파운드";
     }
     
-    return `<svg viewBox="0 0 60 60" style="width: 60px; height: 60px;">${pathData}</svg>`;
+    // 객체 형태로 반환하여 썸네일 박스 안에 삽입
+    return { url: imgUrl, name: exerciseName };
 }
 
 function generateRecommendedRoutine() {
     const gender = wizardSteps[2].value || '남성';
-    const frequency = wizardSteps[6].value || 6; // 레퍼런스 화면처럼 주 6회 세팅
-    const isCardio = wizardSteps[11].value === '네, 하고 싶어요' || true; // 임시 강제
+    const frequency = wizardSteps[6].value || 5; // 레퍼런스 이미지(주 5회) 반영
+    const isCardio = wizardSteps[11].value === '네, 하고 싶어요' || true;
 
     let splitName = '몸통-말단-하체';
     if(frequency === 3) splitName = '밀기-당기기-하체';
@@ -259,39 +272,46 @@ function generateRecommendedRoutine() {
     const timelineArea = document.getElementById('rec-timeline-render');
     let html = '';
 
-    // 레퍼런스 화면과 완벽히 동일한 썸네일 개수 배열
+    // 레퍼런스 화면(가로 스와이프 그리드)에 맞춘 데이별 데이터 배열
     const dayData = [
-        { label: 'Day 1', count: 6, hasCardio: true,  targets: ['등', '가슴', '등', '가슴', '어깨', '어깨'] },
-        { label: 'Day 2', count: 7, hasCardio: false, targets: ['어깨', '이두', '이두', '삼두', '삼두', '전완', '전완'] },
-        { label: 'Day 3', count: 5, hasCardio: true,  targets: ['하체', '하체', '하체', '햄스트링', '종아리'] },
-        { label: '휴식 | 1일', isRest: true },
-        { label: 'Day 1a', count: 6, hasCardio: false, targets: ['등', '가슴', '등', '가슴', '어깨', '어깨'] },
-        { label: 'Day 2a', count: 7, hasCardio: true,  targets: ['어깨', '이두', '이두', '삼두', '삼두', '전완', '전완'] },
-        { label: 'Day 3a', count: 5, hasCardio: false, targets: ['하체', '하체', '하체', '햄스트링', '종아리'] }
+        { label: 'Day 1', count: 6, hasCardio: true,  targets: ['가슴', '등', '어깨 보조', '삼두 보조'] },
+        { label: 'Day 2', count: 7, hasCardio: false, targets: ['팔', '이두', '삼두', '전완'] },
+        { label: 'Day 3', count: 5, hasCardio: true,  targets: ['하체', '햄스트링', '대퇴사두'] },
+        { label: 'Day 4', count: 6, hasCardio: false, targets: ['가슴', '어깨', '삼두 보조'] },
+        { label: 'Day 5', count: 7, hasCardio: true,  targets: ['등', '팔', '이두', '전완'] }
     ];
 
-    // 주당 운동 횟수에 맞춰 슬라이싱
-    const visibleDays = dayData.slice(0, frequency + (frequency >= 3 ? 1 : 0)); // 휴식 포함
+    const visibleDays = dayData.slice(0, frequency);
 
     visibleDays.forEach(day => {
-        if (day.isRest) {
-            html += `<div class="rtl-item"><div class="rtl-circle" style="background:#2a2a35; border-color:#111; box-shadow:none;"></div><div class="rtl-content"><div class="rtl-rest-node">${day.label}</div></div></div>`;
-            return;
-        }
-        
-        let thumbHtml = day.targets.map(target => `<div class="rtl-thumb">${getBodyDummySVG(target)}<div class="ro-watermark">RO</div></div>`).join('');
+        // 가로 스크롤 영역 안에 이미지 카드들을 생성
+        let thumbHtml = day.targets.map(target => {
+            const exerciseInfo = getExerciseImage(target);
+            return `
+                <div class="rtl-thumb">
+                    <img src="${exerciseInfo.url}" alt="${exerciseInfo.name}">
+                    <div class="target-label">${exerciseInfo.name}</div>
+                </div>
+            `;
+        }).join('');
+
         if (day.hasCardio) {
-            thumbHtml += `<div class="rtl-thumb cardio"><svg viewBox="0 0 60 60"><path d="M12 45 L48 45" stroke="#a29bfe" stroke-width="3" stroke-dasharray="3,3"/><circle cx="34" cy="18" r="4" fill="#888"/><path d="M30 24 L38 36 L34 48 M26 32 L20 42" stroke="#a29bfe" stroke-width="3" fill="none"/></svg><div class="target-label">유산소</div><div class="ro-watermark">RO</div></div>`;
+            // 유산소 카드는 검정색 더미 UI로 렌더링
+            thumbHtml += `
+                <div class="rtl-thumb cardio">
+                    <svg viewBox="0 0 60 60"><path d="M12 45 L48 45" stroke="#a29bfe" stroke-width="3" stroke-dasharray="3,3"/><circle cx="34" cy="18" r="4" fill="#888"/><path d="M30 24 L38 36 L34 48 M26 32 L20 42" stroke="#a29bfe" stroke-width="3" fill="none"/></svg>
+                    <div class="target-label">유산소 (트레드밀)</div>
+                </div>
+            `;
         }
 
         html += `
             <div class="rtl-item">
-                <div class="rtl-circle"></div>
-                <div class="rtl-content">
+                <div class="rtl-day-title-wrapper">
+                    <div class="rtl-circle"></div>
                     <div class="rtl-day-title">${day.label} <span class="rtl-day-sub">| 총 ${day.count}개 운동</span> ${day.hasCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
-                    <div class="rtl-thumbnails">${thumbHtml}</div>
-                    ${day.hasCardio ? '<div class="rtl-desc">유산소는 앱을 시작한 뒤 몇 가지만 답하면 종목과 시간이 정해져요.</div>' : ''}
                 </div>
+                <div class="rtl-thumbnails">${thumbHtml}</div>
             </div>
         `;
     });
