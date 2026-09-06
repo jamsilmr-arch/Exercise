@@ -1,13 +1,13 @@
-/* 공통 리셋 및 기존 스타일 (유지) */
+/* 공통 리셋 및 기존 스타일 */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif; user-select: none; }
 body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: transparent; padding-bottom: 90px; }
-.view-container { display: none; }
+.view-container { display: none; min-height: 100vh; }
 .view-container.active { display: block; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .highlight { color: #6C5CE7; font-weight: bold; }
 .content-area { padding: 0 20px; }
 
-/* 하단 네비게이션, 홈, 타이머, 분석 스타일 (기존과 동일하므로 생략 없이 파일에 포함 필요) */
+/* 하단 네비게이션, 홈, 타이머, 분석 스타일 (기존 코드와 동일) */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0a0a0a; border-top: 1px solid #222; display: flex; justify-content: space-around; padding: 10px 0 25px 0; z-index: 1000; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666; font-size: 0.75rem; cursor: pointer; }
 .nav-item.active { color: #6C5CE7; }
@@ -28,6 +28,7 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .stat-icon { font-size: 1.5rem; }
 .stat-value { font-size: 0.9rem; color: #ccc; }
 .primary-btn { width: 100%; padding: 16px; border: none; border-radius: 12px; background-color: #6C5CE7; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+.secondary-btn { width: 100%; padding: 16px; border: 1px solid #333; border-radius: 12px; background-color: transparent; color: #888; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
 /* 훈련 타이머 & 분석 스타일 */
 .workout-header { display: flex; align-items: center; padding: 15px 20px; background: #030303; position: sticky; top: 0; z-index: 50; }
@@ -47,7 +48,7 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .m-value { font-size: 2.5rem; font-weight: 800; margin-bottom: 5px; }
 .m-unit { font-size: 0.7rem; color: #555; letter-spacing: 1px; }
 
-/* --- [설정 탭 마법사 전용 UI] --- */
+/* 설정 탭 마법사 UI (기존) */
 .wizard-header { padding: 20px; }
 .wizard-top { display: flex; align-items: center; margin-bottom: 30px; }
 .wizard-title { font-size: 1.1rem; font-weight: 600; flex: 1; text-align: center; padding-right: 25px; }
@@ -55,32 +56,22 @@ body { background-color: #030303; color: #ffffff; -webkit-tap-highlight-color: t
 .progress-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-bottom: 10px; }
 .progress-bar-bg { height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: #6C5CE7; transition: width 0.3s ease; }
-
 .wizard-content { padding: 0 20px; }
 .q-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; line-height: 1.4; white-space: pre-line; }
 .q-desc { font-size: 0.9rem; color: #888; margin-bottom: 30px; }
-
-/* 인풋 박스 스타일 */
 .input-box { background: #121212; border: 1px solid #222; border-radius: 16px; padding: 40px 20px; text-align: center; margin-bottom: 20px; display: flex; justify-content: center; align-items: baseline; gap: 10px; }
 .input-val { background: transparent; border: none; color: white; font-size: 3.5rem; font-weight: bold; width: 120px; text-align: right; outline: none; }
 .input-unit { font-size: 1.2rem; color: #888; font-weight: 500; }
-
-/* 힌트 박스 */
 .hint-box { background: rgba(255, 255, 255, 0.03); border: 1px solid #222; border-radius: 12px; padding: 15px; display: flex; gap: 10px; font-size: 0.85rem; color: #aaa; align-items: center; line-height: 1.4; margin-bottom: 100px; }
-
-/* 하단 버튼 */
-.wizard-footer { display: flex; gap: 10px; padding: 20px; position: fixed; bottom: 80px; width: 100%; background: #030303; z-index: 100; }
+.wizard-footer { display: flex; gap: 10px; padding: 20px; position: fixed; bottom: 0; width: 100%; background: #030303; z-index: 100; padding-bottom: 30px; }
+.wizard-footer-btns { display: flex; gap: 10px; width: 100%; }
 .btn-prev { flex: 1; background: #1a1a1a; color: white; padding: 16px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; }
 .btn-next { flex: 2; background: #6C5CE7; color: white; padding: 16px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; }
-
-/* 그리드 선택지 스타일 */
 .grid-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 .opt-btn { background: #121212; border: 1px solid #222; padding: 25px 0; border-radius: 12px; color: white; font-size: 1.4rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
 .opt-btn.active { background: rgba(108, 92, 231, 0.15); border-color: #6C5CE7; color: #6C5CE7; }
 .opt-sub { font-size: 0.75rem; color: #666; font-weight: normal; }
 .opt-btn.active .opt-sub { color: #6C5CE7; }
-
-/* 커스텀 슬라이더 (근비대 vs 스트렝스) */
 .slider-container { background: #121212; border: 1px solid #222; border-radius: 16px; padding: 40px 20px; margin-bottom: 20px; text-align: center; }
 .slider-val-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
 .slider-sub-text { font-size: 0.8rem; color: #888; margin-bottom: 30px; }
@@ -88,3 +79,33 @@ input[type=range] { -webkit-appearance: none; width: 100%; background: transpare
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #6C5CE7; cursor: pointer; margin-top: -10px; box-shadow: 0 0 10px rgba(108, 92, 231, 0.5); }
 input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #333; border-radius: 3px; }
 .slider-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: #888; margin-top: 15px; }
+
+/* --- [신규] 스플래시 화면 --- */
+.splash-main { display: flex; flex-direction: column; align-items: center; padding-top: 80px; flex: 1; }
+.splash-sub { font-size: 0.85rem; color: #888; letter-spacing: 2px; margin-bottom: 10px; }
+.splash-title { font-size: 2.5rem; font-weight: 900; margin-bottom: 40px; }
+.splash-mockup { width: 70%; height: 350px; background: #0a0a0a; border: 1px solid #333; border-radius: 30px; padding: 20px; position: relative; box-shadow: 0 20px 40px rgba(108, 92, 231, 0.15); overflow: hidden; }
+.mockup-header { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; }
+.mockup-bar { width: 100%; height: 8px; background: #222; border-radius: 4px; margin-bottom: 20px; }
+.mockup-card { background: #1a1a1a; padding: 15px; border-radius: 12px; }
+.splash-footer { padding: 20px; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #030303 80%, transparent); }
+
+/* --- [신규] 인트로 기능 소개 화면 --- */
+.intro-top { padding: 20px; display: flex; }
+.intro-content { padding: 0 30px; flex: 1; }
+.intro-badge { display: inline-block; background: rgba(108, 92, 231, 0.15); color: #6C5CE7; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-bottom: 15px; border: 1px solid rgba(108, 92, 231, 0.3); }
+.intro-title { font-size: 1.8rem; font-weight: 800; line-height: 1.3; margin-bottom: 15px; white-space: pre-line; }
+.intro-desc { font-size: 0.9rem; color: #888; line-height: 1.5; margin-bottom: 40px; }
+.intro-visual { position: relative; height: 280px; display: flex; justify-content: center; align-items: center; }
+.neon-card { background: #121212; border: 1px solid #6C5CE7; border-radius: 16px; padding: 20px; width: 100%; box-shadow: 0 0 25px rgba(108, 92, 231, 0.4); text-align: center; }
+.timeline { display: flex; flex-direction: column; gap: 20px; text-align: left; padding-left: 10px; border-left: 2px solid #333; margin-left: 10px; }
+.timeline-item { position: relative; padding-left: 20px; }
+.timeline-item::before { content: ''; position: absolute; left: -27px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: #333; border: 2px solid #030303; }
+.timeline-item.active::before { background: #6C5CE7; box-shadow: 0 0 10px #6C5CE7; }
+.tl-title { font-size: 1rem; font-weight: bold; margin-bottom: 5px; }
+.tl-desc { font-size: 0.75rem; color: #888; line-height: 1.4; }
+
+.intro-footer { position: fixed; bottom: 0; width: 100%; padding: 20px; background: #030303; }
+.pagination-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #333; transition: 0.3s; }
+.dot.active { width: 24px; background: #6C5CE7; border-radius: 4px; }
