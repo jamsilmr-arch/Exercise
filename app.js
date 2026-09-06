@@ -30,7 +30,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 document.getElementById('btn-start-workout').addEventListener('click', () => switchView('view-workout'));
 document.getElementById('btn-back').addEventListener('click', () => switchView('view-home'));
 
-// --- 인트로 로직 (최초 1회 노출) ---
+// --- 인트로 로직 ---
 const introSteps = [
     { badge: '★ 점진적 성장 알고리즘', title: '다 알아서 해드립니다', desc: '퍼포먼스와 회복 속도에 맞춰\n루틴을 자동 수정해줍니다', html: `<div class="intro-visual"><div class="neon-card" style="transform: rotate(-5deg) scale(0.9); position: absolute; z-index: 1; opacity: 0.5;"><div style="font-size:0.8rem; color:#888;">권장 중량 표시</div></div><div class="neon-card" style="position: relative; z-index: 2;"><div style="font-size:0.8rem; color:#6C5CE7; margin-bottom: 10px;">성장 코칭</div><div style="font-size:1.2rem; font-weight:bold; margin-bottom: 5px;">세트 수를 줄일게요</div><div style="font-size:0.75rem; color:#888;">일시적 퍼포먼스 감소가 감지되어 회복을 돕습니다.</div></div></div>` },
     { badge: '★ 100% 맞춤형 코칭을 위한', title: '사용자\n데이터 분석', desc: '', html: `<div class="timeline"><div class="timeline-item active"><div class="tl-title">지금 - 1주차</div><div class="tl-desc">사용자에게 적절한 루틴을 파악하기 위한 데이터 수집 기간.</div></div><div class="timeline-item"><div class="tl-title">2주차 (8일)</div><div class="tl-desc">1대1 코칭 시작. 적절 중량, 횟수가 맞춤형으로 권장되기 시작해요.</div></div><div class="timeline-item"><div class="tl-title">2주차 (10-14일)</div><div class="tl-desc">데이터 수집 완료. 피로도에 따른 강도 조절 알고리즘 작동.</div></div></div>` },
@@ -166,18 +166,44 @@ document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
 });
 
-// --- 로딩 및 분석 단계 (자동 전환) ---
+// --- 분석 및 결과 노출 로직 (그래프 수정 반영) ---
 function showLoadingScreen() {
     switchView('view-loading');
     setTimeout(() => { startResultExplain(); }, 2500); 
 }
 
+// [수정됨] 운동 주기 항목의 그래프 SVG 교체 (가득 찬 배경과 선을 분리)
 const explainData = [
     { icon: '🏋️', title: '운동 종류', desc: "근육을 고르게 키우려면 한 부위도 여러 각도에서 자극해야 해요.\n\n사용자님께 필요한 운동을 부위별로 빠짐없이 배정했어요. 특히 '스트레치'와 '수축'을 강조하는 운동을 골고루 배치해 정체기 없는 성장을 도와요." },
     { icon: '⚖️', title: '중량', desc: "요청하신 <span style='color:#6C5CE7; font-weight:bold;'>중간 중량</span> 기준으로 각 운동의 무게 범위를 잡았어요.\n\n알고리즘이 퍼포먼스 변화에 맞추어 적절히 무게를 변경해줄거예요." },
     { icon: '🔄', title: '횟수', desc: "같은 무게에서 목표 횟수에 도달하면 다음 회차에 무게를 올리는 '더블 프로그레션' 방식으로 횟수와 무게를 함께 늘려가요.\n\n입력하신 체중과 운동 경험을 기반으로 해 <span style='color:#00b894; font-weight:bold;'>가장 적절한 점진적 성장 속도</span>로 코칭해드릴게요." },
     { icon: '⏱️', title: '운동 강도', desc: "사용자님의 특징에 따라 <span style='color:#00b894; font-weight:bold;'>운동 강도 (RPE/RIR)</span>도 적절히 설정했어요.\n\n앱을 사용할 경우 알고리즘이 퍼포먼스 변화와 피로도에 따라 운동 강도를 자동 수정해줍니다." },
-    { icon: '📅', title: '운동 주기', desc: `<div class="mock-graph"><svg viewBox="0 0 100 35" preserveAspectRatio="none" style="width:100%; height:35px; overflow:visible; margin-bottom:10px;"><path d="M 5,30 Q 50,20 80,5" fill="none" stroke="#6C5CE7" stroke-width="2"/><path d="M 80,5 L 95,25" fill="none" stroke="#00b894" stroke-width="2" stroke-dasharray="2,2"/><circle cx="80" cy="5" r="3" fill="#6C5CE7"/><circle cx="95" cy="25" r="3" fill="#00b894"/></svg><div class="mock-graph-labels"><div class="mgl"><div class="mgl-circ">1</div><span class="mgl-txt">1주</span></div><div class="mgl"><div class="mgl-circ">2</div><span class="mgl-txt">2주</span></div><div class="mgl"><div class="mgl-circ">3</div><span class="mgl-txt">3주</span></div><div class="mgl"><div class="mgl-circ">4</div><span class="mgl-txt">4주</span></div><div class="mgl"><div class="mgl-circ">5</div><span class="mgl-txt">5주</span></div><div class="mgl"><div class="mgl-circ green">☾</div><span class="mgl-txt green">디로딩</span></div></div></div>최적의 피로 회복과 장기적인 성장을 위해 '5주 운동 + 1주 디로딩'으로 배정했습니다. 체계적인 피로 관리를 통해 정체기 없는 성장을 경험할 수 있습니다.` },
+    { icon: '📅', title: '운동 주기', desc: `<div class="mock-graph">
+        <svg class="mock-graph-svg" viewBox="0 0 100 50" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="gradPurple" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(108, 92, 231, 0.4)" />
+                    <stop offset="100%" stop-color="rgba(108, 92, 231, 0)" />
+                </linearGradient>
+            </defs>
+            <!-- 배경 그라데이션 필 -->
+            <polygon points="5,50 15,40 75,10 75,50" fill="url(#gradPurple)"/>
+            <!-- 1~5주차 상승 선 -->
+            <path d="M 15,40 Q 45,30 75,10" fill="none" stroke="#6C5CE7" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- 디로딩 점선 -->
+            <path d="M 75,10 L 95,35" fill="none" stroke="#00b894" stroke-width="2" stroke-dasharray="3,3" stroke-linecap="round"/>
+            <circle cx="75" cy="10" r="3" fill="#a29bfe"/>
+            <circle cx="95" cy="35" r="3" fill="#00b894"/>
+        </svg>
+        <div class="mock-graph-labels">
+            <div class="mgl"><div class="mgl-circ">1</div><span class="mgl-txt">1주</span></div>
+            <div class="mgl"><div class="mgl-circ">2</div><span class="mgl-txt">2주</span></div>
+            <div class="mgl"><div class="mgl-circ">3</div><span class="mgl-txt">3주</span></div>
+            <div class="mgl"><div class="mgl-circ">4</div><span class="mgl-txt">4주</span></div>
+            <div class="mgl"><div class="mgl-circ active">5</div><span class="mgl-txt" style="color:#6C5CE7; font-weight:bold;">5주</span></div>
+            <div class="mgl"><div class="mgl-circ green">☾</div><span class="mgl-txt green">디로딩</span></div>
+        </div>
+    </div>최적의 피로 회복과 장기적인 성장을 위해 '5주 운동 + 1주 디로딩'으로 배정했습니다. 체계적인 피로 관리를 통해 정체기 없는 성장을 경험할 수 있습니다.` },
     { icon: '⚖️', title: '근비대 : 스트렝스 비율', desc: "근비대는 볼륨과 자극에 집중, 스트렝스는 중량 증가에 더 집중해요.\n\n사용자님의 목표에 맞춰 <span style='color:#00b894; font-weight:bold;'>근비대 75 · 스트렝스 25</span> 비중으로 프로그램을 설계했어요." }
 ];
 
@@ -200,162 +226,75 @@ document.getElementById('explain-bottom-card').addEventListener('click', () => {
     else { generateRecommendedRoutine(); switchView('view-recommended-routine'); } 
 });
 
-// --- [신규 완결판] 상세 해부도 벡터 그래픽 SVG 생성기 ---
+// --- 타겟 부위별 상세 벡터 그래픽 렌더러 ---
 function getExerciseSVG(target) {
-    // 붉은색 발광 타겟 근육 (#FF4757), 장비/골격 (#718093)
     switch(target) {
-        case '가슴':
-            return `<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="6" fill="#888"/><path d="M22 20 L38 20 L35 38 L25 38 Z" fill="#444"/><rect x="23" y="21" width="14" height="7" rx="3" fill="#FF4757"/><path d="M12 28 L48 28" stroke="#888" stroke-width="3"/><rect x="8" y="24" width="4" height="8" fill="#aaa"/><rect x="48" y="24" width="4" height="8" fill="#aaa"/></svg>`;
+        case '가슴': return `<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="6" fill="#888"/><path d="M22 20 L38 20 L35 38 L25 38 Z" fill="#444"/><rect x="23" y="21" width="14" height="7" rx="3" fill="#FF4757"/><path d="M12 28 L48 28" stroke="#888" stroke-width="3"/><rect x="8" y="24" width="4" height="8" fill="#aaa"/><rect x="48" y="24" width="4" height="8" fill="#aaa"/></svg>`;
         case '광배근':
-        case '등상부':
-            return `<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="6" fill="#888"/><path d="M20 20 L40 20 L36 38 L24 38 Z" fill="#444"/><path d="M20 22 Q16 28 22 34 Q28 28 24 22 Z" fill="#FF4757"/><path d="M40 22 Q44 28 38 34 Q32 28 36 22 Z" fill="#FF4757"/><path d="M8 8 L52 8" stroke="#666" stroke-width="3"/><path d="M30 8 L30 18" stroke="#666" stroke-width="2"/></svg>`;
-        case '어깨':
-            return `<svg viewBox="0 0 60 60"><circle cx="30" cy="14" r="6" fill="#888"/><path d="M22 22 L38 22 L34 40 L26 40 Z" fill="#444"/><circle cx="20" cy="23" r="5" fill="#FF4757"/><circle cx="40" cy="23" r="5" fill="#FF4757"/><path d="M12 18 L12 28 M48 18 L48 28" stroke="#aaa" stroke-width="3"/></svg>`;
-        case '이두':
-            return `<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="6" fill="#888"/><path d="M24 20 L36 20 L34 38 L26 38 Z" fill="#444"/><circle cx="19" cy="27" r="4.5" fill="#FF4757"/><circle cx="41" cy="27" r="4.5" fill="#FF4757"/><path d="M14 32 L46 32" stroke="#aaa" stroke-width="3"/></svg>`;
-        case '삼두':
-            return `<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="6" fill="#888"/><path d="M24 20 L36 20 L34 38 L26 38 Z" fill="#444"/><rect x="18" y="24" width="4" height="9" rx="2" fill="#FF4757"/><rect x="38" y="24" width="4" height="9" rx="2" fill="#FF4757"/><path d="M30 8 L30 26 L22 34 M30 26 L38 34" stroke="#666" stroke-width="2.5"/></svg>`;
+        case '등상부': return `<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="6" fill="#888"/><path d="M20 20 L40 20 L36 38 L24 38 Z" fill="#444"/><path d="M20 22 Q16 28 22 34 Q28 28 24 22 Z" fill="#FF4757"/><path d="M40 22 Q44 28 38 34 Q32 28 36 22 Z" fill="#FF4757"/><path d="M8 8 L52 8" stroke="#666" stroke-width="3"/><path d="M30 8 L30 18" stroke="#666" stroke-width="2"/></svg>`;
+        case '어깨': return `<svg viewBox="0 0 60 60"><circle cx="30" cy="14" r="6" fill="#888"/><path d="M22 22 L38 22 L34 40 L26 40 Z" fill="#444"/><circle cx="20" cy="23" r="5" fill="#FF4757"/><circle cx="40" cy="23" r="5" fill="#FF4757"/><path d="M12 18 L12 28 M48 18 L48 28" stroke="#aaa" stroke-width="3"/></svg>`;
+        case '이두': return `<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="6" fill="#888"/><path d="M24 20 L36 20 L34 38 L26 38 Z" fill="#444"/><circle cx="19" cy="27" r="4.5" fill="#FF4757"/><circle cx="41" cy="27" r="4.5" fill="#FF4757"/><path d="M14 32 L46 32" stroke="#aaa" stroke-width="3"/></svg>`;
+        case '삼두': return `<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="6" fill="#888"/><path d="M24 20 L36 20 L34 38 L26 38 Z" fill="#444"/><rect x="18" y="24" width="4" height="9" rx="2" fill="#FF4757"/><rect x="38" y="24" width="4" height="9" rx="2" fill="#FF4757"/><path d="M30 8 L30 26 L22 34 M30 26 L38 34" stroke="#666" stroke-width="2.5"/></svg>`;
         case '대퇴사두':
-        case '하체':
-            return `<svg viewBox="0 0 60 60"><circle cx="30" cy="10" r="5" fill="#888"/><path d="M24 17 L36 17 L34 30 L26 30 Z" fill="#444"/><rect x="22" y="31" width="6" height="15" rx="3" fill="#FF4757"/><rect x="32" y="31" width="6" height="15" rx="3" fill="#FF4757"/><path d="M10 12 L50 12" stroke="#aaa" stroke-width="3"/></svg>`;
-        case '햄스트링':
-            return `<svg viewBox="0 0 60 60"><circle cx="30" cy="10" r="5" fill="#888"/><path d="M24 17 L36 17 L34 30 L26 30 Z" fill="#444"/><path d="M23 31 L29 31 L27 46 L21 46 Z" fill="#FF4757"/><path d="M37 31 L31 31 L33 46 L39 46 Z" fill="#FF4757"/><path d="M14 48 L46 48" stroke="#888" stroke-width="2.5"/></svg>`;
-        default:
-            return `<svg viewBox="0 0 60 60"><circle cx="30" cy="14" r="6" fill="#888"/><path d="M22 22 L38 22 L34 40 L26 40 Z" fill="#FF4757"/></svg>`;
+        case '하체': return `<svg viewBox="0 0 60 60"><circle cx="30" cy="10" r="5" fill="#888"/><path d="M24 17 L36 17 L34 30 L26 30 Z" fill="#444"/><rect x="22" y="31" width="6" height="15" rx="3" fill="#FF4757"/><rect x="32" y="31" width="6" height="15" rx="3" fill="#FF4757"/><path d="M10 12 L50 12" stroke="#aaa" stroke-width="3"/></svg>`;
+        case '햄스트링': return `<svg viewBox="0 0 60 60"><circle cx="30" cy="10" r="5" fill="#888"/><path d="M24 17 L36 17 L34 30 L26 30 Z" fill="#444"/><path d="M23 31 L29 31 L27 46 L21 46 Z" fill="#FF4757"/><path d="M37 31 L31 31 L33 46 L39 46 Z" fill="#FF4757"/><path d="M14 48 L46 48" stroke="#888" stroke-width="2.5"/></svg>`;
+        default: return `<svg viewBox="0 0 60 60"><circle cx="30" cy="14" r="6" fill="#888"/><path d="M22 22 L38 22 L34 40 L26 40 Z" fill="#FF4757"/></svg>`;
     }
 }
 
-// --- [신규 완결판] 추천 루틴 타임라인 (Day 1~3 & Day 1a~3a 구성) ---
 function generateRecommendedRoutine() {
+    const gender = wizardSteps[2].value || '남성';
+    const frequency = wizardSteps[6].value || 3; 
     const isCardio = wizardSteps[11].value === '네, 하고 싶어요';
+
+    let splitName = '밀기-당기기-하체';
+    if(frequency === 4) splitName = '상하체 2분할';
+    else if(frequency >= 5) splitName = '근육 부위별 분할';
+
+    document.getElementById('rec-subtitle').innerText = `주 ${frequency}회 (${splitName}) 루틴`;
+    document.getElementById('rec-chip-split').innerText = splitName;
+    document.getElementById('rec-chip-gender').innerText = gender;
+
     const timelineArea = document.getElementById('rec-timeline-render');
     let html = '';
 
-    // 레퍼런스 이미지 기반 6일 주기 세부 종목 데이터
     const routineSchedule = [
-        {
-            dayLabel: 'Day 1', count: 6, hasCardio: isCardio,
-            exercises: [
-                { name: '시티드 케이블 로우', target: '등상부' },
-                { name: '해머 체스트 프레스', target: '가슴' },
-                { name: '인클라인 프레스 머신', target: '가슴' },
-                { name: '랫풀다운 (와이드)', target: '광배근' },
-                { name: '덤벨 플라이', target: '가슴' },
-                { name: '시티드 체스트 로우', target: '광배근' }
-            ]
-        },
-        {
-            dayLabel: 'Day 2', count: 7, hasCardio: false,
-            exercises: [
-                { name: '오버헤드 숄더 프레스', target: '어깨' },
-                { name: '바벨 프리처 컬', target: '이두' },
-                { name: '사이드 레터럴 레이즈', target: '어깨' },
-                { name: '인클라인 덤벨 익스텐션', target: '삼두' },
-                { name: '스탠딩 바벨 컬', target: '이두' },
-                { name: '케이블 트라이셉스 푸시다운', target: '삼두' },
-                { name: '페이스 풀 (후면 삼각근)', target: '어깨' }
-            ]
-        },
-        {
-            dayLabel: 'Day 3', count: 5, hasCardio: isCardio,
-            exercises: [
-                { name: '바벨 백스쿼트', target: '대퇴사두' },
-                { name: '루마니안 데드리프트', target: '햄스트링' },
-                { name: '시티드 레그 프레스', target: '하체' },
-                { name: '라잉 레그 컬', target: '햄스트링' },
-                { name: '카프 레이즈', target: '하체' }
-            ]
-        },
+        { dayLabel: 'Day 1', count: 6, hasCardio: isCardio, exercises: [{ name: '시티드 로우', target: '등상부' }, { name: '체스트 프레스', target: '가슴' }, { name: '인클라인 머신', target: '가슴' }, { name: '랫풀다운', target: '광배근' }, { name: '덤벨 플라이', target: '가슴' }, { name: '체스트 로우', target: '광배근' }] },
+        { dayLabel: 'Day 2', count: 7, hasCardio: false, exercises: [{ name: '숄더 프레스', target: '어깨' }, { name: '프리처 컬', target: '이두' }, { name: '사레레', target: '어깨' }, { name: '덤벨 익스텐션', target: '삼두' }, { name: '바벨 컬', target: '이두' }, { name: '푸시다운', target: '삼두' }, { name: '페이스 풀', target: '어깨' }] },
+        { dayLabel: 'Day 3', count: 5, hasCardio: isCardio, exercises: [{ name: '백스쿼트', target: '대퇴사두' }, { name: '루마니안 데드', target: '햄스트링' }, { name: '레그 프레스', target: '하체' }, { name: '라잉 레그 컬', target: '햄스트링' }, { name: '카프 레이즈', target: '하체' }] },
         { isRest: true, label: '휴식 | 1일' },
-        {
-            dayLabel: 'Day 1a', count: 6, hasCardio: false,
-            exercises: [
-                { name: '인클라인 벤치프레스', target: '가슴' },
-                { name: '스미스머신 체스트 프레스', target: '가슴' },
-                { name: '풀업 (어시스트 머신)', target: '광배근' },
-                { name: '체스트 서포티드 덤벨 로우', target: '등상부' },
-                { name: '케이블 크로스오버', target: '가슴' },
-                { name: '클로즈그립 랫풀다운', target: '광배근' }
-            ]
-        },
-        {
-            dayLabel: 'Day 2a', count: 7, hasCardio: isCardio,
-            exercises: [
-                { name: '머신 숄더 프레스', target: '어깨' },
-                { name: '덤벨 해머 컬', target: '이두' },
-                { name: '케이블 레터럴 레이즈', target: '어깨' },
-                { name: '오버헤드 케이블 익스텐션', target: '삼두' },
-                { name: '이지바 암 컬', target: '이두' },
-                { name: '딥스 (머신 어시스트)', target: '삼두' },
-                { name: '리버스 펙덱 플라이', target: '어깨' }
-            ]
-        },
-        {
-            dayLabel: 'Day 3a', count: 5, hasCardio: false,
-            exercises: [
-                { name: '핵 스쿼트 머신', target: '대퇴사두' },
-                { name: '덤벨 스티프 레그 데드리프트', target: '햄스트링' },
-                { name: '워킹 런지', target: '하체' },
-                { name: '시티드 레그 익스텐션', target: '대퇴사두' },
-                { name: '시티드 레그 컬', target: '햄스트링' }
-            ]
-        }
+        { dayLabel: 'Day 1a', count: 6, hasCardio: false, exercises: [{ name: '인클라인 벤치', target: '가슴' }, { name: '스미스 머신 프레스', target: '가슴' }, { name: '어시스트 풀업', target: '광배근' }, { name: '덤벨 로우', target: '등상부' }, { name: '크로스오버', target: '가슴' }, { name: '클로즈그립 랫풀', target: '광배근' }] },
+        { dayLabel: 'Day 2a', count: 7, hasCardio: isCardio, exercises: [{ name: '머신 숄프', target: '어깨' }, { name: '해머 컬', target: '이두' }, { name: '케이블 사레레', target: '어깨' }, { name: '케이블 익스텐션', target: '삼두' }, { name: '이지바 컬', target: '이두' }, { name: '어시스트 딥스', target: '삼두' }, { name: '리버스 펙덱', target: '어깨' }] },
+        { dayLabel: 'Day 3a', count: 5, hasCardio: false, exercises: [{ name: '핵 스쿼트', target: '대퇴사두' }, { name: '스티프 데드', target: '햄스트링' }, { name: '워킹 런지', target: '하체' }, { name: '레그 익스텐션', target: '대퇴사두' }, { name: '시티드 레그 컬', target: '햄스트링' }] }
     ];
 
     routineSchedule.forEach(item => {
         if (item.isRest) {
-            html += `
-                <div class="rtl-item">
-                    <div class="rtl-circle" style="background:#444; border-color:#222; box-shadow:none;"></div>
-                    <div class="rtl-content"><div class="rtl-rest-node">${item.label}</div></div>
-                </div>`;
+            html += `<div class="rtl-item"><div class="rtl-circle" style="background:#444; border-color:#222; box-shadow:none;"></div><div class="rtl-content"><div class="rtl-rest-node">${item.label}</div></div></div>`;
             return;
         }
 
-        let thumbHtml = item.exercises.map(ex => `
-            <div class="rtl-thumb">
-                ${getExerciseSVG(ex.target)}
-                <div class="target-label">${ex.name}</div>
-                <div class="ro-watermark">RO</div>
-            </div>
-        `).join('');
-
+        let thumbHtml = item.exercises.map(ex => `<div class="rtl-thumb">${getExerciseSVG(ex.target)}<div class="target-label">${ex.name}</div><div class="ro-watermark">RO</div></div>`).join('');
         if (item.hasCardio) {
-            thumbHtml += `
-                <div class="rtl-thumb cardio">
-                    <svg viewBox="0 0 60 60">
-                        <path d="M12 45 L48 45" stroke="#6C5CE7" stroke-width="3" stroke-dasharray="3,3"/>
-                        <circle cx="34" cy="14" r="5" fill="#888"/>
-                        <path d="M30 20 L38 32 L34 44 M26 28 L20 38" stroke="#FF4757" stroke-width="3" fill="none"/>
-                    </svg>
-                    <div class="target-label" style="color:#a29bfe;">유산소</div>
-                    <div class="ro-watermark">RO</div>
-                </div>
-            `;
+            thumbHtml += `<div class="rtl-thumb cardio"><svg viewBox="0 0 60 60"><path d="M12 45 L48 45" stroke="#6C5CE7" stroke-width="3" stroke-dasharray="3,3"/><circle cx="34" cy="14" r="5" fill="#888"/><path d="M30 20 L38 32 L34 44 M26 28 L20 38" stroke="#FF4757" stroke-width="3" fill="none"/></svg><div class="target-label" style="color:#a29bfe;">유산소</div><div class="ro-watermark">RO</div></div>`;
         }
 
         html += `
             <div class="rtl-item">
                 <div class="rtl-circle"></div>
                 <div class="rtl-content">
-                    <div class="rtl-day-title">
-                        ${item.dayLabel} <span class="rtl-day-sub">| 총 ${item.count}개 운동</span>
-                        ${item.hasCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}
-                    </div>
+                    <div class="rtl-day-title">${item.dayLabel} <span class="rtl-day-sub">| 총 ${item.count}개 운동</span> ${item.hasCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
                     <div class="rtl-thumbnails">${thumbHtml}</div>
                     ${item.hasCardio ? '<div class="rtl-desc">유산소는 앱을 시작한 뒤 몇 가지만 답하면 종목과 시간이 정해져요.</div>' : ''}
                 </div>
             </div>
         `;
     });
-
     timelineArea.innerHTML = html;
 }
 
-// 화면 이동 및 로그인 처리
 document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
 document.getElementById('btn-go-login').addEventListener('click', () => { switchView('view-login'); });
-
 document.querySelectorAll('.login-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         localStorage.setItem('onboardingCompleted', 'true');
@@ -364,7 +303,7 @@ document.querySelectorAll('.login-btn').forEach(btn => {
     });
 });
 
-// --- 기존 홈화면 타이머 로직 ---
+// --- 홈화면 타이머 로직 ---
 const routine = [
     { id: 'bench', name: '플랫 벤치프레스', sets: 4, reps: '10~12회', rest: 60 },
     { id: 'incline', name: '인클라인 프레스', sets: 3, reps: '12회', rest: 60 },
@@ -427,5 +366,4 @@ function startTimer(seconds) {
         }
     }, 200);
 }
-
 renderWorkout();
