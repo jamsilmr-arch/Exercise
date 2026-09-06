@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>40 Min Overload</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase App 및 Auth CDN -->
+    <!-- Firebase App, Auth 및 Firestore 추가 -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <!-- [화면 0-1] 스플래시 화면 -->
@@ -74,7 +75,6 @@
         <main class="result-timeline" id="explain-timeline"></main>
         <div class="result-bottom-card" id="explain-bottom-card">
             <div class="r-desc-text" id="explain-desc"></div>
-            <!-- 버튼 영역을 완전히 분리하여 클릭 이벤트를 강제로 보장 -->
             <button class="r-tap-btn" id="explain-tap-text">탭하여 계속 ></button>
         </div>
     </div>
