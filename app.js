@@ -31,7 +31,7 @@ document.getElementById('btn-start-workout').addEventListener('click', () => swi
 document.getElementById('btn-back').addEventListener('click', () => switchView('view-home'));
 
 
-// --- [인트로 로직] (기존과 동일) ---
+// --- [인트로 로직] ---
 const introSteps = [
     {
         badge: '★ 과부하 알고리즘', title: '다 알아서 해드립니다', desc: '퍼포먼스와 회복 속도에 맞춰\n루틴을 자동 수정해줍니다',
@@ -76,16 +76,19 @@ btnIntroPrev.addEventListener('click', () => {
     if (currentIntroStep > 0) { currentIntroStep--; renderIntroStep(); }
 });
 
-// --- [수정됨] 마법사 데이터 (value 비우고 placeholder로 이동) ---
+
+// --- [수정됨] 설정 마법사 로직 (디폴트 미선택 및 클릭 반응 추가) ---
 const wizardSteps = [
     { title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', type: 'input', value: '', placeholder: '72', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
     { title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', type: 'input', value: '', placeholder: '29', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영합니다.' },
     { title: '현재 체지방을\n알려주세요', desc: '정확하지 않아도 괜찮아요. 대략적인 수치면 충분해요', type: 'input', value: '', placeholder: '18.2', unit: '%', hint: '인바디 결과가 있으면 그 수치를 넣어주세요.' },
-    { title: '주당 운동 횟수', desc: '일주일에 몇 번 운동할 수 있나요?', type: 'grid', options: [1, 2, 3, 4, 5, 6], value: 3, hint: '주 3회 (밀기/당기기/하체) 3분할 루틴으로 구성할게요.' },
+    // value를 null로 세팅하여 최초 아무것도 선택되지 않도록 변경
+    { title: '주당 운동 횟수', desc: '일주일에 몇 번 운동할 수 있나요?', type: 'grid', options: [1, 2, 3, 4, 5, 6], value: null, hint: '선택하신 횟수에 맞춰 최적의 분할 루틴을 추천해 드릴게요.' },
     { title: '근비대 vs 스트렝스,\n어느쪽이 목표인가요?', desc: '루틴의 세트 및 볼륨 구성이 달라집니다.', type: 'slider', value: '근비대 집중', hint: '근육 크기와 볼륨을 최대한 키우는 훈련에 집중합니다.' }
 ];
 
 let currentWizardStep = 0;
+
 function renderWizardStep() {
     const step = wizardSteps[currentWizardStep];
     document.getElementById('q-title').innerText = step.title;
@@ -97,7 +100,6 @@ function renderWizardStep() {
     const inputArea = document.getElementById('wizard-input-area');
     
     if (step.type === 'input') {
-        // value는 공란, placeholder에 힌트 노출
         inputArea.innerHTML = `
             <div class="input-box">
                 <input type="number" class="input-val" value="${step.value}" placeholder="${step.placeholder}">
@@ -105,10 +107,63 @@ function renderWizardStep() {
             </div>
             <div style="text-align:center; font-size:0.8rem; color:#666; margin-bottom: 20px;">입력 후 다음을 눌러주세요</div>
         `;
-    } else if (step.type === 'grid') {
-        inputArea.innerHTML = `<div class="grid-options">` + step.options.map(opt => `<div class="opt-btn ${opt === step.value ? 'active' : ''}">${opt}<span class="opt-sub">회/주</span></div>`).join('') + `</div>`;
-    } else if (step.type === 'slider') {
-        inputArea.innerHTML = `<div class="slider-container"><div class="slider-val-text">${step.value}</div><div class="slider-sub-text">스트렝스 0 : 근비대 100</div><input type="range" min="0" max="100" value="0"><div class="slider-labels"><span>← 근비대</span><span>스트렝스 →</span></div></div>`;
+    } 
+    else if (step.type === 'grid') {
+        // data-value 속성을 추가하여 클릭 시 어떤 숫자인지 자바스크립트가 인식하게 함
+        inputArea.innerHTML = `<div class="grid-options">` + step.options.map(opt => `
+            <div class="opt-btn ${opt === step.value ? 'active' : ''}" data-value="${opt}">
+                ${opt}<span class="opt-sub">회/주</span>
+            </div>`).join('') + `</div>`;
+        
+        // [중요] 버튼 클릭 시 활성화 처리 및 데이터 갱신 리스너 추가
+        const gridBtns = inputArea.querySelectorAll('.opt-btn');
+        gridBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                gridBtns.forEach(b => b.classList.remove('active')); // 기존 보라색 끄기
+                const targetBtn = e.currentTarget;
+                targetBtn.classList.add('active'); // 누른 버튼 보라색 켜기
+                
+                const selectedVal = parseInt(targetBtn.getAttribute('data-value'));
+                step.value = selectedVal; // 데이터 저장
+                
+                // 클릭한 횟수에 따라 힌트 텍스트 동적 변경
+                const hintEl = document.getElementById('q-hint');
+                if(selectedVal === 3) hintEl.innerText = '주 3회 (밀기/당기기/하체) 3분할 루틴으로 구성할게요.';
+                else if(selectedVal === 4) hintEl.innerText = '주 4회 2분할(상/하체) 루틴을 추천합니다.';
+                else hintEl.innerText = `주 ${selectedVal}회에 맞춘 최적의 루틴으로 구성할게요.`;
+            });
+        });
+    } 
+    else if (step.type === 'slider') {
+        inputArea.innerHTML = `
+            <div class="slider-container">
+                <div id="slider-display" class="slider-val-text">${step.value}</div>
+                <div class="slider-sub-text">스트렝스 0 : 근비대 100</div>
+                <input type="range" id="goal-slider" min="0" max="100" value="0">
+                <div class="slider-labels">
+                    <span>← 근비대</span>
+                    <span>스트렝스 →</span>
+                </div>
+            </div>
+        `;
+
+        // 슬라이더 조작 시 텍스트 실시간 변경 리스너 추가
+        const sliderInput = document.getElementById('goal-slider');
+        const sliderDisplay = document.getElementById('slider-display');
+        sliderInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            if (val < 33) {
+                step.value = '근비대 집중';
+                document.getElementById('q-hint').innerText = '근육 크기와 볼륨을 최대한 키우는 훈련에 집중합니다.';
+            } else if (val < 66) {
+                step.value = '근비대 / 스트렝스 균형';
+                document.getElementById('q-hint').innerText = '크기와 근력을 동시에 키우는 밸런스 훈련입니다.';
+            } else {
+                step.value = '스트렝스 집중';
+                document.getElementById('q-hint').innerText = '최대 근력을 끌어올리는 고중량 저반복 훈련입니다.';
+            }
+            sliderDisplay.innerText = step.value;
+        });
     }
 
     document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '완료' : '다음';
@@ -116,7 +171,7 @@ function renderWizardStep() {
 }
 
 document.getElementById('btn-next-step').addEventListener('click', () => {
-    // 입력창이 있을 경우 임시로 값 저장 (UI 상 텍스트 남기기 용도)
+    // 입력창이 있을 경우 임시로 값 저장
     const activeInput = document.querySelector('.input-val');
     if (activeInput) { wizardSteps[currentWizardStep].value = activeInput.value; }
 
