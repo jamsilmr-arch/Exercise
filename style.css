@@ -105,8 +105,78 @@ body { background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: t
 .st-right { display: flex; align-items: center; gap: 10px; color: var(--text-sub); font-size: 0.9rem; font-weight: bold;}
 .st-arrow { color: #666; font-size: 1.2rem; }
 .st-badge-primary { background: var(--primary); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; }
-.st-toggle { width: 50px; height: 28px; background: var(--primary-light); border-radius: 14px; position: relative; cursor: pointer; border: 1px solid var(--primary); }
-.st-toggle::after { content: ''; position: absolute; right: 2px; top: 2px; width: 22px; height: 22px; background: #fff; border-radius: 50%; }
+/* --- [수정됨] 토글 스위치 좌우 이동 애니메이션 --- */
+.st-toggle { 
+    width: 50px; 
+    height: 28px; 
+    background: transparent; 
+    border-radius: 14px; 
+    position: relative; 
+    cursor: pointer; 
+    border: 1px solid #555; 
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.st-toggle::after { 
+    content: ''; 
+    position: absolute; 
+    left: 2px; /* 기본은 왼쪽 */
+    top: 2px; 
+    width: 22px; 
+    height: 22px; 
+    background: #fff; 
+    border-radius: 50%; 
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+/* 토글 켜짐 상태 (active 클래스 추가 시) */
+.st-toggle.active {
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+.st-toggle.active::after {
+    transform: translateX(22px); /* 오른쪽으로 이동 */
+}
+
+/* 유산소 정보 확인 바텀 시트 디자인 */
+.bs-cardio-box {
+    background: #1a221f; /* 스크린샷의 짙은 청록색 느낌 배경 */
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.bs-cardio-icon {
+    width: 40px;
+    height: 40px;
+    background: #258f67;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.bs-cardio-text {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #fff;
+    line-height: 1.4;
+    word-break: keep-all;
+}
+.bs-cardio-btn-red {
+    background: transparent;
+    color: #E50914;
+    border: none;
+    padding: 15px;
+    width: 100%;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
 
 /* 루틴 탭 리스트 */
 .rt-notice { background: var(--primary-light); color: var(--primary); padding: 15px 20px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 10px; margin: 20px auto; border-radius: 8px; border: 1px solid rgba(229, 9, 20, 0.3); width: calc(100% - 40px); max-width: 560px;}
