@@ -1,3 +1,5 @@
+renderBottomNav('analysis');
+
 window.openPerfDetail = function(name) {
     document.getElementById('ad-title').innerText = name;
     document.getElementById('ad-render').innerHTML = `
