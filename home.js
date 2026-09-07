@@ -24,6 +24,14 @@ function switchView(targetId) {
         targetView.style.display = '';
         window.scrollTo(0, 0);
     }
+    
+    // --- [수정됨] 마법사 및 운동 화면에서는 하단 네비게이션 숨김 ---
+    const mainNav = document.getElementById('main-nav');
+    if (targetId === 'view-cardio-wizard' || targetId === 'view-workout' || targetId === 'view-condition') {
+        mainNav.style.display = 'none';
+    } else {
+        mainNav.style.display = 'flex';
+    }
 }
 
 document.querySelectorAll('.view-container').forEach(view => {
@@ -112,7 +120,6 @@ document.getElementById('btn-start-workout-list').addEventListener('click', () =
     switchView('view-workout');
 });
 
-// 알림 토글
 document.getElementById('toggle-rest').addEventListener('click', function() {
     this.style.background = this.style.background === 'transparent' ? 'var(--primary-light)' : 'transparent';
     this.style.borderColor = this.style.borderColor === '#555' ? 'var(--primary)' : '#555';
@@ -202,11 +209,13 @@ document.getElementById('btn-cw-next').addEventListener('click', () => {
 });
 
 
-// --- 공통 팝업 및 바텀시트 제어 로직 ---
+// --- [수정됨] 공통 팝업 및 바텀시트 제어 로직 (독립적 클래스 할당) ---
 const modalOverlay = document.getElementById('common-modal-overlay');
 
 function hideAllModals() {
-    modalOverlay.querySelectorAll('.guide-modal, .alert-modal, .feedback-modal, .coach-modal, .bottom-sheet-modal').forEach(m => m.classList.remove('active'));
+    modalOverlay.querySelectorAll('.guide-modal, .alert-modal, .feedback-modal, .coach-modal, .bottom-sheet-modal').forEach(m => {
+        m.classList.remove('active');
+    });
 }
 
 window.openBottomSheet = function(type) {
@@ -225,7 +234,7 @@ modalOverlay.addEventListener('click', (e) => {
 });
 
 
-// --- 훈련 세트 리스트 및 타이머 (기존 동일 유지, 공간상 생략) ---
+// --- 훈련 세트 리스트 및 타이머 ---
 function renderWorkoutList() {
     const listContainer = document.getElementById('workout-exercise-list');
     let html = '';
@@ -233,7 +242,7 @@ function renderWorkoutList() {
         const totalSets = ex.warmup + ex.top + ex.main;
         const savedData = JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || [];
         const completedCount = savedData.length;
-        const badgeColor = completedCount === totalSets ? '#2e6bdf' : '#2c2c2e';
+        const badgeColor = completedCount === totalSets ? '#2e6bdf' : '#222';
         const badgeTextColor = completedCount === totalSets ? '#fff' : '#aaa';
         const unitText1 = ex.type === 'bodyweight' ? '체중 (kg)' : '중량 (kg)';
         
@@ -295,7 +304,7 @@ function renderWorkoutList() {
             const totalSets = exData.warmup + exData.top + exData.main;
             const badge = document.getElementById(`badge-${exIndex}`);
             badge.innerText = `${savedData.length} / ${totalSets} 완료`;
-            badge.style.background = savedData.length === totalSets ? '#2e6bdf' : '#2c2c2e';
+            badge.style.background = savedData.length === totalSets ? '#2e6bdf' : '#222';
             badge.style.color = savedData.length === totalSets ? '#fff' : '#aaa';
         });
     });
@@ -334,9 +343,98 @@ function startGlobalTimer(seconds, exName) {
 }
 document.getElementById('gst-close').addEventListener('click', () => { clearInterval(globalTimerInterval); timerUi.style.display = 'none'; });
 
+
+// --- 가이드 / 경고 / 피드백 / 코칭 모달 ---
 window.checkFinishWorkout = function() {
     let completed = 0;
     currentRoutine.forEach(ex => completed += (JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || []).length);
-    if (completed < totalGlobalSets) { hideAllModals(); modalOverlay.classList.add('active'); document.getElementById('modal-alert-incomplete').classList.add('active'); } 
-    else { hideAllModals(); modalOverlay.classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); }
+    if (completed < totalGlobalSets) { 
+        hideAllModals(); modalOverlay.classList.add('active'); document.getElementById('modal-alert-incomplete').classList.add('active'); 
+    } else { 
+        hideAllModals(); modalOverlay.classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); 
+    }
+};
+
+window.forceEndWorkout = function() { 
+    hideAllModals(); modalOverlay.classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); 
+};
+
+window.selectFeedback = function(btn) {
+    document.querySelectorAll('.fm-opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('btn-submit-feedback').disabled = false;
+};
+
+// 가이드 모달
+const guideData = {
+    rir: [
+        { sub: 'RiR 가이드', title: '1. RIR의 정의', icon: '✦', desc: '실패 지점까지 남은 횟수', box: '예: 10회가 한계일 때 9회 -> RIR 1' },
+        { sub: 'RiR 가이드', title: '2. 객관적 판단', icon: '✦', desc: '엄살 대신 수행 속도로 판단', box: '마지막 횟수가 현저히 느려지면 RIR 1' }
+    ],
+    warmup: [
+        { sub: '웜업 가이드', title: '1. 웜업이란?', icon: '✦', desc: '본 세트 수행 능력 증가 목적', box: '근신경계 활성화 및 부상 방지' }
+    ]
+};
+let currentModalType = '';
+let currentModalStep = 0;
+
+window.openModal = function(type) {
+    currentModalType = type;
+    currentModalStep = 0;
+    document.getElementById('modal-badge-title').innerText = type === 'rir' ? 'RIR 가이드' : '웜업 가이드';
+    renderGuideStep();
+    hideAllModals();
+    modalOverlay.classList.add('active');
+    document.getElementById('modal-guide').classList.add('active');
+};
+function renderGuideStep() {
+    const data = guideData[currentModalType][currentModalStep];
+    document.getElementById('modal-content-area').innerHTML = `<div class="m-sub">${data.sub}</div><div class="m-title">${data.title}</div><div class="m-point"><span class="m-point-icon">${data.icon}</span><div class="m-point-text">${data.desc}</div></div><div class="m-box">${data.box}</div>`;
+    document.getElementById('modal-btn-prev').style.display = currentModalStep === 0 ? 'none' : 'block';
+    document.getElementById('modal-btn-next').innerText = currentModalStep === guideData[currentModalType].length - 1 ? '확인' : '다음';
+}
+document.getElementById('modal-btn-prev').addEventListener('click', () => { if (currentModalStep > 0) { currentModalStep--; renderGuideStep(); } });
+document.getElementById('modal-btn-next').addEventListener('click', () => { if (currentModalStep < guideData[currentModalType].length - 1) { currentModalStep++; renderGuideStep(); } else { closeModal(); } });
+
+
+// 과부하 코치
+const coachData = [
+    { sub: '', title: '첫 번째 운동 완료!', content: '<p class="coach-desc">수고하셨습니다. 이번 주 데이터를 바탕으로 다음 주부터 코칭을 시작할게요.</p>' }
+];
+let coachStep = 0;
+
+document.getElementById('btn-submit-feedback').addEventListener('click', () => {
+    coachStep = 0;
+    renderCoachStep();
+    hideAllModals();
+    modalOverlay.classList.add('active');
+    document.getElementById('modal-coach').classList.add('active');
+});
+
+function renderCoachStep() {
+    const data = coachData[coachStep];
+    const subText = document.getElementById('coach-sub-text');
+    if(data.sub) { subText.style.display = 'block'; subText.innerText = data.sub; } else { subText.style.display = 'none'; }
+    document.getElementById('coach-title-text').innerText = data.title;
+    document.getElementById('coach-content-area').innerHTML = data.content;
+    document.getElementById('coach-dots-area').innerHTML = `<div class="cdot active"></div>`;
+    document.getElementById('btn-coach-next').innerText = '완료';
+}
+
+document.getElementById('btn-coach-next').addEventListener('click', () => {
+    closeModal();
+    switchView('view-feedback');
+    window.scrollTo(0, 0);
+});
+
+// 퍼포먼스 차트 정적 연결
+window.openPerfDetail = function(exId) {
+    const exData = currentRoutine.find(x => x.id === exId) || currentRoutine[0];
+    document.getElementById('pd-render-area').innerHTML = `
+        <div class="pd-img-box"><div class="pd-img-title">${exData.name}</div><div class="pd-img-wrap"><img src="${exData.img}"></div></div>
+        <div class="pd-chart-section"><div class="pd-chart-top"><span class="pd-c-badge">고중량 <span style="color:#aaa; font-weight:normal; margin-left:4px;">4~7회</span></span><span class="pd-c-record">최고 기록 <span>25kg · 7회</span></span></div>
+        <div class="pd-graph-area"><div class="pd-y-axis"><span>30</span><span>25</span><span>20</span></div><div class="pd-graph-content"><div class="pd-dot-wrapper" style="bottom: 50%;"><div class="pd-dot"></div><span class="pd-dot-date">09. 07.</span><div class="pd-tooltip"><div class="pd-tooltip-row"><div class="pd-t-color" style="background:var(--primary);"></div><span class="pd-t-label">중량</span><span class="pd-t-val">25</span></div></div></div></div></div></div>
+    `;
+    switchView('view-perf-detail');
+    window.scrollTo(0, 0);
 };
