@@ -1,10 +1,4 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyAPF1e1n5jS6YALzl0bJDGmDvOH1jhSU_g",
-    authDomain: "exercise-abddb.firebaseapp.com",
-    projectId: "exercise-abddb"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+renderBottomNav('settings');
 
 auth.onAuthStateChanged((user) => {
     if (user) {
@@ -12,3 +6,12 @@ auth.onAuthStateChanged((user) => {
         document.getElementById('set-profile-email').innerText = user.email || '';
     }
 });
+
+// 알림 스위치 토글 이벤트
+const toggleRest = document.getElementById('toggle-rest');
+if(toggleRest) {
+    toggleRest.addEventListener('click', function() {
+        this.style.background = this.style.background === 'transparent' ? 'var(--primary-light)' : 'transparent';
+        this.style.borderColor = this.style.borderColor === '#555' ? 'var(--primary)' : '#555';
+    });
+}
