@@ -15,10 +15,34 @@ window.currentRoutine = [];
 window.totalGlobalSets = 0;
 
 // ==========================================
-// 2. 공통 UI (메뉴, 타이머, 모든 팝업) 자동 주입
+// 2. DOM 로드 시 공통 UI(네비게이션, 팝업) 자동 주입
 // ==========================================
-window.initCommonUI = function(activeTab) {
-    // 1. 상단 글로벌 타이머 주입
+document.addEventListener("DOMContentLoaded", function () {
+    const path = window.location.pathname;
+    let activeTab = 'home';
+    if (path.includes('routine')) activeTab = 'routine';
+    if (path.includes('analysis')) activeTab = 'analysis';
+    if (path.includes('settings')) activeTab = 'settings';
+
+    // 1. 하단 네비게이션 바 삽입
+    const navHtml = `
+        <nav class="bottom-nav" id="main-nav">
+            <div class="nav-item ${activeTab === 'home' ? 'active' : ''}" onclick="location.href='home.html'">
+                <span class="nav-icon">🏠</span><span class="nav-text">홈</span>
+            </div>
+            <div class="nav-item ${activeTab === 'routine' ? 'active' : ''}" onclick="location.href='routine.html'">
+                <span class="nav-icon">📋</span><span class="nav-text">루틴</span>
+            </div>
+            <div class="nav-item ${activeTab === 'analysis' ? 'active' : ''}" onclick="location.href='analysis.html'">
+                <span class="nav-icon">📊</span><span class="nav-text">분석</span>
+            </div>
+            <div class="nav-item ${activeTab === 'settings' ? 'active' : ''}" onclick="location.href='settings.html'">
+                <span class="nav-icon">⚙️</span><span class="nav-text">설정</span>
+            </div>
+        </nav>
+    `;
+
+    // 2. 상단 글로벌 타이머 삽입
     const timerHtml = `
         <div class="global-sticky-timer" id="global-timer-ui">
             <div class="gst-top">
@@ -33,21 +57,10 @@ window.initCommonUI = function(activeTab) {
         </div>
     `;
 
-    // 2. 하단 네비게이션 주입
-    const navHtml = `
-        <nav class="bottom-nav" id="main-nav">
-            <div class="nav-item ${activeTab === 'home' ? 'active' : ''}" onclick="location.href='home.html'"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
-            <div class="nav-item ${activeTab === 'routine' ? 'active' : ''}" onclick="location.href='routine.html'"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
-            <div class="nav-item ${activeTab === 'analysis' ? 'active' : ''}" onclick="location.href='analysis.html'"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
-            <div class="nav-item ${activeTab === 'settings' ? 'active' : ''}" onclick="location.href='settings.html'"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
-        </nav>
-    `;
-
-    // 3. 모든 공통 팝업(바텀시트/모달) 주입
+    // 3. 모든 공통 팝업(바텀시트/모달) 삽입
     const modalsHtml = `
         <div class="modal-overlay" id="common-modal-overlay">
             
-            <!-- 설정 바텀시트: 나의 정보 -->
             <div class="bottom-sheet-modal" id="bs-info">
                 <div class="bs-header"><span style="width:24px;"></span><span class="bs-title">나의 정보</span><span class="modal-close" onclick="closeModal()">✕</span></div>
                 <div class="bs-content">
@@ -66,7 +79,6 @@ window.initCommonUI = function(activeTab) {
                 <div class="bs-content"><div class="bs-input-wrap"><input type="number" value="72"><span class="bs-unit">kg</span></div><button class="primary-btn" onclick="openBottomSheet('info')">저장</button></div>
             </div>
 
-            <!-- 대형 바텀 시트: 유산소 설정 마법사 -->
             <div class="full-bottom-sheet" id="bs-cardio-wizard">
                 <div class="bs-header" style="border-bottom:none;">
                     <button class="icon-btn" onclick="closeModal()">✕</button>
@@ -83,7 +95,6 @@ window.initCommonUI = function(activeTab) {
                 </div>
             </div>
 
-            <!-- 가이드/경고/피드백 모달들 -->
             <div class="guide-modal" id="modal-guide">
                 <div class="modal-header"><span class="modal-badge" id="modal-badge-title">가이드</span><span class="modal-close" onclick="closeModal()">✕</span></div>
                 <div class="modal-content" id="modal-content-area"></div>
@@ -110,7 +121,6 @@ window.initCommonUI = function(activeTab) {
                 <div class="coach-content" id="coach-content-area"></div>
                 <div class="coach-footer"><div class="coach-dots" id="coach-dots-area"></div><button class="primary-btn" id="btn-coach-next" style="width: 100%;">다음</button></div>
             </div>
-
         </div>
     `;
 
@@ -119,7 +129,7 @@ window.initCommonUI = function(activeTab) {
     document.body.insertAdjacentHTML('beforeend', modalsHtml);
 
     attachCommonEvents();
-};
+});
 
 // ==========================================
 // 3. 공통 팝업 및 이벤트 제어 로직
@@ -135,7 +145,6 @@ function attachCommonEvents() {
         document.getElementById('global-timer-ui').style.display = 'none';
     });
 
-    // 유산소 마법사 버튼 이벤트
     document.getElementById('btn-cw-prev').addEventListener('click', () => {
         if(window.cardioStepIdx > 0) { window.cardioStepIdx--; renderCardioStep(); }
     });
@@ -150,9 +159,7 @@ function attachCommonEvents() {
 
 window.hideAllModals = function() {
     const overlay = document.getElementById('common-modal-overlay');
-    if(overlay) {
-        overlay.querySelectorAll('.guide-modal, .alert-modal, .feedback-modal, .coach-modal, .bottom-sheet-modal, .full-bottom-sheet').forEach(m => m.classList.remove('active'));
-    }
+    if(overlay) overlay.querySelectorAll('.guide-modal, .alert-modal, .feedback-modal, .coach-modal, .bottom-sheet-modal, .full-bottom-sheet').forEach(m => m.classList.remove('active'));
 };
 
 window.openBottomSheet = function(type) {
@@ -168,7 +175,7 @@ window.closeModal = function() {
 };
 
 // ==========================================
-// 4. 유산소 마법사 로직 (바텀 시트 구동)
+// 4. 유산소 마법사 로직
 // ==========================================
 const cardioSteps = [
     { title: '어떤 유산소 기구를<br>쓸 수 있나요?', sub: '여러 개 고를 수 있어요.', type: 'multi', options: ['트레드밀', '실내 사이클', '일립티컬', '로잉머신', '없음'] },
@@ -185,7 +192,7 @@ window.startCardioWizard = function() {
     window.cardioStepIdx = 0;
     window.currentCardioMins = 60; 
     renderCardioStep();
-    openBottomSheet('cardio-wizard'); // 전체화면 전환이 아닌 바텀시트 열기로 변경
+    openBottomSheet('cardio-wizard');
 };
 
 window.renderCardioStep = function() {
@@ -198,9 +205,7 @@ window.renderCardioStep = function() {
 
     if (data.type === 'multi' || data.type === 'single') {
         html += `<div class="cw-options">`;
-        data.options.forEach(opt => {
-            html += `<div class="cw-opt-btn" onclick="toggleCardioOpt(this, '${data.type}')"><div class="cw-check"></div>${opt}</div>`;
-        });
+        data.options.forEach(opt => { html += `<div class="cw-opt-btn" onclick="toggleCardioOpt(this, '${data.type}')"><div class="cw-check"></div>${opt}</div>`; });
         html += `</div>`;
     } else if (data.type === 'grid') {
         html += `<div class="cw-grid">`;
@@ -239,33 +244,4 @@ window.changeCardioTime = function(amount) {
     window.currentCardioMins += amount;
     if(window.currentCardioMins < 5) window.currentCardioMins = 5;
     document.getElementById('cw-time-val').innerHTML = `${window.currentCardioMins}<span>분</span>`;
-};
-
-// 타이머 및 기타 공통 함수 (생략 없이 동작 유지)
-window.globalTimerInterval = null;
-window.startGlobalTimer = function(seconds, exName) {
-    clearInterval(window.globalTimerInterval);
-    let totalDuration = seconds;
-    let targetEndTime = Date.now() + (seconds * 1000);
-    const timerUi = document.getElementById('global-timer-ui');
-    
-    document.getElementById('gst-ex-name').innerText = exName;
-    document.getElementById('gst-rest-text').innerText = `권장 휴식 시간 ${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
-    document.getElementById('gst-time-display').innerText = `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
-    document.getElementById('gst-progress').style.width = '100%';
-    timerUi.style.display = 'flex'; 
-
-    window.globalTimerInterval = setInterval(() => {
-        const remaining = Math.ceil((targetEndTime - Date.now()) / 1000);
-        if (remaining <= 0) {
-            clearInterval(window.globalTimerInterval);
-            document.getElementById('gst-time-display').innerText = "진행!";
-            document.getElementById('gst-progress').style.width = '0%';
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            setTimeout(() => { timerUi.style.display = 'none'; }, 3000); 
-        } else {
-            document.getElementById('gst-time-display').innerText = `${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;
-            document.getElementById('gst-progress').style.width = `${(remaining/totalDuration)*100}%`;
-        }
-    }, 100);
 };
