@@ -47,24 +47,16 @@
                 </div>
                 <button id="btn-go-condition" class="primary-btn">오늘 운동 시작</button>
             </div>
-            <div class="cardio-banner" id="cardio-banner-card">
-                <div class="cb-close">✕</div>
-                <div class="cb-header"><span>💗</span> 유산소도 함께 해볼까요?</div>
-                <div class="cb-desc">몇 가지만 답하면 지금 루틴에 맞춰 종목과 시간을 정해드려요.</div>
-                <div class="cb-btns">
-                    <button class="primary-btn" style="padding:12px;">유산소 설정하기</button>
-                    <button class="secondary-btn" style="padding:12px;">유산소 안할래요</button>
-                </div>
-            </div>
+            
             <div class="data-progress-section">
                 <div class="dp-title">맞춤 코칭을 위한 데이터 분석 중.</div>
-                <div class="dp-bar-bg"><div class="dp-bar-fill"></div><span class="dp-text">0%</span></div>
+                <div class="dp-bar-bg"><div class="dp-bar-fill" style="width:14%"></div><span class="dp-text">14%</span></div>
             </div>
             <div class="week-blocks-section">
                 <div class="wb-title">1주차 <span style="font-size:0.75rem;">5주 운동 · 1주 디로딩</span></div>
                 <div class="wb-scroll-area" id="home-week-blocks"></div>
             </div>
-            <div class="menu-card">
+            <div class="menu-card" onclick="switchView('view-block-progress')">
                 <div style="display:flex; align-items:center; gap:10px;"><span>🗂️</span> 블록 진행 상황</div>
                 <div style="color:#666;">></div>
             </div>
@@ -73,9 +65,9 @@
 
     <!-- [화면 2] 컨디션 체크 -->
     <div id="view-condition" class="view-container flex-center">
-        <header class="condition-header" style="width:100%;">
+        <header class="top-nav-bar" style="width:100%;">
             <button class="icon-btn" onclick="switchView('view-home')">←</button>
-            <h3 style="flex:1; text-align:center; padding-right:30px;">오늘 컨디션</h3>
+            <span class="tn-title" style="flex:1; text-align:center; padding-right:30px;">오늘 컨디션</span>
         </header>
         <div class="condition-content">
             <h2 class="cond-q">오늘 컨디션은 몇 점인가요?</h2>
@@ -116,11 +108,99 @@
         </header>
         <main class="fb-list">
             <div class="fb-item"><span class="fb-item-name">가슴</span><span class="fb-badge">???</span></div>
-            <div class="fb-item"><span class="fb-item-name">등</span><span class="fb-badge">???</span></div>
+            <div class="fb-item"><span class="fb-item-name">삼각근</span><span class="fb-badge">???</span></div>
+            <div class="fb-item"><span class="fb-item-name">힙힌지</span><span class="fb-badge">???</span></div>
         </main>
         <div class="fb-footer">
             <button class="primary-btn" onclick="switchView('view-home')">확인</button>
         </div>
+    </div>
+
+    <!-- [화면 5] 블록 진행 상황 (부위별 누적 세트) -->
+    <div id="view-block-progress" class="view-container">
+        <header class="top-nav-bar">
+            <button class="icon-btn" onclick="switchView('view-home')">←</button>
+            <span class="tn-title">블록 진행 상황</span>
+            <div style="width:30px;"></div>
+        </header>
+        <main class="content-area" style="padding-top:20px;">
+            <h2 class="bprog-title">부위별 누적 세트</h2>
+            <p class="bprog-sub">현재 루틴에서 지금까지 수행한 볼륨이에요</p>
+
+            <div class="bar-chart-wrap">
+                <div class="y-axis"><span>20</span><span>15</span><span>12</span><span>9</span><span>6</span><span>3</span><span>0</span></div>
+                <div style="width:30px;"></div> <!-- y축 여백 -->
+                <div class="bar-col"><div class="bar-fill" style="height: 0%;"></div><span class="bar-label">복근</span></div>
+                <div class="bar-col"><div class="bar-fill" style="height: 0%;"></div><span class="bar-label">목</span></div>
+                <div class="bar-col"><div class="bar-fill" style="height: 15%;"></div><span class="bar-label">가슴</span></div>
+                <div class="bar-col"><div class="bar-fill" style="height: 5%;"></div><span class="bar-label">어깨(전/측)</span></div>
+                <div class="bar-col"><div class="bar-fill" style="height: 20%;"></div><span class="bar-label">어깨(후면)</span></div>
+                <div class="bar-col"><div class="bar-fill" style="height: 40%;"></div><span class="bar-label">등 중/상부</span></div>
+            </div>
+
+            <div class="info-alert-box">
+                <div class="info-icon">ⓘ</div>
+                <div class="info-text">직접 운동하지 않은 부위라도,<br>같이 힘을 쓴 협응근들을 0.5세트로 챙겨서 계산해드려요!</div>
+            </div>
+
+            <div class="bprog-menu-grid">
+                <div class="bm-card" onclick="switchView('view-perf-list')">
+                    <span class="bm-icon">⏸</span><span class="bm-text">운동별 퍼포먼스 변화</span>
+                </div>
+                <div class="bm-row">
+                    <div class="bm-card" style="flex:1;"><span class="bm-icon">💪</span><span class="bm-text">부위별 볼륨 변화</span></div>
+                    <div class="bm-card" style="flex:1;"><span class="bm-icon">📊</span><span class="bm-text">부위별 성장률</span></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- [화면 6] 운동별 퍼포먼스 변화 (목록) -->
+    <div id="view-perf-list" class="view-container">
+        <header class="top-nav-bar">
+            <button class="icon-btn" onclick="switchView('view-block-progress')">←</button>
+            <span class="tn-title">운동별 퍼포먼스 변화</span>
+            <div style="width:30px;"></div>
+        </header>
+        <main class="content-area" style="padding-top:20px;">
+            <div class="perf-list-group">
+                <span class="perf-badge">등 중/상부</span>
+                <div class="perf-list-box">
+                    <div class="perf-item" onclick="openPerfDetail('ex6')">
+                        <div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif"></div>
+                        <span class="perf-name">체스트 서포티드 머신 로우 (레버)</span>
+                        <span class="perf-arrow">></span>
+                    </div>
+                    <div class="perf-item" onclick="openPerfDetail('ex1')">
+                        <div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif"></div>
+                        <span class="perf-name">케이블 로우 (중간-넓은 오버 그립)</span>
+                        <span class="perf-arrow">></span>
+                    </div>
+                </div>
+            </div>
+            <div class="perf-list-group">
+                <span class="perf-badge">가슴</span>
+                <div class="perf-list-box">
+                    <div class="perf-item" onclick="openPerfDetail('ex2')">
+                        <div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif"></div>
+                        <span class="perf-name">해머 스트렝스 체스트 프레스 머신</span>
+                        <span class="perf-arrow">></span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- [화면 7] 특정 운동 퍼포먼스 변화 상세 (차트) -->
+    <div id="view-perf-detail" class="view-container">
+        <header class="top-nav-bar">
+            <button class="icon-btn" onclick="switchView('view-perf-list')">←</button>
+            <span class="tn-title">운동별 퍼포먼스 변화</span>
+            <div style="width:30px;"></div>
+        </header>
+        <main class="content-area" style="padding-top:20px;" id="pd-render-area">
+            <!-- JS 동적 렌더링 -->
+        </main>
     </div>
 
     <nav class="bottom-nav" id="main-nav">
@@ -168,7 +248,7 @@
             <button class="primary-btn" id="btn-submit-feedback" disabled>제출</button>
         </div>
 
-        <!-- 4. [신규] 과부하 코치 슬라이드 모달 -->
+        <!-- 4. 과부하 코치 슬라이드 모달 -->
         <div class="coach-modal" id="modal-coach">
             <div class="coach-header">
                 <span class="coach-badge" id="coach-badge-text">과부하 코치</span>
@@ -176,9 +256,7 @@
                 <h2 class="coach-title" id="coach-title-text">첫 번째 운동을 완료했어요!</h2>
                 <div style="color:var(--primary); font-size:1.5rem; margin-bottom:10px;">✦</div>
             </div>
-            <div class="coach-content" id="coach-content-area">
-                <!-- JS 동적 렌더링 -->
-            </div>
+            <div class="coach-content" id="coach-content-area"></div>
             <div class="coach-footer">
                 <div class="coach-dots" id="coach-dots-area"></div>
                 <button class="primary-btn" id="btn-coach-next">다음</button>
