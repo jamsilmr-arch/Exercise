@@ -473,3 +473,14 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
     overflow: hidden;
 }
 .full-bottom-sheet.active { display: flex; }
+/* 상단 네비게이션 중앙 정렬 전용 클래스 */
+.top-nav-bar.center-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+.top-nav-bar.center-logo .logo {
+    font-size: 2.5rem; /* 로고 크기 살짝 키움 */
+    margin: 0 auto;
+}
