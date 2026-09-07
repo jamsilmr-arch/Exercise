@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JHP - 설정</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+    <div class="view-container active" id="view-settings-main">
+        <header class="top-nav-bar"><div class="logo font-pinyon">JHP</div></header>
+        <div class="profile-section">
+            <div class="profile-name" id="set-profile-name">사용자 님</div>
+            <div class="profile-email" id="set-profile-email"></div>
+        </div>
+        <div class="settings-list">
+            <div class="st-card">
+                <div class="st-item"><div class="st-left">나의 정보</div><div class="st-right"><span class="st-arrow">></span></div></div>
+                <div class="st-item"><div class="st-left">유산소</div><div class="st-right">설정하기 <span class="st-arrow">></span></div></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="location.href='home.html'"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
+        <div class="nav-item" onclick="location.href='routine.html'"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
+        <div class="nav-item" onclick="location.href='analysis.html'"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
+        <div class="nav-item active" onclick="location.href='settings.html'"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
+    </nav>
+
+    <script src="settings.js"></script>
+</body>
+</html>
