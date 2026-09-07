@@ -5,90 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JHP - 설정</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase는 app.js에서 호출하므로 여기선 생략해도 무방하나 혹시 몰라 유지 -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="app.js"></script>
 </head>
 <body>
 
-    <div class="view-container active" id="view-settings-main">
+    <!-- 설정 메인 화면 -->
+    <div class="view-container active" style="display:block !important;">
         <header class="top-nav-bar"><div class="logo font-pinyon">JHP</div></header>
+        
         <div class="profile-section">
             <div class="profile-name" id="set-profile-name">사용자 님</div>
             <div class="profile-email" id="set-profile-email"></div>
         </div>
+        
         <div class="settings-list">
             <div class="st-card">
+                <!-- '나의 정보' 클릭 시 공통 바텀시트 호출 -->
                 <div class="st-item" onclick="openBottomSheet('info')">
                     <div class="st-left">나의 정보</div><div class="st-right"><span class="st-arrow">></span></div>
                 </div>
-                <div class="st-item" onclick="openBottomSheet('cardio')">
+                <!-- '유산소' 클릭 시 공통 마법사 바텀시트 호출 -->
+                <div class="st-item" onclick="startCardioWizard()">
                     <div class="st-left">유산소</div><div class="st-right">설정하기 <span class="st-arrow">></span></div>
                 </div>
             </div>
+            
             <div class="st-card">
-                <div class="st-item" style="cursor:default; border-bottom: none;" onclick="toggleNotification()">
+                <div class="st-item" style="cursor:default; border-bottom: none;" onclick="document.getElementById('toggle-rest').classList.toggle('active');">
                     <div class="st-left">휴식 완료 알림<span class="st-desc">세트 사이 휴식이 끝나면 알려드려요</span></div>
-                    <!-- 초기 상태를 active(켜짐)로 설정 -->
                     <div class="st-right"><div class="st-toggle active" id="toggle-rest"></div></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 설정 화면 전용 바텀 시트 팝업 오버레이 -->
-    <div class="modal-overlay" id="common-modal-overlay">
+    <!-- 핵심: 스크립트 실행 부 -->
+    <script src="app.js"></script>
+    <script>
+        // 공통 UI(네비게이션, 모달 등) 주입 실행
+        initCommonUI('settings');
         
-        <!-- 1. 나의 정보 -->
-        <div class="bottom-sheet-modal" id="bs-info">
-            <div class="bs-header"><span style="width:24px;"></span><span class="bs-title">나의 정보</span><span class="modal-close" onclick="closeModal()">✕</span></div>
-            <div class="bs-content">
-                <div class="st-item" style="padding:0; border:none; margin-bottom:15px;" onclick="openBottomSheet('gender')">
-                    <div class="st-left" style="font-size:1.1rem; font-weight:normal; color:#fff;">성별</div><div class="st-right" style="font-size:1.1rem;">남성 <span class="st-arrow">></span></div>
-                </div>
-                <div class="st-item" style="padding:0; border:none;" onclick="openBottomSheet('weight')">
-                    <div class="st-left" style="font-size:1.1rem; font-weight:normal; color:#fff;">몸무게</div><div class="st-right" style="font-size:1.1rem;">72kg <span class="st-arrow">></span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. 성별 변경 -->
-        <div class="bottom-sheet-modal" id="bs-gender">
-            <div class="bs-header"><button class="icon-btn" onclick="openBottomSheet('info')">←</button><span class="bs-title">성별</span><span class="modal-close" onclick="closeModal()">✕</span></div>
-            <div class="bs-content">
-                <div class="bs-option active">남성</div>
-                <div class="bs-option">여성</div>
-            </div>
-        </div>
-
-        <!-- 3. 몸무게 변경 -->
-        <div class="bottom-sheet-modal" id="bs-weight">
-            <div class="bs-header"><button class="icon-btn" onclick="openBottomSheet('info')">←</button><span class="bs-title">몸무게</span><span class="modal-close" onclick="closeModal()">✕</span></div>
-            <div class="bs-content">
-                <div class="bs-input-wrap"><input type="number" value="72"><span class="bs-unit">kg</span></div>
-                <button class="primary-btn" onclick="openBottomSheet('info')">저장</button>
-            </div>
-        </div>
-
-        <!-- 4. [신규] 유산소 정보 확인 -->
-        <div class="bottom-sheet-modal" id="bs-cardio">
-            <div class="bs-header"><span style="width:24px;"></span><span class="bs-title">유산소</span><span class="modal-close" onclick="closeModal()">✕</span></div>
-            <div class="bs-content">
-                <div class="bs-cardio-box">
-                    <div class="bs-cardio-icon">💗</div>
-                    <div class="bs-cardio-text">인클라인 걷기 (러닝머신) · 주 3회 · 한 번에 30분</div>
-                </div>
-                <!-- 유산소 설정 마법사는 홈 화면에 있으므로 home.html 로 이동하면서 쿼리 파라미터 전달 -->
-                <div class="st-item" style="padding:0; border:none;" onclick="location.href='home.html?openCardio=true'">
-                    <div class="st-left" style="font-size:1.05rem; font-weight:normal; color:#fff;">종목·횟수·시간 바꾸기</div><div class="st-right"><span class="st-arrow">></span></div>
-                </div>
-                <button class="bs-cardio-btn-red" onclick="closeModal()">유산소 그만하기</button>
-            </div>
-        </div>
-
-    </div>
-
-    <script src="settings.js"></script>
+        // 유저 정보 세팅 로직
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('set-profile-name').innerText = user.displayName ? `${user.displayName} 님` : '회원 님';
+                document.getElementById('set-profile-email').innerText = user.email || '';
+            }
+        });
+    </script>
 </body>
 </html>
