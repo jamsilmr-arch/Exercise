@@ -10,51 +10,182 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+    <div class="global-sticky-timer" id="global-timer-ui">
+        <div class="gst-top">
+            <div class="gst-info">
+                <span class="gst-name" id="gst-ex-name">케이블 로우</span>
+                <span class="gst-sub" id="gst-rest-text">권장 휴식 시간 01:30</span>
+                <div class="gst-time" id="gst-time-display">01:30</div>
+            </div>
+            <div class="gst-controls">
+                <span id="gst-pause">⏸</span>
+                <span id="gst-close">✕</span>
+            </div>
+        </div>
+        <div class="gst-progress-bar"><div class="gst-progress-fill" id="gst-progress"></div></div>
+    </div>
+
+    <!-- [화면 1] 홈 대시보드 -->
     <div id="view-home" class="view-container active">
-        <header class="top-nav">
-            <div class="logo font-pinyon">JHP</div>
-            <!-- 루틴 수정 버튼 클릭 시 onboarding으로 복귀 -->
-            <button class="tutorial-btn" id="btn-edit-routine">루틴 수정</button>
+        <header class="home-header">
+            <div class="top-logo-area"><div class="logo font-pinyon">RO</div></div>
+            <h1 class="routine-main-title" id="home-routine-title">주 6회 (몸통-말단-하체) 루틴</h1>
+            <div class="target-split-bar">
+                <div class="split-blocks">
+                    <div class="s-block cyan"></div><div class="s-block"></div><div class="s-block"></div><div class="s-block"></div><div class="s-block light"></div>
+                </div>
+                <span class="target-split-text" id="home-ratio-text">스트렝스 25 : 근비대 75</span>
+            </div>
         </header>
         <main class="content-area">
-            <h2 class="routine-title">직장인 점심 3분할 루틴</h2>
-            <div class="target-bar-container"><div class="target-bar"></div><span class="target-text">목표: 린매스업</span></div>
-            <div class="main-card">
-                <div class="card-badge">오늘 운동</div> <span class="card-day">Day 1 (밀기)</span>
-                <div class="card-stats">
-                    <div class="stat-item"><span class="stat-icon">💪</span><span class="stat-value">4개 종목</span></div>
-                    <div class="stat-item"><span class="stat-icon">📊</span><span class="stat-value">14세트 (40분)</span></div>
+            <div class="today-workout-card">
+                <div class="tw-top"><span class="tw-badge">오늘 운동</span><span class="tw-title" id="home-today-day">Day 1</span></div>
+                <div class="tw-stats">
+                    <div class="tw-stat-box"><span class="tw-stat-icon">💪</span><span class="tw-stat-text" id="home-today-count">6개 운동</span></div>
+                    <div class="tw-stat-box"><span class="tw-stat-icon">🏋️</span><span class="tw-stat-text" id="home-today-sets">18세트</span></div>
                 </div>
-                <button id="btn-start-workout" class="primary-btn">오늘 운동 시작</button>
+                <button id="btn-go-condition" class="primary-btn">오늘 운동 시작</button>
+            </div>
+            <div class="cardio-banner" id="cardio-banner-card">
+                <div class="cb-close">✕</div>
+                <div class="cb-header"><span>💗</span> 유산소도 함께 해볼까요?</div>
+                <div class="cb-desc">몇 가지만 답하면 지금 루틴에 맞춰 종목과 시간을 정해드려요.</div>
+                <div class="cb-btns">
+                    <button class="primary-btn" style="padding:12px;">유산소 설정하기</button>
+                    <button class="secondary-btn" style="padding:12px;">유산소 안할래요</button>
+                </div>
+            </div>
+            <div class="data-progress-section">
+                <div class="dp-title">맞춤 코칭을 위한 데이터 분석 중.</div>
+                <div class="dp-bar-bg"><div class="dp-bar-fill"></div><span class="dp-text">0%</span></div>
+            </div>
+            <div class="week-blocks-section">
+                <div class="wb-title">1주차 <span style="font-size:0.75rem;">5주 운동 · 1주 디로딩</span></div>
+                <div class="wb-scroll-area" id="home-week-blocks"></div>
+            </div>
+            <div class="menu-card">
+                <div style="display:flex; align-items:center; gap:10px;"><span>🗂️</span> 블록 진행 상황</div>
+                <div style="color:#666;">></div>
             </div>
         </main>
     </div>
 
-    <div id="view-workout" class="view-container">
-        <header class="workout-header">
-            <button id="btn-back" class="icon-btn">←</button><h1>Day 1: 밀기 데이</h1><div id="global-timer">00:00</div>
+    <!-- [화면 2] 컨디션 체크 -->
+    <div id="view-condition" class="view-container flex-center">
+        <header class="condition-header" style="width:100%;">
+            <button class="icon-btn" onclick="switchView('view-home')">←</button>
+            <h3 style="flex:1; text-align:center; padding-right:30px;">오늘 컨디션</h3>
         </header>
-        <main id="exercise-list" class="content-area"></main>
+        <div class="condition-content">
+            <h2 class="cond-q">오늘 컨디션은 몇 점인가요?</h2>
+            <p class="cond-sub">회원님의 컨디션을 고려해 루틴을 조절할게요</p>
+            <div class="cond-score-box" id="cond-score">3점</div>
+            <div class="cond-score-text" id="cond-text">평소와 같이 무난해요</div>
+            <div class="cond-slider-wrap">
+                <input type="range" class="cond-slider" id="cond-slider" min="1" max="5" value="3">
+            </div>
+            <div class="muscle-pain-toggle" id="btn-muscle-pain">
+                <span>지금 근육통이 있나요?</span>
+                <div style="display:flex; align-items:center; gap:8px; color:#888;"><div class="toggle-circle"></div> 네, 있어요</div>
+            </div>
+            <button id="btn-start-workout-list" class="primary-btn">운동 시작</button>
+        </div>
     </div>
 
-    <div id="view-analysis" class="view-container">
-        <header class="algo-header"><h1 class="algo-title">최신 연구를 모두 분석해<br><span class="highlight">알고리즘으로 구현</span>했습니다.</h1></header>
-        <main class="algo-content">
-            <div class="metric-grid">
-                <div class="metric-card"><span class="m-label">중량</span><span class="m-value highlight">45</span><span class="m-unit">KG</span></div>
-                <div class="metric-card"><span class="m-label">횟수</span><span class="m-value highlight">12</span><span class="m-unit">REPS</span></div>
-                <div class="metric-card"><span class="m-label">세트</span><span class="m-value highlight">4</span><span class="m-unit">SETS</span></div>
-                <div class="metric-card"><span class="m-label">강도</span><span class="m-value highlight">2</span><span class="m-unit">RIR</span></div>
-            </div>
+    <!-- [화면 3] 운동 리스트 -->
+    <div id="view-workout" class="view-container">
+        <header class="workout-top-nav">
+            <button class="icon-btn" onclick="switchView('view-home')">←</button>
+            <span class="workout-title" id="workout-top-title">Day 1</span>
+            <div style="width:30px;"></div>
+        </header>
+        <div class="guide-tabs">
+            <div class="guide-tab" onclick="openModal('rir')">RIR 가이드</div>
+            <div class="guide-tab" onclick="openModal('warmup')">웜업 가이드</div>
+        </div>
+        <main class="ex-list" id="workout-exercise-list"></main>
+    </div>
+
+    <!-- [화면 4] 퍼포먼스 피드백 결과 -->
+    <div id="view-feedback" class="view-container">
+        <header class="feedback-header">
+            <div class="fb-top">퍼포먼스 피드백</div>
+            <h1 class="fb-title">2주차부터 피드백을 드릴게요!</h1>
+            <p class="fb-sub">다음 주부터 자세한 코칭을 받을 수 있어요</p>
+        </header>
+        <main class="fb-list">
+            <div class="fb-item"><span class="fb-item-name">가슴</span><span class="fb-badge">???</span></div>
+            <div class="fb-item"><span class="fb-item-name">등</span><span class="fb-badge">???</span></div>
         </main>
+        <div class="fb-footer">
+            <button class="primary-btn" onclick="switchView('view-home')">확인</button>
+        </div>
     </div>
 
     <nav class="bottom-nav" id="main-nav">
         <div class="nav-item active" data-target="view-home"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
         <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
-        <div class="nav-item" data-target="view-analysis"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
+        <div class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
         <div class="nav-item" id="btn-nav-settings"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
     </nav>
+
+    <!-- 모든 공통 팝업 오버레이 -->
+    <div class="modal-overlay" id="common-modal-overlay">
+        
+        <!-- 1. 가이드 모달 -->
+        <div class="guide-modal" id="modal-guide">
+            <div class="modal-header">
+                <span class="modal-badge" id="modal-badge-title">가이드</span>
+                <span class="modal-close" onclick="closeModal()">✕</span>
+            </div>
+            <div class="modal-content" id="modal-content-area"></div>
+            <div class="modal-footer">
+                <button class="modal-btn-prev" id="modal-btn-prev">이전</button>
+                <button class="modal-btn-next" id="modal-btn-next">다음</button>
+            </div>
+        </div>
+
+        <!-- 2. 미완료 경고 모달 -->
+        <div class="alert-modal" id="modal-alert-incomplete">
+            <h3 class="am-title">아직 남은 세트가 있어요!</h3>
+            <p class="am-sub">정말 운동을 끝낼까요?</p>
+            <div class="am-btns">
+                <button class="am-btn-cancel" onclick="closeModal()">취소</button>
+                <button class="am-btn-confirm" onclick="forceEndWorkout()">종료</button>
+            </div>
+        </div>
+
+        <!-- 3. 오늘 운동 피드백 -->
+        <div class="feedback-modal" id="modal-daily-feedback">
+            <div class="fm-top">오늘 운동 완료!</div>
+            <h2 class="fm-title">오늘의 운동 어떠셨어요?</h2>
+            <div class="fm-options">
+                <button class="fm-opt-btn" onclick="selectFeedback(this)">가뿐히 해냈고, 운동이 쉽게 느껴졌어요!</button>
+                <button class="fm-opt-btn" onclick="selectFeedback(this)">무리없이 해냈고, 강도가 딱 알맞았어요!</button>
+                <button class="fm-opt-btn" onclick="selectFeedback(this)">운동이 힘들고 벅차게 느껴졌어요!</button>
+            </div>
+            <button class="primary-btn" id="btn-submit-feedback" disabled>제출</button>
+        </div>
+
+        <!-- 4. [신규] 과부하 코치 슬라이드 모달 -->
+        <div class="coach-modal" id="modal-coach">
+            <div class="coach-header">
+                <span class="coach-badge" id="coach-badge-text">과부하 코치</span>
+                <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;" id="coach-sub-text"></div>
+                <h2 class="coach-title" id="coach-title-text">첫 번째 운동을 완료했어요!</h2>
+                <div style="color:var(--primary); font-size:1.5rem; margin-bottom:10px;">✦</div>
+            </div>
+            <div class="coach-content" id="coach-content-area">
+                <!-- JS 동적 렌더링 -->
+            </div>
+            <div class="coach-footer">
+                <div class="coach-dots" id="coach-dots-area"></div>
+                <button class="primary-btn" id="btn-coach-next">다음</button>
+            </div>
+        </div>
+
+    </div>
 
     <script src="home.js"></script>
 </body>
