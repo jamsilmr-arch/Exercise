@@ -1,12 +1,5 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyAPF1e1n5jS6YALzl0bJDGmDvOH1jhSU_g",
-    authDomain: "exercise-abddb.firebaseapp.com",
-    projectId: "exercise-abddb",
-    storageBucket: "exercise-abddb.firebasestorage.app"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+// 하단 공통 메뉴 렌더링 (현재 'home' 탭 활성화)
+renderBottomNav('home');
 
 function renderHomeData(wizardData) {
     const frequency = parseInt(wizardData?.question_6?.value) || 6;
