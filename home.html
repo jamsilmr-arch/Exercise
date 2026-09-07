@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JHP - 홈</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase 공통 로드 -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- 공통 관리 JS -->
+    <script src="app.js"></script>
 </head>
 <body>
 
@@ -28,7 +31,6 @@
                     <div class="tw-stat-box"><span class="tw-stat-icon">💪</span><span class="tw-stat-text" id="home-today-count">6개 운동</span></div>
                     <div class="tw-stat-box"><span class="tw-stat-icon">🏋️</span><span class="tw-stat-text" id="home-today-sets">18세트</span></div>
                 </div>
-                <!-- 훈련 화면 진입은 일단 별도 분리하지 않고 루틴 탭에서 하거나 보류 (현재 파일에선 링크 임시처리) -->
                 <button class="primary-btn" onclick="alert('훈련 기능은 기능 최적화 중입니다.');">오늘 운동 시작</button>
             </div>
             
@@ -43,13 +45,7 @@
         </main>
     </div>
 
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="location.href='home.html'"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
-        <div class="nav-item" onclick="location.href='routine.html'"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
-        <div class="nav-item" onclick="location.href='analysis.html'"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
-        <div class="nav-item" onclick="location.href='settings.html'"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
-    </nav>
-
+    <!-- 스크립트 실행 -->
     <script src="home.js"></script>
 </body>
 </html>
