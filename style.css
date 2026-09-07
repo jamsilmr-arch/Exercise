@@ -455,3 +455,21 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
 .bs-input-wrap { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px;}
 .bs-input-wrap input { background: var(--bg-dark); border: 2px solid var(--primary); color: #fff; font-size: 2rem; font-weight: bold; width: 120px; text-align: center; padding: 10px; border-radius: 8px; outline: none; }
 .bs-unit { font-size: 1.2rem; color: #888; font-weight: bold; }
+/* 화면의 85%를 덮는 대형 바텀 시트 (유산소 마법사용) */
+.full-bottom-sheet {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 500px;
+    height: 85vh; 
+    border-radius: 20px 20px 0 0;
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: slideUp 0.3s ease;
+    border-top: 1px solid var(--border-color);
+    overflow: hidden;
+}
+.full-bottom-sheet.active { display: flex; }
