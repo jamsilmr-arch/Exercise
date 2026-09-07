@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JHP - 분석</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase 공통 로드 -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
 </head>
 <body>
 
@@ -26,18 +31,10 @@
         </main>
     </div>
 
-    <!-- 상세 차트 -->
     <div class="view-container" id="view-analysis-detail">
         <header class="top-nav-bar"><button class="icon-btn" onclick="closePerfDetail()">←</button><span class="tn-title" id="ad-title">상세 분석</span><div style="width:30px;"></div></header>
         <main class="content-area" style="padding-top:20px;" id="ad-render"></main>
     </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item" onclick="location.href='home.html'"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
-        <div class="nav-item" onclick="location.href='routine.html'"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
-        <div class="nav-item active" onclick="location.href='analysis.html'"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
-        <div class="nav-item" onclick="location.href='settings.html'"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
-    </nav>
 
     <script src="analysis.js"></script>
 </body>
