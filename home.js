@@ -25,7 +25,6 @@ function switchView(targetId) {
         window.scrollTo(0, 0);
     }
     
-    // 네비게이션 강제 숨김 처리
     const mainNav = document.getElementById('main-nav');
     if (targetId === 'view-cardio-wizard' || targetId === 'view-workout' || targetId === 'view-condition' || targetId === 'view-routine-detail') {
         mainNav.style.display = 'none';
@@ -60,7 +59,7 @@ function buildDynamicRoutine(wizardData) {
 
     currentRoutine = [
         { id: 'ex1', name: '케이블 로우 (중간-넓은 오버 그립)', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 2, top: 1, main: 3, type: 'weight' },
-        { id: 'ex2', name: '해머 스트렝스 체스트 프레스 머신', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', warmup: 2, top: 1, main: 2, type: 'weight' },
+        { id: 'ex2', name: '해머 스트렝스 체스트 프레스 머신 (Plate-loaded, Lever)', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', warmup: 2, top: 1, main: 2, type: 'weight' },
         { id: 'ex3', name: '풀업 뉴트럴 그립', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 1, top: 1, main: 2, type: 'bodyweight' },
         { id: 'ex4', name: '덤벨 체스트 플라이', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', warmup: 1, top: 0, main: 3, type: 'weight' },
         { id: 'ex5', name: '랫 풀다운 중간 그립', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 2, top: 1, main: 2, type: 'weight' },
@@ -138,7 +137,7 @@ const cardioSteps = [
 ];
 
 let cardioStepIdx = 0;
-let currentCardioMins = 60; // 기본값
+let currentCardioMins = 60; 
 
 window.startCardioWizard = function() {
     cardioStepIdx = 0;
@@ -195,23 +194,20 @@ window.toggleCardioOpt = function(btn, type) {
     }
     btn.classList.toggle('active');
 };
-
 window.selectCardioGrid = function(btn) {
     btn.parentElement.querySelectorAll('.cw-grid-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 };
-
 window.changeCardioType = function(btn, type) {
     btn.parentElement.querySelectorAll('.cw-t-chip').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
     if (type.includes('사이클링')) currentCardioMins = 35;
     else if (type.includes('인클라인')) currentCardioMins = 30;
-    else currentCardioMins = 60; // 걷기
+    else currentCardioMins = 60; 
 
     document.getElementById('cw-time-val').innerHTML = `${currentCardioMins}<span>분</span>`;
 };
-
 window.changeCardioTime = function(amount) {
     const valElem = document.getElementById('cw-time-val');
     currentCardioMins += amount;
@@ -228,7 +224,7 @@ document.getElementById('btn-cw-next').addEventListener('click', () => {
 });
 
 
-// --- 공통 팝업 제어 로직 ---
+// --- 공통 팝업 ---
 const modalOverlay = document.getElementById('common-modal-overlay');
 
 function hideAllModals() {
@@ -236,24 +232,21 @@ function hideAllModals() {
         m.classList.remove('active');
     });
 }
-
 window.openBottomSheet = function(type) {
     hideAllModals();
     modalOverlay.classList.add('active');
     document.getElementById(`bs-${type}`).classList.add('active');
 };
-
 window.closeModal = function() {
     modalOverlay.classList.remove('active');
     hideAllModals();
 };
-
 modalOverlay.addEventListener('click', (e) => {
     if (e.target === modalOverlay) window.closeModal();
 });
 
 
-// --- [신규] 루틴 상세 타임라인 데이터베이스 ---
+// --- [신규] 루틴 상세 타임라인 데이터베이스 갱신 ---
 const mockImgs = [
     'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif',
     'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif',
@@ -340,11 +333,25 @@ const routineDB = {
             { type: 'workout', label: 'Day 2a', count: 5 },
             { type: 'workout', label: 'Day 3a', count: 5 }
         ]
+    },
+    'rt_6_body_limb_lower': {
+        title: '주 6회 (몸통-말단-하체) 루틴',
+        chips: ['몸통-말단-하체', '남성'],
+        desc: '전신을 균형 있게 발달시키는 것을 목표로 하면서도, 전형적인 3분할 루틴(밀기-당기기-하체)의 단점을 보완한 프로그램입니다. 유사한 근육군을 한 세션에 몰아넣지 않기 때문에 세션 후반부의 피로 누적을 줄이고 보다 안정적인 퍼포먼스를 유지할 수 있어 스트렝스 중심의 훈련에 특히 적합합니다.',
+        timeline: [
+            { type: 'workout', label: 'Day 1', count: 6 },
+            { type: 'workout', label: 'Day 2', count: 7 },
+            { type: 'workout', label: 'Day 3', count: 5 },
+            { type: 'rest', days: 1 },
+            { type: 'workout', label: 'Day 1a', count: 6 },
+            { type: 'workout', label: 'Day 2a', count: 7 },
+            { type: 'workout', label: 'Day 3a', count: 5 }
+        ]
     }
 };
 
 window.openRoutineDetail = function(rtId) {
-    const data = routineDB[rtId] || routineDB['rt_2_full']; // 매핑 없으면 주2회 기본 노출
+    const data = routineDB[rtId] || routineDB['rt_6_body_limb_lower']; 
     
     let html = `
         <div class="rd-header">
@@ -395,7 +402,6 @@ window.openRoutineDetail = function(rtId) {
     window.scrollTo(0, 0);
 };
 
-// 훈련 리스트 및 기타 로직 생략 (공간 관계상 생략, 기존 스크립트 기능 완벽 유지)
 // 훈련 리스트 그리기 호출부
 function renderWorkoutList() {
     const listContainer = document.getElementById('workout-exercise-list');
@@ -529,7 +535,6 @@ document.getElementById('btn-submit-feedback').addEventListener('click', () => {
     window.scrollTo(0, 0);
 });
 
-// 퍼포먼스 리스트 
 window.openPerfDetail = function(exId) {
     const exData = currentRoutine.find(x => x.id === exId) || currentRoutine[0];
     document.getElementById('pd-render-area').innerHTML = `
