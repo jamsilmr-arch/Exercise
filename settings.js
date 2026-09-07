@@ -7,11 +7,34 @@ auth.onAuthStateChanged((user) => {
     }
 });
 
-// 알림 스위치 토글 이벤트
+// --- 알림 스위치 토글 이벤트 (좌우 이동 CSS 연동) ---
 const toggleRest = document.getElementById('toggle-rest');
-if(toggleRest) {
-    toggleRest.addEventListener('click', function() {
-        this.style.background = this.style.background === 'transparent' ? 'var(--primary-light)' : 'transparent';
-        this.style.borderColor = this.style.borderColor === '#555' ? 'var(--primary)' : '#555';
+window.toggleNotification = function() {
+    if(toggleRest) {
+        toggleRest.classList.toggle('active');
+    }
+};
+
+// --- 설정 화면 전용 팝업 바텀 시트 로직 ---
+const modalOverlay = document.getElementById('common-modal-overlay');
+
+function hideAllModals() {
+    modalOverlay.querySelectorAll('.bottom-sheet-modal').forEach(m => {
+        m.classList.remove('active');
     });
 }
+
+window.openBottomSheet = function(type) {
+    hideAllModals();
+    modalOverlay.classList.add('active');
+    document.getElementById(`bs-${type}`).classList.add('active');
+};
+
+window.closeModal = function() {
+    modalOverlay.classList.remove('active');
+    hideAllModals();
+};
+
+modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) window.closeModal();
+});
