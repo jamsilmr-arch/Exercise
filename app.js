@@ -11,17 +11,13 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.firestore(); // Firestore 데이터베이스 변수 추가
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+const db = firebase.firestore();
 
-// --- 뷰 전환 유틸 ---
-const mainNav = document.getElementById('main-nav');
 function switchView(targetId) {
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
         view.style.display = 'none';
     });
-    
     const targetView = document.getElementById(targetId);
     if(targetView) {
         targetView.classList.add('active');
@@ -30,63 +26,69 @@ function switchView(targetId) {
     }
 }
 
-// --- [수정됨] 접속 시 자동 로그인 및 계정 연동 스킵 로직 ---
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        // 구글 로그인이 되어 있는 상태라면, 임시 로딩창을 띄우고 DB를 검사합니다.
-        document.querySelector('#view-loading .loading-title').innerText = '계정 정보를 불러오고 있어요';
-        document.querySelector('#view-loading .loading-desc').innerText = '잠시만 기다려주세요.';
-        switchView('view-loading');
+document.querySelectorAll('.view-container').forEach(view => {
+    view.style.display = 'none';
+    view.classList.remove('active');
+});
 
-        try {
-            // Firestore 데이터베이스에서 유저의 마법사 작성 기록을 조회합니다.
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            
-            if (userDoc.exists && userDoc.data().onboardingCompleted) {
-                // 작성 이력이 있다면 바로 홈 화면으로 직행
-                localStorage.setItem('onboardingCompleted', 'true');
-                mainNav.style.display = 'flex';
-                switchView('view-home');
-            } else {
-                // 기록이 없다면 마법사를 시작합니다.
-                mainNav.style.display = 'none';
-                startWizard();
-            }
-        } catch (error) {
-            console.error("DB 로드 에러:", error);
-            mainNav.style.display = 'none';
-            startWizard();
-        }
+let currentRoutine = [];
+let totalGlobalSets = 0;
+
+function buildDynamicRoutine(wizardData) {
+    const frequency = parseInt(wizardData?.question_6?.value) || 6;
+    let splitName = '몸통-말단-하체';
+    if (frequency === 3) splitName = '밀기-당기기-하체';
+    else if (frequency === 4) splitName = '상하체 2분할';
+
+    document.getElementById('home-routine-title').innerText = `주 ${frequency}회 (${splitName}) 루틴`;
+    
+    let weekBlocksHtml = '';
+    for (let i = 1; i <= frequency; i++) {
+        weekBlocksHtml += `<div class="wb-item ${i===1?'active':''}"><span class="wb-num">${i}</span>Day</div>`;
+    }
+    weekBlocksHtml += `<div class="wb-item rest">휴식</div>`;
+    document.getElementById('home-week-blocks').innerHTML = weekBlocksHtml;
+
+    currentRoutine = [
+        { id: 'ex1', name: '케이블 로우 (중간-넓은 오버 그립)', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 2, top: 1, main: 3, type: 'weight' },
+        { id: 'ex2', name: '해머 스트렝스 체스트 프레스 머신 (Plate-loaded, Lever)', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', warmup: 2, top: 1, main: 2, type: 'weight' },
+        { id: 'ex3', name: '풀업 뉴트럴 그립', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 1, top: 1, main: 2, type: 'bodyweight' },
+        { id: 'ex4', name: '덤벨 체스트 플라이', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', warmup: 1, top: 0, main: 3, type: 'weight' },
+        { id: 'ex5', name: '랫 풀다운 중간 그립', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 2, top: 1, main: 2, type: 'weight' },
+        { id: 'ex6', name: '체스트 서포티드 머신 로우 (레버)', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 2, top: 1, main: 3, type: 'weight' }
+    ];
+
+    document.getElementById('home-today-day').innerText = `Day 1`;
+    document.getElementById('home-today-count').innerText = `${currentRoutine.length}개 운동`;
+    totalGlobalSets = currentRoutine.reduce((acc, ex) => acc + ex.warmup + ex.top + ex.main, 0);
+    document.getElementById('home-today-sets').innerText = `${totalGlobalSets}세트`;
+}
+
+auth.onAuthStateChanged(async (user) => {
+    const localCompleted = localStorage.getItem('onboardingCompleted') === 'true';
+    if (!localCompleted) {
+        if (user) {
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists && userDoc.data().onboardingCompleted) {
+                    localStorage.setItem('onboardingCompleted', 'true');
+                    buildDynamicRoutine(userDoc.data().wizardData);
+                    switchView('view-home');
+                } else { window.location.replace('index.html'); }
+            } catch(e) { window.location.replace('index.html'); }
+        } else { window.location.replace('index.html'); }
     } else {
-        // 구글 로그인이 안 된 상태
-        const localCompleted = localStorage.getItem('onboardingCompleted');
-        if (localCompleted === 'true') {
-            mainNav.style.display = 'flex';
-            switchView('view-home');
-        } else {
-            mainNav.style.display = 'none';
-            switchView('view-splash');
-        }
+        if (user) {
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists && userDoc.data().wizardData) {
+                    buildDynamicRoutine(userDoc.data().wizardData);
+                }
+            } catch(e) { console.error("데이터 로드 실패:", e); }
+        } else { buildDynamicRoutine({ question_6: { value: 6 } }); }
+        switchView('view-home');
     }
 });
-
-document.getElementById('btn-start-onboarding').addEventListener('click', () => { switchView('view-login'); });
-
-// 수동 로그인 버튼
-document.getElementById('btn-login-google').addEventListener('click', () => {
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => auth.signInWithPopup(googleProvider))
-        .catch((error) => {
-            if (error.code !== 'auth/popup-closed-by-user') alert('로그인 오류: ' + error.message);
-        });
-});
-
-document.getElementById('btn-skip-login').addEventListener('click', startWizard);
-
-function startWizard() {
-    switchView('view-settings');
-    renderWizardStep();
-}
 
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -98,345 +100,465 @@ document.querySelectorAll('.nav-item').forEach(item => {
         }
     });
 });
-document.getElementById('btn-start-workout').addEventListener('click', () => switchView('view-workout'));
-document.getElementById('btn-back').addEventListener('click', () => switchView('view-home'));
 
-// --- 마법사 로직 ---
-const wizardSteps = [
-    { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '70', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
-    { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '20', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영해요.' },
-    { type: 'grid-gender', title: '성별을 선택해주세요', desc: '루틴 구성 방식이 달라져요', options: [{icon:'♂', label:'남성'}, {icon:'♀', label:'여성'}], value: null, hint: '성별에 따라 근육 발달 속도와 권장 볼륨이 달라져요.' },
-    { type: 'input', title: '현재 체지방을\n알려주세요', desc: '정확하지 않아도 괜찮아요 · 대략적인 수치면 충분해요', value: '', placeholder: '15', unit: '%', hint: '인바디 결과가 있으면 그 수치를 넣어주세요.' },
-    { type: 'list', title: '운동 경력을\n알려주세요', desc: '목표 달성 기간 계산에 사용돼요', options: [{title:'초보자', sub:'운동 1-2년'}, {title:'중급자', sub:'운동 3-6년'}, {title:'상급자', sub:'7년 이상'}], value: null, hint: '운동 구력에 맞춰 점진적 성장 사이클이 조정돼요.' },
-    { type: 'list', title: '어떤 기구를\n사용할 수 있나요?', desc: '보유한 기구에 맞춰 루틴의 운동을 교체해드려요', options: [{title:'맨몸 운동만 가능해요', sub:'풀업 바 필요'}, {title:'덤벨과 바벨, 기본적인 프리웨이트만 있어요', sub:''}, {title:'덤벨, 바벨, 그리고 기본적인 머신만 있어요', sub:'전형적인 아파트 헬스장'}, {title:'일반적인 헬스장이에요', sub:'프리웨이트, 머신 케이블 기본적인 요소 다 있음'}, {title:'대형 헬스장이에요', sub:'웬만한 머신은 다 있음'}], value: null, hint: '선택하신 환경에 맞춰 대체 가능한 운동을 추천해드려요.' },
-    { type: 'grid-num', title: '주당 운동 횟수', desc: '일주일에 몇 번 운동할 수 있나요?', options: [1, 2, 3, 4, 5, 6], value: null, hint: '선택하신 횟수에 맞춰 최적의 분할 루틴을 구성할게요.' },
-    { type: 'grid-bool', title: '신체 불균형이 있나요?', desc: '좌우 발달 차이가 있으면 한쪽 운동으로 보완해드려요', options: ['예, 있어요', '아니오'], value: null, hint: '불균형이 있다면 머신이나 덤벨 위주의 편측 운동을 우선해요.' },
-    { type: 'slider', title: '근비대 vs 스트렝스,\n어느쪽이 목표인가요?', desc: '', value: 0, hint: '목표에 따라 세트당 반복 횟수(Reps)와 볼륨이 크게 달라져요.' },
-    { type: 'multi', title: '강조/유지할 부위가\n있나요?', desc: '균형 잡힌 루틴을 원하면 선택하지 않아도 돼요 · 강조/유지 각 최대 3개', sections: [{id:'emph', name:'강조', color:'purple'}, {id:'maint', name:'유지', color:'green'}], items: ['가슴','어깨(전/측면)','어깨(후면)','등 중/상부','광배근','이두근','삼두근','전완','대퇴사두','햄스트링','둔근','복근','목','기립근','종아리','내전근'], values: [], hint: '선택하신 부위의 세트 수가 우선적으로 배정돼요.' },
-    { type: 'list', title: '선호하는 중량대가 있나요?', desc: '알고리즘이 참고하는 초기 설정이에요', options: [{title:'초고중량', sub:''}, {title:'고중량', sub:''}, {title:'중간 중량', sub:'', badge:'추천'}, {title:'저중량', sub:''}, {title:'초저중량', sub:''}], value: null, hint: '처음 시작할 때 추천되는 기준 중량을 설정해요.' },
-    { type: 'grid-bool', title: '유산소 운동도\n하고 싶으신가요?', desc: '근력 운동을 마친 뒤에 이어서 할 수 있어요', options: ['네, 하고 싶어요', '아니요'], value: null, hint: '선택에 따라 점심 40분 외에 별도의 유산소 플랜을 제안해드려요.' }
-];
+document.getElementById('btn-nav-settings').addEventListener('click', () => { window.location.href = 'index.html?edit=true'; });
+document.getElementById('btn-go-condition').addEventListener('click', () => { switchView('view-condition'); });
 
-const sliderMapping = [
-    { title: '근비대 집중', sub: '스트렝스 0 : 근비대 100' },
-    { title: '근비대 위주', sub: '스트렝스 25 : 근비대 75' },
-    { title: '성장 밸런스', sub: '스트렝스 50 : 근비대 50' },
-    { title: '스트렝스 위주', sub: '스트렝스 75 : 근비대 25' },
-    { title: '스트렝스 집중', sub: '스트렝스 100 : 근비대 0' }
-];
+const condSlider = document.getElementById('cond-slider');
+const condScore = document.getElementById('cond-score');
+const condText = document.getElementById('cond-text');
+const condLabels = ['매우 나빠요', '조금 피곤해요', '평소와 같이 무난해요', '컨디션이 좋아요', '날아갈 것 같아요!'];
+condSlider.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value);
+    condScore.innerText = `${val}점`;
+    condText.innerText = condLabels[val - 1];
+});
 
-let currentWizardStep = 0;
+const btnMusclePain = document.getElementById('btn-muscle-pain');
+btnMusclePain.addEventListener('click', () => { btnMusclePain.classList.toggle('active'); });
 
-function renderWizardStep() {
-    const step = wizardSteps[currentWizardStep];
-    document.getElementById('q-title').innerText = step.title;
-    document.getElementById('q-desc').innerText = step.desc;
-    document.getElementById('q-hint').innerText = step.hint;
-    document.getElementById('step-counter').innerText = `질문 ${currentWizardStep + 1}/${wizardSteps.length}`;
-    document.getElementById('wizard-progress').style.width = `${((currentWizardStep + 1) / wizardSteps.length) * 100}%`;
+document.getElementById('btn-start-workout-list').addEventListener('click', () => {
+    renderWorkoutList();
+    switchView('view-workout');
+});
 
-    const inputArea = document.getElementById('wizard-input-area');
+// --- 운동 리스트 렌더링 ---
+function renderWorkoutList() {
+    const listContainer = document.getElementById('workout-exercise-list');
     let html = '';
+    
+    currentRoutine.forEach((ex, index) => {
+        const totalSets = ex.warmup + ex.top + ex.main;
+        const savedData = JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || [];
+        const completedCount = savedData.length;
+        
+        const badgeColor = completedCount === totalSets ? '#2e6bdf' : '#2c2c2e';
+        const badgeTextColor = completedCount === totalSets ? '#fff' : '#aaa';
+        const unitText1 = ex.type === 'bodyweight' ? '체중 (kg)' : '중량 (kg)';
+        
+        let toggleHtml = '';
+        if (ex.type === 'bodyweight') {
+            toggleHtml = `<div class="toggle-switch-group"><div class="toggle-item active">맨몸</div><div class="toggle-item">일반</div></div>`;
+        } else {
+            toggleHtml = `<div class="toggle-switch-group"><div class="toggle-item active">kg</div><div class="toggle-item">lbs</div></div>`;
+        }
 
-    if (step.type === 'input') {
-        html = `<div class="input-box"><input type="number" class="input-val" value="${step.value}" placeholder="${step.placeholder}"><span class="input-unit">${step.unit}</span></div><div style="text-align:center; font-size:0.8rem; color:#666;">입력 후 다음을 눌러주세요</div>`;
-        inputArea.innerHTML = html;
-    } else if (step.type === 'list') {
-        html = `<div class="list-options">` + step.options.map(opt => `<div class="list-btn ${opt.title === step.value ? 'active' : ''}" data-value="${opt.title}"><div class="list-text-area"><div class="list-title">${opt.title} ${opt.badge ? `<span class="list-badge">${opt.badge}</span>` : ''}</div>${opt.sub ? `<div class="list-sub">${opt.sub}</div>` : ''}</div><div class="radio-circle"></div></div>`).join('') + `</div>`;
-        inputArea.innerHTML = html;
-        inputArea.querySelectorAll('.list-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            inputArea.querySelectorAll('.list-btn').forEach(b => b.classList.remove('active'));
-            e.currentTarget.classList.add('active'); step.value = e.currentTarget.getAttribute('data-value');
-        }));
-    } else if (step.type.startsWith('grid')) {
-        const isCol3 = step.type === 'grid-num' ? 'cols-3' : '';
-        html = `<div class="grid-options ${isCol3}">` + step.options.map(opt => {
-            const val = opt.label || opt; const iconStr = opt.icon ? `<div class="opt-icon">${opt.icon}</div>` : ''; const subStr = step.type === 'grid-num' ? `<span class="opt-sub">회/주</span>` : '';
-            return `<div class="opt-btn ${val == step.value ? 'active' : ''}" data-value="${val}">${iconStr}${val}${subStr}</div>`;
-        }).join('') + `</div>`;
-        inputArea.innerHTML = html;
-        inputArea.querySelectorAll('.opt-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            inputArea.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-            e.currentTarget.classList.add('active'); step.value = e.currentTarget.getAttribute('data-value');
-        }));
-    } else if (step.type === 'slider') {
-        const defaultIdx = typeof step.value === 'number' ? step.value : 0; const state = sliderMapping[defaultIdx];
-        html = `<div class="slider-container"><div id="slider-display" class="slider-val-text">${state.title}</div><div id="slider-sub" class="slider-sub-text">${state.sub}</div><div class="slider-track-wrap"><div class="slider-track-bg"><div class="dot"></div><div class="dot"><div class="rec-badge">권장</div></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><input type="range" id="goal-slider" min="0" max="4" step="1" value="${defaultIdx}"></div><div class="slider-labels"><span>← 근비대</span><span>스트렝스 →</span></div></div>`;
-        inputArea.innerHTML = html;
-        document.getElementById('goal-slider').addEventListener('input', (e) => {
-            const idx = parseInt(e.target.value); step.value = idx;
-            document.getElementById('slider-display').innerText = sliderMapping[idx].title;
-            document.getElementById('slider-sub').innerText = sliderMapping[idx].sub;
-        });
-    } else if (step.type === 'multi') {
-        html = step.sections.map(sec => `<div class="chip-section"><div class="chip-section-title c-${sec.color}">${sec.name}</div><div class="chip-grid">${step.items.map(item => `<div class="chip-btn ${step.values.some(v => v.id === sec.id && v.val === item) ? `active-${sec.color}` : ''}" data-sec="${sec.id}" data-color="${sec.color}" data-val="${item}">${item}</div>`).join('')}</div></div>`).join('');
-        inputArea.innerHTML = html;
-        inputArea.querySelectorAll('.chip-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            const target = e.currentTarget; const sec = target.getAttribute('data-sec'); const val = target.getAttribute('data-val'); const color = target.getAttribute('data-color');
-            const existingIdx = step.values.findIndex(v => v.id === sec && v.val === val);
-            
-            if (existingIdx > -1) { 
-                step.values.splice(existingIdx, 1); 
-                target.classList.remove(`active-${color}`); 
-            } else { 
-                const secValues = step.values.filter(v => v.id === sec);
-                if (secValues.length >= 3) return alert('해당 영역은 최대 3개까지만 선택 가능합니다.'); 
-                step.values = step.values.filter(v => v.val !== val); 
-                step.values.push({id: sec, val: val}); 
-                renderWizardStep(); 
+        const formHeader = `<div class="set-header-row"><span>${unitText1}</span><span>횟수</span></div>`;
+
+        let warmupHtml = '';
+        if (ex.warmup > 0) {
+            warmupHtml += `<div class="set-group"><div class="set-badge">웜업 세트</div>${formHeader}`;
+            for (let i=1; i<=ex.warmup; i++) {
+                const setId = `w${i}`;
+                const isChecked = savedData.includes(setId) ? 'completed' : '';
+                const rirLabel = (i === ex.warmup) ? '5 RIR' : '6 RIR'; 
+                warmupHtml += `
+                    <div class="set-row">
+                        <div class="set-label">${rirLabel}</div>
+                        <div class="set-input-box">
+                            <input type="number" class="set-input" placeholder="0">
+                            <input type="number" class="set-input" placeholder="0">
+                        </div>
+                        <div class="set-check ${isChecked}" data-id="${setId}" data-time="35" data-ex="${ex.name}">✓</div>
+                    </div>
+                `;
             }
-        }));
-    }
-    document.getElementById('btn-next-step').innerText = currentWizardStep === wizardSteps.length - 1 ? '루틴 추천받기' : '다음';
-    document.getElementById('btn-prev-step').style.opacity = currentWizardStep === 0 ? '0.3' : '1';
-}
+            warmupHtml += `</div>`;
+        }
 
-document.getElementById('btn-next-step').addEventListener('click', () => {
-    const activeInput = document.querySelector('.input-val');
-    if (activeInput) { wizardSteps[currentWizardStep].value = activeInput.value; }
-    if (currentWizardStep < wizardSteps.length - 1) { currentWizardStep++; renderWizardStep(); } 
-    else { showLoadingScreen(); }
-});
-document.getElementById('btn-prev-step').addEventListener('click', () => {
-    if (currentWizardStep > 0) { currentWizardStep--; renderWizardStep(); }
-});
-
-// --- 로딩 및 분석 화면 ---
-function showLoadingScreen() {
-    document.querySelector('#view-loading .loading-title').innerHTML = '맞춤형 루틴을<br>생성하고 있어요';
-    document.querySelector('#view-loading .loading-desc').innerHTML = '잠시만 기다려주세요.<br>곧 최적의 루틴 구조를 보여드릴게요.';
-    switchView('view-loading');
-    setTimeout(() => { startResultExplain(); }, 2500); 
-}
-
-const explainData = [
-    { icon: '🏋️', title: '운동 종류', desc: "근육을 고르게 키우려면 한 부위도 여러 각도에서 자극해야 해요.\n\n사용자님께 필요한 운동을 부위별로 빠짐없이 배정했어요. 특히 '스트레치'와 '수축'을 강조하는 운동을 골고루 배치해 정체기 없는 성장을 도와요." },
-    { icon: '⚖️', title: '중량', desc: "요청하신 <span style='color:#E50914; font-weight:bold;'>중간 중량</span> 기준으로 각 운동의 무게 범위를 잡았어요.\n\n알고리즘이 퍼포먼스 변화에 맞추어 적절히 무게를 변경해줄거예요." },
-    { icon: '🔄', title: '횟수', desc: "같은 무게에서 목표 횟수에 도달하면 다음 회차에 무게를 올리는 '더블 프로그레션' 방식으로 횟수와 무게를 함께 늘려가요.\n\n입력하신 체중과 운동 경험을 기반으로 해 <span style='color:#E50914; font-weight:bold;'>가장 적절한 점진적 성장 속도</span>로 코칭해드릴게요." },
-    { icon: '⏱️', title: '운동 강도', desc: "사용자님의 특징에 따라 <span style='color:#E50914; font-weight:bold;'>운동 강도 (RPE/RIR)</span>도 적절히 설정했어요.\n\n앱을 사용할 경우 알고리즘이 퍼포먼스 변화와 피로도에 따라 운동 강도를 자동 수정해줍니다." },
-    { icon: '📅', title: '운동 주기', desc: `<div class="mock-graph"><svg class="mock-graph-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><defs><linearGradient id="gradPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(229, 9, 20, 0.4)" /><stop offset="100%" stop-color="rgba(229, 9, 20, 0)" /></linearGradient></defs><polygon points="5,30 15,25 75,5 75,30" fill="url(#gradPurple)"/><path d="M 15,25 Q 45,15 75,5" fill="none" stroke="#E50914" stroke-width="1.5" stroke-linecap="round"/><path d="M 75,5 L 95,20" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="2,2" stroke-linecap="round"/><circle cx="75" cy="5" r="2" fill="#E50914"/><circle cx="95" cy="20" r="2" fill="#fff"/></svg><div class="mock-graph-labels"><div class="mgl"><div class="mgl-circ">1</div><span class="mgl-txt">1주</span></div><div class="mgl"><div class="mgl-circ">2</div><span class="mgl-txt">2주</span></div><div class="mgl"><div class="mgl-circ">3</div><span class="mgl-txt">3주</span></div><div class="mgl"><div class="mgl-circ">4</div><span class="mgl-txt">4주</span></div><div class="mgl"><div class="mgl-circ active">5</div><span class="mgl-txt" style="color:#E50914; font-weight:bold;">5주</span></div><div class="mgl"><div class="mgl-circ green">☾</div><span class="mgl-txt green">디로딩</span></div></div></div>최적의 피로 회복과 장기적인 성장을 위해 '5주 운동 + 1주 디로딩'으로 배정했습니다. 체계적인 피로 관리를 통해 정체기 없는 성장을 경험할 수 있습니다.` },
-    { icon: '⚖️', title: '근비대 : 스트렝스 비율', desc: "근비대는 볼륨과 자극에 집중, 스트렝스는 중량 증가에 더 집중해요.\n\n사용자님의 목표에 맞춰 <span style='color:#E50914; font-weight:bold;'>근비대 75 · 스트렝스 25</span> 비중으로 프로그램을 설계했어요." }
-];
-
-let currentExplainStep = 0;
-function startResultExplain() { switchView('view-result-explain'); currentExplainStep = 0; renderExplainStep(); }
-
-function renderExplainStep() {
-    document.getElementById('explain-progress-bar').innerHTML = explainData.map((_, i) => `<div class="r-progress-bar ${i <= currentExplainStep ? 'active' : ''}"></div>`).join('') + `<span class="r-progress-text">${currentExplainStep + 1} / 6</span>`;
-    let timelineHtml = '';
-    for (let i = 0; i <= currentExplainStep; i++) {
-        timelineHtml += `<div class="rt-item ${i === currentExplainStep ? 'active' : ''}"><div class="rt-icon-wrap">${explainData[i].icon}</div><div class="rt-text">${explainData[i].title}</div></div>`;
-    }
-    document.getElementById('explain-timeline').innerHTML = timelineHtml;
-    document.getElementById('explain-desc').innerHTML = explainData[currentExplainStep].desc;
-    
-    const tapBtn = document.getElementById('explain-tap-text');
-    if (currentExplainStep === explainData.length - 1) {
-        tapBtn.innerText = '루틴 구조 보기 >';
-        tapBtn.style.color = '#ffffff'; 
-    } else {
-        tapBtn.innerText = '탭하여 계속 >';
-        tapBtn.style.color = '#E50914';
-    }
-}
-
-document.getElementById('explain-tap-text').onclick = function() {
-    if (currentExplainStep < explainData.length - 1) { 
-        currentExplainStep++; 
-        renderExplainStep(); 
-    } else { 
-        generateRecommendedRoutine(); 
-        switchView('view-recommended-routine'); 
-    } 
-};
-
-function getExerciseImage(target) {
-    let imgUrl = "";
-    let exerciseName = "";
-
-    if (target.includes('가슴')) {
-        imgUrl = "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400"; 
-        exerciseName = "벤치 프레스 & 플라이";
-    } else if (target.includes('어깨')) {
-        imgUrl = "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "숄더 프레스 & 레이즈";
-    } else if (target.includes('팔') || target.includes('이두') || target.includes('삼두')) {
-        imgUrl = "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "암 컬 & 익스텐션";
-    } else if (target.includes('하체') || target.includes('대퇴')) {
-        imgUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "스쿼트 & 런지";
-    } else if (target.includes('햄스트링') || target.includes('엉덩이')) {
-        imgUrl = "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "데드리프트 & 컬";
-    } else if (target.includes('등') || target.includes('광배')) {
-        imgUrl = "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "랫풀다운 & 로우";
-    } else if (target.includes('삼두 보조') || target.includes('어시스트')) {
-        imgUrl = "https://images.unsplash.com/photo-1532029837206-abbe267e56f2?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "오버헤드 익스텐션";
-    } else {
-        imgUrl = "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=400";
-        exerciseName = "프리웨이트 컴파운드";
-    }
-    
-    return { url: imgUrl, name: exerciseName };
-}
-
-function generateRecommendedRoutine() {
-    const gender = wizardSteps[2].value || '남성';
-    const frequency = wizardSteps[6].value || 5; 
-    const isCardio = wizardSteps[11].value === '네, 하고 싶어요' || true;
-
-    let splitName = '몸통-말단-하체';
-    if(frequency === 3) splitName = '밀기-당기기-하체';
-    else if(frequency === 4) splitName = '상하체 2분할';
-
-    document.getElementById('rec-subtitle').innerText = `주 ${frequency}회 (${splitName}) 루틴`;
-    document.getElementById('rec-chip-split').innerText = splitName;
-    document.getElementById('rec-chip-gender').innerText = gender;
-
-    const timelineArea = document.getElementById('rec-timeline-render');
-    let html = '';
-
-    const dayData = [
-        { label: 'Day 1', count: 6, hasCardio: true,  targets: ['가슴', '등', '어깨 보조', '삼두 보조'] },
-        { label: 'Day 2', count: 7, hasCardio: false, targets: ['팔', '이두', '삼두', '전완'] },
-        { label: 'Day 3', count: 5, hasCardio: true,  targets: ['하체', '햄스트링', '대퇴사두'] },
-        { label: 'Day 4', count: 6, hasCardio: false, targets: ['가슴', '어깨', '삼두 보조'] },
-        { label: 'Day 5', count: 7, hasCardio: true,  targets: ['등', '팔', '이두', '전완'] }
-    ];
-
-    const visibleDays = dayData.slice(0, frequency);
-
-    visibleDays.forEach(day => {
-        let thumbHtml = day.targets.map(target => {
-            const exerciseInfo = getExerciseImage(target);
-            return `
-                <div class="rtl-thumb">
-                    <img src="${exerciseInfo.url}" alt="${exerciseInfo.name}">
-                    <div class="target-label">${exerciseInfo.name}</div>
+        let topHtml = '';
+        if (ex.top > 0) {
+            topHtml += `<div class="set-group"><div class="set-badge">탑 세트</div>${formHeader}`;
+            const setId = `t1`;
+            const isChecked = savedData.includes(setId) ? 'completed' : '';
+            topHtml += `
+                <div class="set-row">
+                    <div class="set-label">1 RIR</div>
+                    <div class="set-input-box">
+                        <input type="number" class="set-input" placeholder="고중량">
+                        <input type="text" class="set-input" placeholder="4-7">
+                    </div>
+                    <div class="set-check ${isChecked}" data-id="${setId}" data-time="90" data-ex="${ex.name}">✓</div>
                 </div>
             `;
-        }).join('');
+            topHtml += `</div>`;
+        }
 
-        if (day.hasCardio) {
-            thumbHtml += `
-                <div class="rtl-thumb cardio">
-                    <svg viewBox="0 0 60 60"><path d="M12 45 L48 45" stroke="#a29bfe" stroke-width="3" stroke-dasharray="3,3"/><circle cx="34" cy="18" r="4" fill="#888"/><path d="M30 24 L38 36 L34 48 M26 32 L20 42" stroke="#a29bfe" stroke-width="3" fill="none"/></svg>
-                    <div class="target-label">유산소 (트레드밀)</div>
-                </div>
-            `;
+        let mainHtml = '';
+        if (ex.main > 0) {
+            mainHtml += `<div class="set-group"><div class="set-badge">본 세트</div>${formHeader}`;
+            for (let i=1; i<=ex.main; i++) {
+                const setId = `m${i}`;
+                const isChecked = savedData.includes(setId) ? 'completed' : '';
+                mainHtml += `
+                    <div class="set-row">
+                        <div class="set-label">1 RIR</div>
+                        <div class="set-input-box">
+                            <input type="number" class="set-input" placeholder="중량">
+                            <input type="text" class="set-input" placeholder="8-12">
+                        </div>
+                        <div class="set-check ${isChecked}" data-id="${setId}" data-time="90" data-ex="${ex.name}">✓</div>
+                    </div>
+                `;
+            }
+            mainHtml += `</div>`;
         }
 
         html += `
-            <div class="rtl-item">
-                <div class="rtl-day-title-wrapper">
-                    <div class="rtl-circle"></div>
-                    <div class="rtl-day-title">${day.label} <span class="rtl-day-sub">| 총 ${day.count}개 운동</span> ${day.hasCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
+            <div class="ex-row" id="ex-row-${index}">
+                <div class="ex-header" onclick="toggleAccordion(${index})">
+                    <div class="ex-thumb"><img src="${ex.img}" alt="Exercise"></div>
+                    <div class="ex-info">
+                        <div class="ex-name">${ex.name}</div>
+                        <div class="ex-progress-badge" id="badge-${index}" style="background:${badgeColor}; color:${badgeTextColor};">${completedCount} / ${totalSets} 완료</div>
+                    </div>
+                    <div class="ex-drag-icon">⋮⋮</div>
                 </div>
-                <div class="rtl-thumbnails">${thumbHtml}</div>
+                <div class="ex-details">
+                    <div class="ex-detail-img">
+                        <img src="${ex.img}">
+                        <button class="btn-memo">메모</button>
+                    </div>
+                    <div class="ex-tools">
+                        <button class="btn-superset">+ 슈퍼세트</button>
+                        ${toggleHtml}
+                    </div>
+                    ${warmupHtml}
+                    ${topHtml}
+                    ${mainHtml}
+                    <div class="set-add-btns">
+                        <button>+ 세트 추가</button>
+                        <button>- 세트 삭제</button>
+                    </div>
+                </div>
             </div>
         `;
     });
+    listContainer.innerHTML = html;
 
-    timelineArea.innerHTML = html;
-}
+    listContainer.innerHTML += `
+        <div style="height: 20px;"></div>
+        <button class="primary-btn" onclick="checkFinishWorkout()" style="margin-bottom: 20px;">운동 완료</button>
+    `;
 
-document.getElementById('btn-rec-back').addEventListener('click', () => { switchView('view-result-explain'); });
+    document.querySelector('.workout-footer').innerHTML = `
+        <button class="floating-edit-btn" onclick="window.location.href='index.html?edit=true'">✏️ 루틴 수정</button>
+    `;
 
-// --- [수정됨] 마법사 데이터 Firestore 저장 로직 ---
-document.getElementById('btn-go-home').addEventListener('click', async () => { 
-    localStorage.setItem('onboardingCompleted', 'true');
-    
-    // 현재 구글 계정으로 로그인되어 있다면, 클라우드 DB에 데이터를 영구 저장합니다.
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-        const userWizardData = {};
-        wizardSteps.forEach((step, index) => {
-            userWizardData[`question_${index}`] = {
-                title: step.title.replace(/\n/g, ' '),
-                value: step.values && step.values.length > 0 ? step.values : (step.value || '')
-            };
+    document.querySelectorAll('.set-check').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); 
+            this.classList.toggle('completed');
+            
+            const row = this.closest('.ex-row');
+            const exIndex = row.id.split('-')[2];
+            const exData = currentRoutine[exIndex];
+            const setId = this.getAttribute('data-id');
+            let savedData = JSON.parse(localStorage.getItem(`workout_${exData.id}`)) || [];
+
+            if (this.classList.contains('completed')) {
+                if (!savedData.includes(setId)) savedData.push(setId);
+                const time = parseInt(this.getAttribute('data-time'));
+                const exName = this.getAttribute('data-ex');
+                startGlobalTimer(time, exName);
+            } else {
+                savedData = savedData.filter(id => id !== setId);
+            }
+            
+            localStorage.setItem(`workout_${exData.id}`, JSON.stringify(savedData));
+
+            const totalSets = exData.warmup + exData.top + exData.main;
+            const badge = document.getElementById(`badge-${exIndex}`);
+            badge.innerText = `${savedData.length} / ${totalSets} 완료`;
+            
+            if (savedData.length === totalSets) {
+                badge.style.background = '#2e6bdf';
+                badge.style.color = '#fff';
+            } else {
+                badge.style.background = '#2c2c2e';
+                badge.style.color = '#aaa';
+            }
         });
-
-        try {
-            await db.collection('users').doc(currentUser.uid).set({
-                onboardingCompleted: true,
-                wizardData: userWizardData,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-        } catch (error) {
-            console.error("Firestore 저장 실패:", error);
-        }
-    }
-
-    mainNav.style.display = 'flex';
-    switchView('view-home');
-});
-
-// --- 홈화면 타이머 로직 ---
-const routine = [
-    { id: 'bench', name: '플랫 벤치프레스', sets: 4, reps: '10~12회', rest: 60 },
-    { id: 'incline', name: '인클라인 프레스', sets: 3, reps: '12회', rest: 60 },
-    { id: 'shoulder', name: '시티드 덤벨 프레스', sets: 3, reps: '10~12회', rest: 60 },
-    { id: 'sidelateral', name: '사이드 레터럴 레이즈', sets: 4, reps: '15~20회', rest: 45 }
-];
-let timerInterval = null;
-let endTime = 0;
-const timerDisplay = document.getElementById('global-timer');
-
-function renderWorkout() {
-    const mainContainer = document.getElementById('exercise-list');
-    mainContainer.innerHTML = '';
-    routine.forEach((ex) => {
-        const card = document.createElement('div');
-        card.className = 'exercise-card';
-        card.innerHTML = `<div class="exercise-header"><span style="font-size: 1.05rem; font-weight: bold;">${ex.name}</span><span style="font-size: 0.85rem; color: #888;">${ex.reps} / 휴식 ${ex.rest}초</span></div>`;
-        const setContainer = document.createElement('div');
-        setContainer.className = 'set-container';
-        const savedData = JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || [];
-
-        for (let i = 1; i <= ex.sets; i++) {
-            const btn = document.createElement('div');
-            btn.className = `set-btn ${savedData.includes(i) ? 'completed' : ''}`;
-            btn.innerText = i;
-            btn.addEventListener('click', () => {
-                if (savedData.includes(i)) {
-                    savedData.splice(savedData.indexOf(i), 1);
-                    btn.classList.remove('completed');
-                } else {
-                    savedData.push(i);
-                    btn.classList.add('completed');
-                    if (navigator.vibrate) navigator.vibrate(50);
-                    startTimer(ex.rest);
-                }
-                localStorage.setItem(`workout_${ex.id}`, JSON.stringify(savedData));
-            });
-            setContainer.appendChild(btn);
-        }
-        card.appendChild(setContainer);
-        mainContainer.appendChild(card);
     });
 }
 
-function startTimer(seconds) {
-    clearInterval(timerInterval);
-    endTime = Date.now() + (seconds * 1000);
-    timerDisplay.classList.add('active');
-    timerInterval = setInterval(() => {
-        const timeRemaining = Math.ceil((endTime - Date.now()) / 1000);
-        if (timeRemaining <= 0) {
-            clearInterval(timerInterval);
-            timerDisplay.classList.remove('active');
-            timerDisplay.innerText = "진행!";
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        } else {
-            const m = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
-            const s = String(timeRemaining % 60).padStart(2, '0');
-            timerDisplay.innerText = `${m}:${s}`;
-        }
-    }, 200);
+window.toggleAccordion = function(index) {
+    const row = document.getElementById(`ex-row-${index}`);
+    row.classList.toggle('expanded');
+};
+
+// --- 상단 드롭다운 글로벌 타이머 ---
+let globalTimerInterval = null;
+let targetEndTime = 0;
+let totalDuration = 0;
+const timerUi = document.getElementById('global-timer-ui');
+const timerDisplay = document.getElementById('gst-time-display');
+const timerProgress = document.getElementById('gst-progress');
+
+function formatTime(seconds) {
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
 }
 
-renderWorkout();
+function startGlobalTimer(seconds, exName) {
+    clearInterval(globalTimerInterval);
+    totalDuration = seconds;
+    targetEndTime = Date.now() + (seconds * 1000);
+    
+    document.getElementById('gst-ex-name').innerText = exName;
+    document.getElementById('gst-rest-text').innerText = `권장 휴식 시간 ${formatTime(seconds)}`;
+    timerDisplay.innerText = formatTime(seconds);
+    timerProgress.style.width = '100%';
+    timerUi.style.display = 'flex'; 
+
+    globalTimerInterval = setInterval(() => {
+        const remaining = Math.ceil((targetEndTime - Date.now()) / 1000);
+        if (remaining <= 0) {
+            clearInterval(globalTimerInterval);
+            timerDisplay.innerText = "진행!";
+            timerProgress.style.width = '0%';
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            setTimeout(() => { timerUi.style.display = 'none'; }, 3000); 
+        } else {
+            timerDisplay.innerText = formatTime(remaining);
+            timerProgress.style.width = `${(remaining / totalDuration) * 100}%`;
+        }
+    }, 100);
+}
+
+document.getElementById('gst-close').addEventListener('click', () => {
+    clearInterval(globalTimerInterval);
+    timerUi.style.display = 'none';
+});
+
+// --- 모든 모달 팝업 컨트롤 로직 ---
+const modalOverlay = document.getElementById('common-modal-overlay');
+const mGuide = document.getElementById('modal-guide');
+const mAlert = document.getElementById('modal-alert-incomplete');
+const mFeedback = document.getElementById('modal-daily-feedback');
+const mCoach = document.getElementById('modal-coach');
+const btnSubmitFeedback = document.getElementById('btn-submit-feedback');
+
+function showSpecificModal(modalElem) {
+    mGuide.classList.remove('active');
+    mAlert.classList.remove('active');
+    mFeedback.classList.remove('active');
+    mCoach.classList.remove('active');
+    
+    modalOverlay.classList.add('active');
+    modalElem.classList.add('active');
+}
+
+window.closeModal = function() {
+    modalOverlay.classList.remove('active');
+    mGuide.classList.remove('active');
+    mAlert.classList.remove('active');
+    mFeedback.classList.remove('active');
+    mCoach.classList.remove('active');
+};
+
+const guideData = {
+    rir: [
+        { sub: 'RiR(Reps In Reserve) 가이드', title: '1. RIR의 정의', icon: '✦', desc: 'RIR은 <span class="green">실패 지점까지 몇 회가 남았는지</span>를 나타내는 지표입니다.', box: '공식 : RIR = 남은 횟수<br><br>예시 : 물리적 한계가 10회일 때<br>9회를 수행하면 -> <span class="green">RIR 1</span><br>8회를 수행하면 -> <span class="green">RIR 2</span>' },
+        { sub: 'RiR(Reps In Reserve) 가이드', title: '2. 객관적 판단의 중요성', icon: '✦', desc: '많은 분들이 엄살이나 귀찮음 때문에 자신의 <span class="green">진정한 한계</span>를 과소평가하여 RIR을 잘못 설정하곤 합니다.', box: '주관적인 \'힘듦\'보다는 <span class="green">수행 속도 (Bar Speed)</span>의 변화를 기준으로 객관적으로 판단해야 합니다.' }
+    ],
+    warmup: [
+        { sub: '웜업 가이드', title: '1. 웜업이란?', icon: '✦', desc: '웜업은 본 세트의 수행 능력을 높이기 위해 저중량으로 미리 연습하는 과정입니다.', box: '· 근육과 관절에 혈류 공급<br>· 근신경계 활성화<br>· 퍼포먼스 향상 & 근성장 자극 극대화' }
+    ]
+};
+let currentModalType = '';
+let currentModalStep = 0;
+
+window.openModal = function(type) {
+    currentModalType = type;
+    currentModalStep = 0;
+    document.getElementById('modal-badge-title').innerText = type === 'rir' ? 'RIR 가이드' : '웜업 가이드';
+    renderGuideStep();
+    showSpecificModal(mGuide);
+};
+
+function renderGuideStep() {
+    const data = guideData[currentModalType][currentModalStep];
+    document.getElementById('modal-content-area').innerHTML = `
+        <div class="m-sub">${data.sub}</div>
+        <div class="m-title">${data.title}</div>
+        <div class="m-point"><span class="m-point-icon">${data.icon}</span><div class="m-point-text">${data.desc}</div></div>
+        <div class="m-box">${data.box}</div>
+    `;
+    document.getElementById('modal-btn-prev').style.display = currentModalStep === 0 ? 'none' : 'block';
+    document.getElementById('modal-btn-next').innerText = currentModalStep === guideData[currentModalType].length - 1 ? '확인' : '다음';
+}
+
+document.getElementById('modal-btn-prev').addEventListener('click', () => {
+    if (currentModalStep > 0) { currentModalStep--; renderGuideStep(); }
+});
+document.getElementById('modal-btn-next').addEventListener('click', () => {
+    if (currentModalStep < guideData[currentModalType].length - 1) { 
+        currentModalStep++; renderGuideStep(); 
+    } else { closeModal(); }
+});
+
+// 종료 및 피드백 선택
+window.checkFinishWorkout = function() {
+    let completedSets = 0;
+    currentRoutine.forEach(ex => {
+        const savedData = JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || [];
+        completedSets += savedData.length;
+    });
+
+    if (completedSets < totalGlobalSets) { showSpecificModal(mAlert); } 
+    else { showSpecificModal(mFeedback); }
+};
+
+window.forceEndWorkout = function() { showSpecificModal(mFeedback); };
+
+window.selectFeedback = function(btn) {
+    document.querySelectorAll('.fm-opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    btnSubmitFeedback.disabled = false;
+};
+
+// 과부하 코치 데이터
+const coachData = [
+    {
+        sub: '',
+        title: '첫 번째 운동을 완료했어요!',
+        content: '<p class="coach-desc">안녕하세요! 급진적 과부하 코치예요.<br><br>첫 주에는 각 운동에서 어떤 중량과 횟수를 수행하는지 살펴볼 거예요. 처음엔 적정 중량을 가늠하기 어려울 수 있으니, 실제로 수행한 그대로만 기록해주시면 됩니다.<br><br>이번 주 데이터를 바탕으로 <span class="highlight">2주차부터 본격적인 코칭을 시작할게요.</span> 앞으로 함께해봐요!</p>'
+    },
+    {
+        sub: '완료 현황',
+        title: '마치지 못한 운동이 있어요',
+        content: `
+            <div class="coach-box">
+                <span class="cb-name">덤벨 체스트 플라이</span>
+                <span class="cb-val" style="float:right; font-size:0.85rem;">운동 전체 미완료</span>
+            </div>
+            <p class="coach-desc" style="margin-top:20px;">시간이 부족했거나 오늘 컨디션이 좋지 않았다면 무리해서 완료할 필요는 없어요.<br><br>다음 운동에서 다시 이어가면 되니 너무 부담 갖지 마세요!<br><br>2주차부터는 알고리즘이 피로도에 따라 루틴을 조절해드리니 걱정하지 않으셔도 됩니다:)</p>
+        `
+    },
+    {
+        sub: '세트 퍼포먼스 분석',
+        title: '강도를 조금 더 높여봐도 좋아요',
+        content: `
+            <div class="coach-box">
+                <span class="cb-name">풀업 뉴트럴 그립</span>
+                <div class="cb-row"><span>2번째 세트</span><span class="cb-val">2회</span></div>
+                <div class="cb-row"><span>3번째 세트</span><span class="cb-val">2회</span></div>
+            </div>
+            <p class="coach-desc" style="margin-top:20px;">일반적으로 세트가 진행될수록 횟수가 감소하는 게 정상이에요.<br><br>아마 <span style="color:#00d8d6; font-weight:bold;">세트 사이 회복이 충분했거나</span> 회복 속도가 빨라 횟수가 유지된 것 같아요. 큰 문제는 아니에요.<br><br>다만 스스로 느끼시기에 강도가 높지 않았다면, 더 좋은 근성장을 위해 다음엔 권장 RIR에 맞춰 조금 더 높은 강도로 수행해보세요.</p>
+        `
+    },
+    {
+        sub: '권장 횟수 분석',
+        title: '권장 범위를 조금 벗어났어요',
+        content: `
+            <div class="coach-box">
+                <span class="cb-name">케이블 로우 (중간-넓은 오버 그립)</span>
+                <div class="cb-row"><span>1번째 세트</span><span class="cb-val">40kg × 6회 · 권장 8~12회</span></div>
+                <div class="cb-row"><span>2번째 세트</span><span class="cb-val">30kg × 14회 · 권장 8~12회</span></div>
+            </div>
+            <p class="coach-desc" style="margin-top:20px;">적게 수행한 세트는 중량이 무거웠을 수 있고, 많이 수행한 세트는 가벼웠을 수 있어요.<br><br>익숙하지 않은 운동은 적정 중량을 가늠하기 어려우니 걱정하지 않으셔도 됩니다. 다음엔 더 적절한 중량을 안내해드릴게요.</p>
+        `
+    }
+];
+
+let coachStep = 0;
+
+btnSubmitFeedback.addEventListener('click', () => {
+    coachStep = 0;
+    renderCoachStep();
+    showSpecificModal(mCoach);
+});
+
+function renderCoachStep() {
+    const data = coachData[coachStep];
+    const subText = document.getElementById('coach-sub-text');
+    
+    if(data.sub) { subText.style.display = 'block'; subText.innerText = data.sub; } 
+    else { subText.style.display = 'none'; }
+
+    document.getElementById('coach-title-text').innerText = data.title;
+    document.getElementById('coach-content-area').innerHTML = data.content;
+
+    let dotsHtml = '';
+    for(let i=0; i<coachData.length; i++) {
+        dotsHtml += `<div class="cdot ${i===coachStep?'active':''}"></div>`;
+    }
+    document.getElementById('coach-dots-area').innerHTML = dotsHtml;
+    document.getElementById('btn-coach-next').innerText = coachStep === coachData.length - 1 ? '완료' : '다음';
+}
+
+document.getElementById('btn-coach-next').addEventListener('click', () => {
+    if (coachStep < coachData.length - 1) {
+        coachStep++; renderCoachStep();
+    } else {
+        closeModal();
+        switchView('view-feedback');
+        window.scrollTo(0, 0);
+    }
+});
+
+modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+});
+
+// --- [신규] 퍼포먼스 차트 화면 동적 렌더링 로직 ---
+window.openPerfDetail = function(exId) {
+    const exData = currentRoutine.find(x => x.id === exId) || currentRoutine[0];
+    
+    // 차트 생성 (정적 모형)
+    document.getElementById('pd-render-area').innerHTML = `
+        <div class="pd-img-box">
+            <div class="pd-img-title">${exData.name}</div>
+            <div class="pd-img-wrap"><img src="${exData.img}"></div>
+        </div>
+
+        <div class="pd-chart-section">
+            <div class="pd-chart-top">
+                <span class="pd-c-badge">고중량 <span style="color:#aaa; font-weight:normal; margin-left:4px;">4~7회</span></span>
+                <span class="pd-c-record">최고 기록 <span>25kg · 7회</span></span>
+            </div>
+            <div class="pd-graph-area">
+                <div class="pd-y-axis"><span>30</span><span>25</span><span>20</span></div>
+                <div class="pd-graph-content">
+                    <div class="pd-dot-wrapper" style="bottom: 50%;">
+                        <div class="pd-dot"></div>
+                        <span class="pd-dot-date">09. 07.</span>
+                        <div class="pd-tooltip">
+                            <div class="pd-tooltip-row"><div class="pd-t-color" style="background:var(--primary);"></div><span class="pd-t-label">중량 (kg)</span><span class="pd-t-val">25</span></div>
+                            <div class="pd-tooltip-row"><div class="pd-t-color" style="background:#555;"></div><span class="pd-t-label">횟수</span><span class="pd-t-val">7</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pd-chart-section">
+            <div class="pd-chart-top">
+                <span class="pd-c-badge">중간 중량 <span style="color:#aaa; font-weight:normal; margin-left:4px;">8~12회</span></span>
+                <span class="pd-c-record">최고 기록 <span>25kg · 10회</span></span>
+            </div>
+            <div class="pd-graph-area">
+                <div class="pd-y-axis"><span>30</span><span>25</span><span>20</span></div>
+                <div class="pd-graph-content">
+                    <div class="pd-dot-wrapper" style="bottom: 50%;">
+                        <div class="pd-dot"></div>
+                        <span class="pd-dot-date">09. 07.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pd-history-box">
+            <div>
+                <div class="pd-h-left">전체 기록</div>
+                <div class="pd-h-sub">09. 07. · 4세트</div>
+            </div>
+            <div class="pd-h-right">1회 ></div>
+        </div>
+    `;
+
+    switchView('view-perf-detail');
+    window.scrollTo(0, 0);
+};
