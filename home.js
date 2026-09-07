@@ -26,4 +26,8 @@ auth.onAuthStateChanged(async (user) => {
             }
         } catch(e) { console.error(e); }
     }
+    // URL 파라미터 확인 후 유산소 마법사 자동 실행
+if (new URLSearchParams(window.location.search).get('openCardio') === 'true') {
+    startCardioWizard();
+}
 });
