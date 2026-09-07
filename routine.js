@@ -162,7 +162,29 @@ window.openDetail = function(rtId) {
         <div class="rd-preview-title">루틴 미리보기 (1주 기준)</div>
         <div class="rd-timeline">
     `;
+    // 카드를 눌렀을 때 세부 루틴 화면 열기
+function openRoutineDetail(routineName) {
+    // 1. 목록 화면 숨기기
+    document.getElementById('routineList').style.display = 'none';
+    document.getElementById('routineTabs').style.display = 'none';
     
+    // 2. 세부 화면 보이기
+    const detailView = document.getElementById('routineDetailView');
+    detailView.style.display = 'block';
+    
+    // 3. 누른 루틴 이름으로 상단 제목 변경
+    document.getElementById('detailTitle').innerText = routineName;
+}
+
+// 뒤로가기 화살표를 눌렀을 때 목록으로 돌아가기
+function closeRoutineDetail() {
+    // 1. 세부 화면 숨기기
+    document.getElementById('routineDetailView').style.display = 'none';
+    
+    // 2. 목록 화면 다시 보이기
+    document.getElementById('routineList').style.display = 'flex'; // 혹은 block
+    document.getElementById('routineTabs').style.display = 'block';
+}
     data.timeline.forEach(item => {
         if(item.type === 'workout') {
             html += `
