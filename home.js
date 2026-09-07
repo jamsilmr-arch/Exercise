@@ -41,6 +41,7 @@ function buildDynamicRoutine(wizardData) {
     else if (frequency === 4) splitName = '상하체 2분할';
 
     document.getElementById('home-routine-title').innerText = `주 ${frequency}회 (${splitName}) 루틴`;
+    document.getElementById('rl-current-title').innerText = `주 ${frequency}회 (${splitName}) 루틴`;
     
     let weekBlocksHtml = '';
     for (let i = 1; i <= frequency; i++) {
@@ -51,20 +52,24 @@ function buildDynamicRoutine(wizardData) {
 
     currentRoutine = [
         { id: 'ex1', name: '케이블 로우 (중간-넓은 오버 그립)', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 2, top: 1, main: 3, type: 'weight' },
-        { id: 'ex2', name: '해머 스트렝스 체스트 프레스 머신', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', warmup: 2, top: 1, main: 2, type: 'weight' },
+        { id: 'ex2', name: '해머 스트렝스 체스트 프레스 머신 (Plate-loaded, Lever)', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', warmup: 2, top: 1, main: 2, type: 'weight' },
         { id: 'ex3', name: '풀업 뉴트럴 그립', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 1, top: 1, main: 2, type: 'bodyweight' },
         { id: 'ex4', name: '덤벨 체스트 플라이', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', warmup: 1, top: 0, main: 3, type: 'weight' },
         { id: 'ex5', name: '랫 풀다운 중간 그립', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 2, top: 1, main: 2, type: 'weight' },
         { id: 'ex6', name: '체스트 서포티드 머신 로우 (레버)', img: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif', warmup: 2, top: 1, main: 3, type: 'weight' }
     ];
 
-    document.getElementById('home-today-day').innerText = `Day 1`;
     document.getElementById('home-today-count').innerText = `${currentRoutine.length}개 운동`;
     totalGlobalSets = currentRoutine.reduce((acc, ex) => acc + ex.warmup + ex.top + ex.main, 0);
     document.getElementById('home-today-sets').innerText = `${totalGlobalSets}세트`;
 }
 
 auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        document.getElementById('set-profile-name').innerText = user.displayName ? `${user.displayName} 님` : '회원 님';
+        document.getElementById('set-profile-email').innerText = user.email || '';
+    }
+
     const localCompleted = localStorage.getItem('onboardingCompleted') === 'true';
     if (!localCompleted) {
         if (user) {
@@ -101,49 +106,138 @@ document.querySelectorAll('.nav-item').forEach(item => {
     });
 });
 
-document.getElementById('btn-nav-settings').addEventListener('click', () => { window.location.href = 'index.html?edit=true'; });
-document.getElementById('btn-edit-routine').addEventListener('click', () => { window.location.href = 'index.html?edit=true'; });
 document.getElementById('btn-go-condition').addEventListener('click', () => { switchView('view-condition'); });
-
-const condSlider = document.getElementById('cond-slider');
-const condScore = document.getElementById('cond-score');
-const condText = document.getElementById('cond-text');
-const condLabels = ['매우 나빠요', '조금 피곤해요', '평소와 같이 무난해요', '컨디션이 좋아요', '날아갈 것 같아요!'];
-condSlider.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    condScore.innerText = `${val}점`;
-    condText.innerText = condLabels[val - 1];
-});
-
-const btnMusclePain = document.getElementById('btn-muscle-pain');
-btnMusclePain.addEventListener('click', () => { btnMusclePain.classList.toggle('active'); });
-
 document.getElementById('btn-start-workout-list').addEventListener('click', () => {
     renderWorkoutList();
     switchView('view-workout');
 });
 
-// --- 운동 리스트 렌더링 ---
+// 알림 토글
+document.getElementById('toggle-rest').addEventListener('click', function() {
+    this.style.background = this.style.background === 'transparent' ? 'var(--primary-light)' : 'transparent';
+    this.style.borderColor = this.style.borderColor === '#555' ? 'var(--primary)' : '#555';
+});
+
+// --- 유산소 설정 마법사 로직 ---
+const cardioSteps = [
+    { title: '어떤 유산소 기구를<br>쓸 수 있나요?', sub: '여러 개 고를 수 있어요.', type: 'multi', options: ['트레드밀', '실내 사이클', '일립티컬', '로잉머신', '없음'] },
+    { title: '불편한 부위가<br>있나요?', sub: '여러 개 고를 수 있어요.', type: 'multi', options: ['무릎·발목', '허리', '어깨·팔꿈치', '없음'] },
+    { title: '유산소로 무엇을<br>얻고 싶나요?', sub: '', type: 'single', options: ['건강 유지', '심폐 체력', '체지방 감량'] },
+    { title: '일주일에 몇 번<br>하실 건가요?', sub: '유산소는 근력 운동을 하는 날에 이어서 해요.', type: 'grid', options: [1,2,3,4,5,6,7], rec: 3 },
+    { title: '한 번에 몇 분<br>하실 건가요?', sub: '', type: 'time', chips: ['걷기 (러닝머신)', '사이클링', '인클라인 걷기 (러닝머신)'] }
+];
+
+let cardioStepIdx = 0;
+
+window.startCardioWizard = function() {
+    cardioStepIdx = 0;
+    renderCardioStep();
+    switchView('view-cardio-wizard');
+};
+
+function renderCardioStep() {
+    const data = cardioSteps[cardioStepIdx];
+    document.getElementById('cw-step-text').innerText = `질문 ${cardioStepIdx+1}/5`;
+    document.getElementById('cw-progress-fill').style.width = `${((cardioStepIdx+1)/5)*100}%`;
+
+    let html = `<div class="cw-q-num">질문 ${cardioStepIdx+1}</div>`;
+    html += `<div class="cw-q-title">${data.title}</div>`;
+    html += `<div class="cw-q-sub">${data.sub}</div>`;
+
+    if (data.type === 'multi' || data.type === 'single') {
+        html += `<div class="cw-options">`;
+        data.options.forEach(opt => {
+            html += `<div class="cw-opt-btn" onclick="toggleCardioOpt(this, '${data.type}')"><div class="cw-check"></div>${opt}</div>`;
+        });
+        html += `</div>`;
+    } else if (data.type === 'grid') {
+        html += `<div class="cw-grid">`;
+        data.options.forEach(opt => {
+            const isRec = opt === data.rec ? `<div class="cw-rec-badge">추천</div>` : '';
+            const isActive = opt === data.rec ? 'active' : '';
+            html += `<div class="cw-grid-btn ${isActive}" onclick="selectCardioGrid(this)">${isRec}<span class="cw-g-num">${opt}</span><span class="cw-g-sub">회/주</span></div>`;
+        });
+        html += `</div>`;
+    } else if (data.type === 'time') {
+        html += `<div class="cw-time-wrap">`;
+        html += `<div class="cw-t-chips">` + data.chips.map((c,i) => `<div class="cw-t-chip ${i===0?'active':''}">${c}</div>`).join('') + `</div>`;
+        html += `
+            <div class="cw-time-box">
+                <button class="cw-t-btn" onclick="changeCardioTime(-5)">-</button>
+                <div class="cw-t-val-box"><div class="cw-t-val" id="cw-time-val">60<span>분</span></div><div class="cw-t-badge">추천</div></div>
+                <button class="cw-t-btn" onclick="changeCardioTime(5)">+</button>
+            </div>
+        </div>`;
+    }
+
+    document.getElementById('cw-render-area').innerHTML = html;
+    document.getElementById('btn-cw-prev').style.display = cardioStepIdx === 0 ? 'none' : 'block';
+    document.getElementById('btn-cw-next').innerText = cardioStepIdx === 4 ? '유산소 추가하기' : '다음';
+}
+
+window.toggleCardioOpt = function(btn, type) {
+    if (type === 'single') {
+        btn.parentElement.querySelectorAll('.cw-opt-btn').forEach(b => b.classList.remove('active'));
+    }
+    btn.classList.toggle('active');
+};
+window.selectCardioGrid = function(btn) {
+    btn.parentElement.querySelectorAll('.cw-grid-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+};
+window.changeCardioTime = function(amount) {
+    const valElem = document.getElementById('cw-time-val');
+    let current = parseInt(valElem.innerText);
+    current += amount;
+    if(current < 5) current = 5;
+    valElem.innerHTML = `${current}<span>분</span>`;
+};
+
+document.getElementById('btn-cw-prev').addEventListener('click', () => {
+    if(cardioStepIdx > 0) { cardioStepIdx--; renderCardioStep(); }
+});
+document.getElementById('btn-cw-next').addEventListener('click', () => {
+    if(cardioStepIdx < 4) { cardioStepIdx++; renderCardioStep(); }
+    else { switchView('view-home'); }
+});
+
+
+// --- 공통 팝업 및 바텀시트 제어 로직 ---
+const modalOverlay = document.getElementById('common-modal-overlay');
+
+function hideAllModals() {
+    modalOverlay.querySelectorAll('.guide-modal, .alert-modal, .feedback-modal, .coach-modal, .bottom-sheet-modal').forEach(m => m.classList.remove('active'));
+}
+
+window.openBottomSheet = function(type) {
+    hideAllModals();
+    modalOverlay.classList.add('active');
+    document.getElementById(`bs-${type}`).classList.add('active');
+};
+
+window.closeModal = function() {
+    modalOverlay.classList.remove('active');
+    hideAllModals();
+};
+
+modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) window.closeModal();
+});
+
+
+// --- 훈련 세트 리스트 및 타이머 (기존 동일 유지, 공간상 생략) ---
 function renderWorkoutList() {
     const listContainer = document.getElementById('workout-exercise-list');
     let html = '';
-    
     currentRoutine.forEach((ex, index) => {
         const totalSets = ex.warmup + ex.top + ex.main;
         const savedData = JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || [];
         const completedCount = savedData.length;
-        
         const badgeColor = completedCount === totalSets ? '#2e6bdf' : '#2c2c2e';
         const badgeTextColor = completedCount === totalSets ? '#fff' : '#aaa';
         const unitText1 = ex.type === 'bodyweight' ? '체중 (kg)' : '중량 (kg)';
         
-        let toggleHtml = '';
-        if (ex.type === 'bodyweight') {
-            toggleHtml = `<div class="toggle-switch-group"><div class="toggle-item active">맨몸</div><div class="toggle-item">일반</div></div>`;
-        } else {
-            toggleHtml = `<div class="toggle-switch-group"><div class="toggle-item active">kg</div><div class="toggle-item">lbs</div></div>`;
-        }
-
+        let toggleHtml = ex.type === 'bodyweight' ? `<div class="toggle-switch-group"><div class="toggle-item active">맨몸</div><div class="toggle-item">일반</div></div>` : `<div class="toggle-switch-group"><div class="toggle-item active">kg</div><div class="toggle-item">lbs</div></div>`;
         const formHeader = `<div class="set-header-row"><span>${unitText1}</span><span>횟수</span></div>`;
 
         let warmupHtml = '';
@@ -152,362 +246,97 @@ function renderWorkoutList() {
             for (let i=1; i<=ex.warmup; i++) {
                 const setId = `w${i}`;
                 const isChecked = savedData.includes(setId) ? 'completed' : '';
-                const rirLabel = (i === ex.warmup) ? '5 RIR' : '6 RIR'; 
-                warmupHtml += `
-                    <div class="set-row">
-                        <div class="set-label">${rirLabel}</div>
-                        <div class="set-input-box">
-                            <input type="number" class="set-input" placeholder="0">
-                            <input type="number" class="set-input" placeholder="0">
-                        </div>
-                        <div class="set-check ${isChecked}" data-id="${setId}" data-time="35" data-ex="${ex.name}">✓</div>
-                    </div>
-                `;
+                warmupHtml += `<div class="set-row"><div class="set-label">${i === ex.warmup ? '5 RIR' : '6 RIR'}</div><div class="set-input-box"><input type="number" class="set-input" placeholder="0"><input type="number" class="set-input" placeholder="0"></div><div class="set-check ${isChecked}" data-id="${setId}" data-time="35" data-ex="${ex.name}">✓</div></div>`;
             }
             warmupHtml += `</div>`;
         }
-
         let topHtml = '';
         if (ex.top > 0) {
             topHtml += `<div class="set-group"><div class="set-badge">탑 세트</div>${formHeader}`;
             const setId = `t1`;
             const isChecked = savedData.includes(setId) ? 'completed' : '';
-            topHtml += `
-                <div class="set-row">
-                    <div class="set-label">1 RIR</div>
-                    <div class="set-input-box">
-                        <input type="number" class="set-input" placeholder="고중량">
-                        <input type="text" class="set-input" placeholder="4-7">
-                    </div>
-                    <div class="set-check ${isChecked}" data-id="${setId}" data-time="90" data-ex="${ex.name}">✓</div>
-                </div>
-            `;
+            topHtml += `<div class="set-row"><div class="set-label">1 RIR</div><div class="set-input-box"><input type="number" class="set-input" placeholder="고중량"><input type="text" class="set-input" placeholder="4-7"></div><div class="set-check ${isChecked}" data-id="${setId}" data-time="90" data-ex="${ex.name}">✓</div></div>`;
             topHtml += `</div>`;
         }
-
         let mainHtml = '';
         if (ex.main > 0) {
             mainHtml += `<div class="set-group"><div class="set-badge">본 세트</div>${formHeader}`;
             for (let i=1; i<=ex.main; i++) {
                 const setId = `m${i}`;
                 const isChecked = savedData.includes(setId) ? 'completed' : '';
-                mainHtml += `
-                    <div class="set-row">
-                        <div class="set-label">1 RIR</div>
-                        <div class="set-input-box">
-                            <input type="number" class="set-input" placeholder="중량">
-                            <input type="text" class="set-input" placeholder="8-12">
-                        </div>
-                        <div class="set-check ${isChecked}" data-id="${setId}" data-time="90" data-ex="${ex.name}">✓</div>
-                    </div>
-                `;
+                mainHtml += `<div class="set-row"><div class="set-label">1 RIR</div><div class="set-input-box"><input type="number" class="set-input" placeholder="중량"><input type="text" class="set-input" placeholder="8-12"></div><div class="set-check ${isChecked}" data-id="${setId}" data-time="90" data-ex="${ex.name}">✓</div></div>`;
             }
             mainHtml += `</div>`;
         }
 
         html += `
             <div class="ex-row" id="ex-row-${index}">
-                <div class="ex-header" onclick="toggleAccordion(${index})">
-                    <div class="ex-thumb"><img src="${ex.img}" alt="Exercise"></div>
-                    <div class="ex-info">
-                        <div class="ex-name">${ex.name}</div>
-                        <div class="ex-progress-badge" id="badge-${index}" style="background:${badgeColor}; color:${badgeTextColor};">${completedCount} / ${totalSets} 완료</div>
-                    </div>
-                    <div class="ex-drag-icon">⋮⋮</div>
-                </div>
-                <div class="ex-details">
-                    <div class="ex-detail-img">
-                        <img src="${ex.img}">
-                        <button class="btn-memo">메모</button>
-                    </div>
-                    <div class="ex-tools">
-                        <button class="btn-superset">+ 슈퍼세트</button>
-                        ${toggleHtml}
-                    </div>
-                    ${warmupHtml}
-                    ${topHtml}
-                    ${mainHtml}
-                    <div class="set-add-btns">
-                        <button>+ 세트 추가</button>
-                        <button>- 세트 삭제</button>
-                    </div>
-                </div>
+                <div class="ex-header" onclick="toggleAccordion(${index})"><div class="ex-thumb"><img src="${ex.img}"></div><div class="ex-info"><div class="ex-name">${ex.name}</div><div class="ex-progress-badge" id="badge-${index}" style="background:${badgeColor}; color:${badgeTextColor};">${completedCount} / ${totalSets} 완료</div></div><div class="ex-drag-icon">⋮⋮</div></div>
+                <div class="ex-details"><div class="ex-detail-img"><img src="${ex.img}"><button class="btn-memo">메모</button></div><div class="ex-tools"><button class="btn-superset">+ 슈퍼세트</button>${toggleHtml}</div>${warmupHtml}${topHtml}${mainHtml}<div class="set-add-btns"><button>+ 세트 추가</button><button>- 세트 삭제</button></div></div>
             </div>
         `;
     });
-    listContainer.innerHTML = html;
-
-    listContainer.innerHTML += `
-        <div style="height: 20px;"></div>
-        <button class="primary-btn" onclick="checkFinishWorkout()" style="margin-bottom: 20px;">운동 완료</button>
-    `;
-
-    document.querySelector('.workout-footer').innerHTML = `
-        <button class="floating-edit-btn" onclick="window.location.href='index.html?edit=true'">✏️ 루틴 수정</button>
-    `;
+    listContainer.innerHTML = html + `<div style="height:20px;"></div><button class="primary-btn" onclick="checkFinishWorkout()" style="margin-bottom:20px;">운동 완료</button>`;
 
     document.querySelectorAll('.set-check').forEach(btn => {
         btn.addEventListener('click', function(e) {
-            e.stopPropagation(); 
-            this.classList.toggle('completed');
-            
-            const row = this.closest('.ex-row');
-            const exIndex = row.id.split('-')[2];
+            e.stopPropagation(); this.classList.toggle('completed');
+            const exIndex = this.closest('.ex-row').id.split('-')[2];
             const exData = currentRoutine[exIndex];
             const setId = this.getAttribute('data-id');
             let savedData = JSON.parse(localStorage.getItem(`workout_${exData.id}`)) || [];
 
             if (this.classList.contains('completed')) {
                 if (!savedData.includes(setId)) savedData.push(setId);
-                const time = parseInt(this.getAttribute('data-time'));
-                const exName = this.getAttribute('data-ex');
-                startGlobalTimer(time, exName);
-            } else {
-                savedData = savedData.filter(id => id !== setId);
-            }
+                startGlobalTimer(parseInt(this.getAttribute('data-time')), this.getAttribute('data-ex'));
+            } else { savedData = savedData.filter(id => id !== setId); }
             
             localStorage.setItem(`workout_${exData.id}`, JSON.stringify(savedData));
-
             const totalSets = exData.warmup + exData.top + exData.main;
             const badge = document.getElementById(`badge-${exIndex}`);
             badge.innerText = `${savedData.length} / ${totalSets} 완료`;
-            
-            if (savedData.length === totalSets) {
-                badge.style.background = '#2e6bdf';
-                badge.style.color = '#fff';
-            } else {
-                badge.style.background = '#2c2c2e';
-                badge.style.color = '#aaa';
-            }
+            badge.style.background = savedData.length === totalSets ? '#2e6bdf' : '#2c2c2e';
+            badge.style.color = savedData.length === totalSets ? '#fff' : '#aaa';
         });
     });
 }
 
-window.toggleAccordion = function(index) {
-    const row = document.getElementById(`ex-row-${index}`);
-    row.classList.toggle('expanded');
-};
+window.toggleAccordion = function(index) { document.getElementById(`ex-row-${index}`).classList.toggle('expanded'); };
 
-// --- 상단 드롭다운 글로벌 타이머 ---
 let globalTimerInterval = null;
 let targetEndTime = 0;
 let totalDuration = 0;
 const timerUi = document.getElementById('global-timer-ui');
-const timerDisplay = document.getElementById('gst-time-display');
-const timerProgress = document.getElementById('gst-progress');
-
-function formatTime(seconds) {
-    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-    const s = String(seconds % 60).padStart(2, '0');
-    return `${m}:${s}`;
-}
 
 function startGlobalTimer(seconds, exName) {
     clearInterval(globalTimerInterval);
     totalDuration = seconds;
     targetEndTime = Date.now() + (seconds * 1000);
-    
     document.getElementById('gst-ex-name').innerText = exName;
-    document.getElementById('gst-rest-text').innerText = `권장 휴식 시간 ${formatTime(seconds)}`;
-    timerDisplay.innerText = formatTime(seconds);
-    timerProgress.style.width = '100%';
+    document.getElementById('gst-rest-text').innerText = `권장 휴식 시간 ${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+    document.getElementById('gst-time-display').innerText = `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+    document.getElementById('gst-progress').style.width = '100%';
     timerUi.style.display = 'flex'; 
 
     globalTimerInterval = setInterval(() => {
         const remaining = Math.ceil((targetEndTime - Date.now()) / 1000);
         if (remaining <= 0) {
             clearInterval(globalTimerInterval);
-            timerDisplay.innerText = "진행!";
-            timerProgress.style.width = '0%';
+            document.getElementById('gst-time-display').innerText = "진행!";
+            document.getElementById('gst-progress').style.width = '0%';
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
             setTimeout(() => { timerUi.style.display = 'none'; }, 3000); 
         } else {
-            timerDisplay.innerText = formatTime(remaining);
-            timerProgress.style.width = `${(remaining / totalDuration) * 100}%`;
+            document.getElementById('gst-time-display').innerText = `${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;
+            document.getElementById('gst-progress').style.width = `${(remaining/totalDuration)*100}%`;
         }
     }, 100);
 }
-
-document.getElementById('gst-close').addEventListener('click', () => {
-    clearInterval(globalTimerInterval);
-    timerUi.style.display = 'none';
-});
-
-
-// --- 완료 처리 및 다중 모달 로직 ---
-const modalOverlay = document.getElementById('common-modal-overlay');
-const mGuide = document.getElementById('modal-guide');
-const mAlert = document.getElementById('modal-alert-incomplete');
-const mFeedback = document.getElementById('modal-daily-feedback');
-const mCoach = document.getElementById('modal-coach');
-const btnSubmitFeedback = document.getElementById('btn-submit-feedback');
-
-function showSpecificModal(modalElem) {
-    mGuide.classList.remove('active');
-    mAlert.classList.remove('active');
-    mFeedback.classList.remove('active');
-    mCoach.classList.remove('active');
-    
-    modalOverlay.classList.add('active');
-    modalElem.classList.add('active');
-}
-
-window.closeModal = function() {
-    modalOverlay.classList.remove('active');
-    mGuide.classList.remove('active');
-    mAlert.classList.remove('active');
-    mFeedback.classList.remove('active');
-    mCoach.classList.remove('active');
-};
-
-const guideData = {
-    rir: [
-        { sub: 'RiR(Reps In Reserve) 가이드', title: '1. RIR의 정의', icon: '✦', desc: 'RIR은 <span class="green">실패 지점까지 몇 회가 남았는지</span>를 나타내는 지표입니다.', box: '공식 : RIR = 남은 횟수<br><br>예시 : 물리적 한계가 10회일 때<br>9회를 수행하면 -> <span class="green">RIR 1</span><br>8회를 수행하면 -> <span class="green">RIR 2</span>' },
-        { sub: 'RiR(Reps In Reserve) 가이드', title: '2. 객관적 판단의 중요성', icon: '✦', desc: '많은 분들이 엄살이나 귀찮음 때문에 자신의 <span class="green">진정한 한계</span>를 과소평가하여 RIR을 잘못 설정하곤 합니다.', box: '주관적인 \'힘듦\'보다는 <span class="green">수행 속도 (Bar Speed)</span>의 변화를 기준으로 객관적으로 판단해야 합니다.' }
-    ],
-    warmup: [
-        { sub: '웜업 가이드', title: '1. 웜업이란?', icon: '✦', desc: '웜업은 본 세트의 수행 능력을 높이기 위해 저중량으로 미리 연습하는 과정입니다.', box: '· 근육과 관절에 혈류 공급<br>· 근신경계 활성화<br>· 퍼포먼스 향상 & 근성장 자극 극대화' }
-    ]
-};
-let currentModalType = '';
-let currentModalStep = 0;
-
-window.openModal = function(type) {
-    currentModalType = type;
-    currentModalStep = 0;
-    document.getElementById('modal-badge-title').innerText = type === 'rir' ? 'RIR 가이드' : '웜업 가이드';
-    renderGuideStep();
-    showSpecificModal(mGuide);
-};
-
-function renderGuideStep() {
-    const data = guideData[currentModalType][currentModalStep];
-    document.getElementById('modal-content-area').innerHTML = `
-        <div class="m-sub">${data.sub}</div>
-        <div class="m-title">${data.title}</div>
-        <div class="m-point"><span class="m-point-icon">${data.icon}</span><div class="m-point-text">${data.desc}</div></div>
-        <div class="m-box">${data.box}</div>
-    `;
-    document.getElementById('modal-btn-prev').style.display = currentModalStep === 0 ? 'none' : 'block';
-    document.getElementById('modal-btn-next').innerText = currentModalStep === guideData[currentModalType].length - 1 ? '확인' : '다음';
-}
-
-document.getElementById('modal-btn-prev').addEventListener('click', () => {
-    if (currentModalStep > 0) { currentModalStep--; renderGuideStep(); }
-});
-document.getElementById('modal-btn-next').addEventListener('click', () => {
-    if (currentModalStep < guideData[currentModalType].length - 1) { 
-        currentModalStep++; renderGuideStep(); 
-    } else { closeModal(); }
-});
-
+document.getElementById('gst-close').addEventListener('click', () => { clearInterval(globalTimerInterval); timerUi.style.display = 'none'; });
 
 window.checkFinishWorkout = function() {
-    let completedSets = 0;
-    currentRoutine.forEach(ex => {
-        const savedData = JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || [];
-        completedSets += savedData.length;
-    });
-
-    if (completedSets < totalGlobalSets) {
-        showSpecificModal(mAlert);
-    } else {
-        showSpecificModal(mFeedback);
-    }
+    let completed = 0;
+    currentRoutine.forEach(ex => completed += (JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || []).length);
+    if (completed < totalGlobalSets) { hideAllModals(); modalOverlay.classList.add('active'); document.getElementById('modal-alert-incomplete').classList.add('active'); } 
+    else { hideAllModals(); modalOverlay.classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); }
 };
-
-window.forceEndWorkout = function() {
-    showSpecificModal(mFeedback);
-};
-
-window.selectFeedback = function(btn) {
-    document.querySelectorAll('.fm-opt-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    btnSubmitFeedback.disabled = false;
-};
-
-// --- [신규] 과부하 코치 슬라이드 로직 ---
-const coachData = [
-    {
-        sub: '',
-        title: '첫 번째 운동을 완료했어요!',
-        content: '<p class="coach-desc">안녕하세요! 급진적 과부하 코치예요.<br><br>첫 주에는 각 운동에서 어떤 중량과 횟수를 수행하는지 살펴볼 거예요. 처음엔 적정 중량을 가늠하기 어려울 수 있으니, 실제로 수행한 그대로만 기록해주시면 됩니다.<br><br>이번 주 데이터를 바탕으로 <span class="highlight">2주차부터 본격적인 코칭을 시작할게요.</span> 앞으로 함께해봐요!</p>'
-    },
-    {
-        sub: '완료 현황',
-        title: '마치지 못한 운동이 있어요',
-        content: `
-            <div class="coach-box">
-                <span class="cb-name">덤벨 체스트 플라이</span>
-                <span class="cb-val" style="float:right; font-size:0.85rem;">운동 전체 미완료</span>
-            </div>
-            <p class="coach-desc" style="margin-top:20px;">시간이 부족했거나 오늘 컨디션이 좋지 않았다면 무리해서 완료할 필요는 없어요.<br><br>다음 운동에서 다시 이어가면 되니 너무 부담 갖지 마세요!<br><br>2주차부터는 알고리즘이 피로도에 따라 루틴을 조절해드리니 걱정하지 않으셔도 됩니다:)</p>
-        `
-    },
-    {
-        sub: '세트 퍼포먼스 분석',
-        title: '강도를 조금 더 높여봐도 좋아요',
-        content: `
-            <div class="coach-box">
-                <span class="cb-name">풀업 뉴트럴 그립</span>
-                <div class="cb-row"><span>2번째 세트</span><span class="cb-val">2회</span></div>
-                <div class="cb-row"><span>3번째 세트</span><span class="cb-val">2회</span></div>
-            </div>
-            <p class="coach-desc" style="margin-top:20px;">일반적으로 세트가 진행될수록 횟수가 감소하는 게 정상이에요.<br><br>아마 <span style="color:#00d8d6; font-weight:bold;">세트 사이 회복이 충분했거나</span> 회복 속도가 빨라 횟수가 유지된 것 같아요. 큰 문제는 아니에요.<br><br>다만 스스로 느끼시기에 강도가 높지 않았다면, 더 좋은 근성장을 위해 다음엔 권장 RIR에 맞춰 조금 더 높은 강도로 수행해보세요.</p>
-        `
-    },
-    {
-        sub: '권장 횟수 분석',
-        title: '권장 범위를 조금 벗어났어요',
-        content: `
-            <div class="coach-box">
-                <span class="cb-name">케이블 로우 (중간-넓은 오버 그립)</span>
-                <div class="cb-row"><span>1번째 세트</span><span class="cb-val">40kg × 6회 · 권장 8~12회</span></div>
-                <div class="cb-row"><span>2번째 세트</span><span class="cb-val">30kg × 14회 · 권장 8~12회</span></div>
-            </div>
-            <p class="coach-desc" style="margin-top:20px;">적게 수행한 세트는 중량이 무거웠을 수 있고, 많이 수행한 세트는 가벼웠을 수 있어요.<br><br>익숙하지 않은 운동은 적정 중량을 가늠하기 어려우니 걱정하지 않으셔도 됩니다. 다음엔 더 적절한 중량을 안내해드릴게요.</p>
-        `
-    }
-];
-
-let coachStep = 0;
-
-btnSubmitFeedback.addEventListener('click', () => {
-    coachStep = 0;
-    renderCoachStep();
-    showSpecificModal(mCoach);
-});
-
-function renderCoachStep() {
-    const data = coachData[coachStep];
-    
-    const subText = document.getElementById('coach-sub-text');
-    if(data.sub) {
-        subText.style.display = 'block';
-        subText.innerText = data.sub;
-    } else {
-        subText.style.display = 'none';
-    }
-
-    document.getElementById('coach-title-text').innerText = data.title;
-    document.getElementById('coach-content-area').innerHTML = data.content;
-
-    let dotsHtml = '';
-    for(let i=0; i<coachData.length; i++) {
-        dotsHtml += `<div class="cdot ${i===coachStep?'active':''}"></div>`;
-    }
-    document.getElementById('coach-dots-area').innerHTML = dotsHtml;
-    
-    document.getElementById('btn-coach-next').innerText = coachStep === coachData.length - 1 ? '완료' : '다음';
-}
-
-document.getElementById('btn-coach-next').addEventListener('click', () => {
-    if (coachStep < coachData.length - 1) {
-        coachStep++;
-        renderCoachStep();
-    } else {
-        closeModal();
-        switchView('view-feedback');
-        window.scrollTo(0, 0);
-    }
-});
