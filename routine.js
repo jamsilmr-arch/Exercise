@@ -149,7 +149,6 @@ const routineDB = {
 };
 
 window.openDetail = function(rtId) {
-    // 요청한 루틴 ID가 없으면 기본값으로 6분할 몸통-말단-하체 사용
     const data = routineDB[rtId] || routineDB['rt_6_body_limb_lower']; 
     
     let html = `
@@ -171,9 +170,26 @@ window.openDetail = function(rtId) {
                 <div class="rd-dot"></div>
                 <div class="rd-content">
                     <div class="rd-day-title">${item.label} <span>| 총 ${item.count}개 운동</span></div>
-                    <div class="rd-thumbnails">
-                        ${item.imgs.slice(0, 4).map(imgUrl => `<div class="rd-thumb"><img src="${imgUrl}"></div>`).join('')}
-                        ${item.count > 4 ? `<div class="rd-thumb" style="background:#111; color:#fff; font-size:0.8rem; font-weight:bold;">+${item.count - 4}</div>` : ''}
+                    <div class="rd-thumbnails">`;
+            
+            // [수정된 부분] 썸네일 최대 4개까지만 렌더링하고, 4개 초과 시 마지막 썸네일 위에 +N 오버레이 추가
+            const displayImgs = item.imgs.slice(0, 4);
+            displayImgs.forEach((imgUrl, idx) => {
+                if (index === 3 && item.count > 4) {
+                    // 4번째 이미지이면서 운동이 더 남아있을 때
+                    html += `
+                        <div class="rd-thumb">
+                            <img src="${imgUrl}">
+                            <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; color:#fff; font-size:1.1rem; font-weight:bold;">
+                                +${item.count - 4}
+                            </div>
+                        </div>`;
+                } else {
+                    html += `<div class="rd-thumb"><img src="${imgUrl}"></div>`;
+                }
+            });
+            
+            html += `
                     </div>
                 </div>
             </div>`;
@@ -203,7 +219,6 @@ window.openDetail = function(rtId) {
     document.getElementById('view-detail').classList.add('active');
     window.scrollTo(0, 0);
 };
-
 window.closeDetail = function() {
     document.getElementById('view-detail').classList.remove('active');
     document.getElementById('view-list').classList.add('active');
