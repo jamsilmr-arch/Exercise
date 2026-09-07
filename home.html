@@ -73,58 +73,50 @@
         <header class="top-nav-bar"><div class="logo font-pinyon">JHP</div><div class="icon-btn" style="font-size:1rem; border:1px solid #555; padding:4px 8px; border-radius:50%; color:#aaa;">i</div></header>
         <div class="rt-notice">ⓘ 주 3일(!)로 루틴을 수정하세요</div>
         <div class="rt-section-title">내 루틴</div>
-        <div class="rt-card" style="border-color:var(--primary);">
+        <div class="rt-card" style="border-color:var(--primary);" onclick="openRoutineDetail('rt_6_push_pull')">
             <div class="rt-c-top"><span class="rt-c-badge">사용중</span><span class="rt-c-title" id="rl-current-title">주 6회 (몸통-말단-하체) 루틴</span><span style="margin-left:auto;">⋮</span></div>
             <div class="rt-c-chips"><span class="rt-chip">몸통-말단-하체</span><span class="rt-chip">남성</span></div>
         </div>
         <div class="rt-section-title" style="margin-top:10px;">루틴 선택</div>
         <div class="rt-filters"><div class="rt-filter active">운동횟수</div><div class="rt-filter">특수루틴</div><div class="rt-filter">여성헬스</div><div class="rt-filter">인플루언서</div></div>
+        
         <div class="content-area" style="padding-top:0;">
-            <div class="rt-card"><div class="rt-c-title" style="margin-bottom:10px;">주 2회 무분할 루틴</div><div class="rt-c-chips"><span class="rt-chip">남성</span></div></div>
-            <div class="rt-card"><div class="rt-c-title" style="margin-bottom:10px;">주 3회 (상체-하체-전신) 루틴</div><div class="rt-c-chips"><span class="rt-chip">상체-하체-전신</span><span class="rt-chip">남성</span></div></div>
-            <div class="rt-card"><div class="rt-c-title" style="margin-bottom:10px;">주 3회 무분할 (전신-전신-전신) 루틴</div><div class="rt-c-chips"><span class="rt-chip">전신-전신-전신</span><span class="rt-chip">남성</span></div></div>
-            <div class="rt-card"><div class="rt-c-title" style="margin-bottom:10px;">주 4회 (밀기-당기기-하체-전신) 루틴</div><div class="rt-c-chips"><span class="rt-chip">밀기-당기기-하체-전신</span><span class="rt-chip">남성</span></div></div>
-            <div class="rt-card"><div class="rt-c-title" style="margin-bottom:10px;">주 5회 (상체-하체-상체-하체-상체) 루틴</div><div class="rt-c-chips"><span class="rt-chip">상체-하체</span><span class="rt-chip">남성</span></div></div>
+            <div class="rt-card" onclick="openRoutineDetail('rt_2_full')"><div class="rt-c-title" style="margin-bottom:10px;">주 2회 무분할 루틴</div><div class="rt-c-chips"><span class="rt-chip">남성</span></div></div>
+            <div class="rt-card" onclick="openRoutineDetail('rt_3_hybrid')"><div class="rt-c-title" style="margin-bottom:10px;">주 3회 (상체-하체-전신) 루틴</div><div class="rt-c-chips"><span class="rt-chip">상체-하체-전신</span><span class="rt-chip">남성</span></div></div>
+            <div class="rt-card" onclick="openRoutineDetail('rt_3_full')"><div class="rt-c-title" style="margin-bottom:10px;">주 3회 무분할 (전신-전신-전신) 루틴</div><div class="rt-c-chips"><span class="rt-chip">전신-전신-전신</span><span class="rt-chip">남성</span></div></div>
+            <div class="rt-card" onclick="openRoutineDetail('rt_4_hybrid')"><div class="rt-c-title" style="margin-bottom:10px;">주 4회 (밀기-당기기-하체-전신) 루틴</div><div class="rt-c-chips"><span class="rt-chip">밀기-당기기-하체-전신</span><span class="rt-chip">남성</span></div></div>
+            <div class="rt-card" onclick="openRoutineDetail('rt_4_split')"><div class="rt-c-title" style="margin-bottom:10px;">주 4회 (상체-하체-상체-하체) 루틴</div><div class="rt-c-chips"><span class="rt-chip">상체-하체-상체-하체</span><span class="rt-chip">남성</span></div></div>
+            <div class="rt-card" onclick="openRoutineDetail('rt_6_push_pull')"><div class="rt-c-title" style="margin-bottom:10px;">주 6회 (밀기-당기기-하체) 루틴</div><div class="rt-c-chips"><span class="rt-chip">밀기-당기기-하체</span><span class="rt-chip">남성</span></div></div>
         </div>
     </div>
 
-    <!-- [화면 3] 설정 메인 -->
+    <!-- [신규] 특정 루틴 상세 프리뷰 -->
+    <div id="view-routine-detail" class="view-container">
+        <header class="top-nav-bar"><button class="icon-btn" onclick="switchView('view-routine-list')">←</button><span class="tn-title">루틴 선택</span><div style="width:30px;"></div></header>
+        <div id="rd-render-area">
+            <!-- JS 동적 생성 영역 -->
+        </div>
+    </div>
+
+    <!-- 설정 메인 -->
     <div id="view-settings-main" class="view-container">
         <header class="top-nav-bar"><div class="logo font-pinyon">JHP</div></header>
-        <div class="profile-section">
-            <div class="profile-name" id="set-profile-name">박준혁 님</div>
-            <div class="profile-email" id="set-profile-email">jamsilmr@gmail.com</div>
-        </div>
+        <div class="profile-section"><div class="profile-name" id="set-profile-name">박준혁 님</div><div class="profile-email" id="set-profile-email">jamsilmr@gmail.com</div></div>
         <div class="settings-list">
             <div class="st-card">
                 <div class="st-item" onclick="openBottomSheet('info')"><div class="st-left">나의 정보</div><div class="st-right"><span class="st-arrow">></span></div></div>
                 <div class="st-item" onclick="startCardioWizard()"><div class="st-left">유산소</div><div class="st-right">설정하기 <span class="st-arrow">></span></div></div>
             </div>
-            <div class="st-card">
-                <div class="st-item" style="cursor:default; border-bottom: none;">
-                    <div class="st-left">휴식 완료 알림<span class="st-desc">세트 사이 휴식이 끝나면 알려드려요</span></div>
-                    <div class="st-right"><div class="st-toggle" id="toggle-rest"></div></div>
-                </div>
-            </div>
+            <div class="st-card"><div class="st-item" style="cursor:default; border-bottom: none;"><div class="st-left">휴식 완료 알림<span class="st-desc">세트 사이 휴식이 끝나면 알려드려요</span></div><div class="st-right"><div class="st-toggle" id="toggle-rest"></div></div></div></div>
         </div>
     </div>
 
-    <!-- [화면 4] 유산소 설정 마법사 -->
+    <!-- 유산소 설정 마법사 -->
     <div id="view-cardio-wizard" class="view-container">
-        <header class="top-nav-bar">
-            <button class="icon-btn" onclick="switchView('view-home')">←</button>
-            <span class="tn-title">유산소 설정</span>
-            <div style="width:30px;"></div>
-        </header>
-        <div class="cw-progress-area">
-            <div class="cw-p-text"><span id="cw-step-text">질문 1/5</span><span>유산소 처방 준비</span></div>
-            <div class="cw-p-bar"><div class="cw-p-fill" id="cw-progress-fill" style="width:20%;"></div></div>
-        </div>
+        <header class="top-nav-bar"><button class="icon-btn" onclick="switchView('view-home')">←</button><span class="tn-title">유산소 설정</span><div style="width:30px;"></div></header>
+        <div class="cw-progress-area"><div class="cw-p-text"><span id="cw-step-text">질문 1/5</span><span>유산소 처방 준비</span></div><div class="cw-p-bar"><div class="cw-p-fill" id="cw-progress-fill" style="width:20%;"></div></div></div>
         <div id="cw-render-area"></div>
-        <div class="cw-footer">
-            <button class="secondary-btn" id="btn-cw-prev" style="flex:0.5;">이전</button>
-            <button class="primary-btn" id="btn-cw-next">다음</button>
-        </div>
+        <div class="cw-footer"><div class="cw-footer-inner"><button class="secondary-btn" id="btn-cw-prev">이전</button><button class="primary-btn" id="btn-cw-next">다음</button></div></div>
     </div>
 
     <!-- 컨디션 체크 화면 -->
@@ -176,7 +168,7 @@
         </main>
     </div>
 
-    <!-- 퍼포먼스 리스트 -->
+    <!-- 운동별 퍼포먼스 변화 리스트 -->
     <div id="view-perf-list" class="view-container">
         <header class="top-nav-bar"><button class="icon-btn" onclick="switchView('view-block-progress')">←</button><span class="tn-title">운동별 퍼포먼스 변화</span><div style="width:30px;"></div></header>
         <main class="content-area" style="padding-top:20px;">
@@ -189,20 +181,18 @@
             </div>
             <div class="perf-list-group">
                 <span class="perf-badge">가슴</span>
-                <div class="perf-list-box">
-                    <div class="perf-item" onclick="openPerfDetail('ex2')"><div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif"></div><span class="perf-name">해머 스트렝스 체스트 프레스 머신</span><span class="perf-arrow">></span></div>
-                </div>
+                <div class="perf-list-box"><div class="perf-item" onclick="openPerfDetail('ex2')"><div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif"></div><span class="perf-name">해머 스트렝스 체스트 프레스 머신</span><span class="perf-arrow">></span></div></div>
             </div>
         </main>
     </div>
 
-    <!-- 상세 차트 -->
+    <!-- 퍼포먼스 상세 차트 -->
     <div id="view-perf-detail" class="view-container">
         <header class="top-nav-bar"><button class="icon-btn" onclick="switchView('view-perf-list')">←</button><span class="tn-title">운동별 퍼포먼스 변화</span><div style="width:30px;"></div></header>
         <main class="content-area" style="padding-top:20px;" id="pd-render-area"></main>
     </div>
 
-    <!-- 하단 메인 네비게이션 -->
+    <!-- 네비게이션 -->
     <nav class="bottom-nav" id="main-nav">
         <div class="nav-item active" data-target="view-home"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
         <div class="nav-item" data-target="view-routine-list"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
@@ -210,7 +200,7 @@
         <div class="nav-item" data-target="view-settings-main"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
     </nav>
 
-    <!-- [수정됨] 완벽 분리된 모달 오버레이 구조 -->
+    <!-- 공통 팝업 오버레이 -->
     <div class="modal-overlay" id="common-modal-overlay">
         
         <div class="bottom-sheet-modal" id="bs-info">
@@ -250,12 +240,6 @@
                 <button class="fm-opt-btn" onclick="selectFeedback(this)">운동이 힘들고 벅차게 느껴졌어요!</button>
             </div>
             <button class="primary-btn" id="btn-submit-feedback" disabled style="width: calc(100% - 40px); margin: 0 auto; display:block;">제출</button>
-        </div>
-        
-        <div class="coach-modal" id="modal-coach">
-            <div class="coach-header"><span class="coach-badge" id="coach-badge-text">과부하 코치</span><div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;" id="coach-sub-text"></div><h2 class="coach-title" id="coach-title-text">첫 번째 운동을 완료했어요!</h2><div style="color:var(--primary); font-size:1.5rem; margin-bottom:10px;">✦</div></div>
-            <div class="coach-content" id="coach-content-area"></div>
-            <div class="coach-footer"><div class="coach-dots" id="coach-dots-area"></div><button class="primary-btn" id="btn-coach-next" style="width: 100%;">다음</button></div>
         </div>
 
     </div>
