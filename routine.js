@@ -1,3 +1,6 @@
+// 하단 공통 메뉴 렌더링 (현재 'routine' 탭 활성화)
+renderBottomNav('routine');
+
 const mockImgs = [
     'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif',
     'https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif',
