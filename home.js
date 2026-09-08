@@ -1,6 +1,3 @@
-// ==========================================
-// 1. 화면 전환 핸들러
-// ==========================================
 window.switchView = function(targetId) {
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
@@ -23,9 +20,6 @@ window.switchView = function(targetId) {
     }
 };
 
-// ==========================================
-// 2. 홈 화면 데이터 바인딩
-// ==========================================
 function renderHomeData(wizardData) {
     const frequency = parseInt(wizardData?.question_6?.value) || 6;
     let splitName = '몸통-말단-하체';
@@ -38,14 +32,37 @@ function renderHomeData(wizardData) {
     }
     
     let weekBlocksHtml = '';
+    
+    // Day 2라고 가정 (실제로는 로컬스토리지나 DB에서 진행 일수를 가져와야 함)
+    // 지금은 스크린샷과 흐름에 맞추기 위해 강제로 2일차로 시뮬레이션 합니다.
+    const currentDay = 2; 
+
     for (let i = 1; i <= frequency; i++) {
-        weekBlocksHtml += `<div class="wb-item ${i === 2 ? 'active' : ''}"><span class="wb-num">${i}</span>Day</div>`;
+        weekBlocksHtml += `<div class="wb-item ${i === currentDay ? 'active' : ''}"><span class="wb-num">${i}</span>Day</div>`;
     }
     weekBlocksHtml += `<div class="wb-item rest">휴식</div>`;
     
     const weekBlocksElem = document.getElementById('home-week-blocks');
     if (weekBlocksElem) {
         weekBlocksElem.innerHTML = weekBlocksHtml;
+    }
+
+    // [신규] 맞춤 코칭 데이터 분석 퍼센티지 동적 계산 (총 7일 기준 현재 일수 비율)
+    const totalDaysInWeek = 7;
+    // 계산식: (현재까지 완료한 일수 / 일주일) * 100
+    // 여기서는 currentDay를 기준으로 보여줍니다.
+    let analyzePercent = Math.round((currentDay / totalDaysInWeek) * 100);
+    if(analyzePercent > 100) analyzePercent = 100;
+    
+    const dpFill = document.querySelector('.dp-bar-fill');
+    const dpText = document.querySelector('.dp-text');
+    
+    if(dpFill && dpText) {
+        // 애니메이션 효과를 위해 0.1초 뒤에 너비 지정
+        setTimeout(() => {
+            dpFill.style.width = `${analyzePercent}%`;
+            dpText.innerText = `${analyzePercent}%`;
+        }, 100);
     }
 }
 
@@ -60,9 +77,6 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// ==========================================
-// 3. 버튼 클릭 및 컨디션 체크 이벤트 바인딩
-// ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     const btnGoCondition = document.getElementById('btn-go-condition');
     if (btnGoCondition) {
@@ -91,23 +105,18 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // [수정됨] 근육통 여부에 따른 동작 분기
     const btnStartWorkout = document.getElementById('btn-start-workout-list');
     if (btnStartWorkout) {
         btnStartWorkout.addEventListener('click', () => {
-            // 근육통 버튼이 켜져 있으면 부위 선택 팝업 오픈
             if (btnMusclePain && btnMusclePain.classList.contains('active')) {
                 openBottomSheet('muscle-pain');
-            } 
-            // 꺼져 있으면 바로 훈련 화면으로 이동
-            else {
+            } else {
                 if (typeof renderWorkoutList === 'function') renderWorkoutList();
                 switchView('view-workout');
             }
         });
     }
     
-    // URL 파라미터 확인 후 유산소 마법사 자동 실행 (옵션)
     if (new URLSearchParams(window.location.search).get('openCardio') === 'true') {
         if(typeof startCardioWizard === 'function') startCardioWizard();
     }
