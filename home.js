@@ -24,7 +24,7 @@ window.switchView = function(targetId) {
 };
 
 // ==========================================
-// 2. 홈 화면 데이터 바인딩 및 퍼센티지 계산
+// 2. 홈 화면 데이터 바인딩 및 동적 진행도 계산
 // ==========================================
 function renderHomeData(wizardData) {
     // 1. 선택한 루틴 타이틀
@@ -38,9 +38,19 @@ function renderHomeData(wizardData) {
         routineTitleElem.innerText = `주 ${frequency}회 (${splitName}) 루틴`;
     }
     
-    // 2. 주간 요일 블록 렌더링
-    // (임시로 현재를 1일차로 가정)
-    const currentDay = 1; 
+    // [수정됨] 완료한 일수 데이터를 로컬스토리지에서 가져옴 (초기값 0)
+    let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
+    
+    // 현재 진행해야 할 날짜 계산 (완료한 날짜 + 1)
+    let currentDay = completedDays + 1;
+    // 설정한 빈도수를 초과하면 1로 초기화 (또는 루틴 완료 처리)
+    if(currentDay > frequency) currentDay = 1;
+
+    // 홈 화면 카드 타이틀 업데이트
+    const todayDayElem = document.getElementById('home-today-day');
+    if(todayDayElem) todayDayElem.innerText = `Day ${currentDay}`;
+    
+    // 주간 요일 블록 렌더링
     let weekBlocksHtml = '';
     for (let i = 1; i <= frequency; i++) {
         weekBlocksHtml += `<div class="wb-item ${i === currentDay ? 'active' : ''}"><span class="wb-num">${i}</span>Day</div>`;
@@ -52,15 +62,8 @@ function renderHomeData(wizardData) {
         weekBlocksElem.innerHTML = weekBlocksHtml;
     }
 
-    // 3. [완벽 수정본] 실제 입력 데이터를 기반으로 분석 퍼센티지 계산
-    // 로컬 스토리지에 저장된 '운동 완료된 날짜 수'를 가져옴 (없으면 0)
-    let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
-    
-    // 목표 일수 (1주일)
-    const targetDays = frequency; 
-    
-    // 퍼센티지 도출 (입력한 데이터가 없으면 0 / 목표 일수 = 0%)
-    let analyzePercent = Math.round((completedDays / targetDays) * 100);
+    // 맞춤 코칭 데이터 분석 퍼센티지 동적 계산 (총 빈도수 기준)
+    let analyzePercent = Math.round((completedDays / frequency) * 100);
     if(analyzePercent > 100) analyzePercent = 100;
     if(analyzePercent < 0 || isNaN(analyzePercent)) analyzePercent = 0;
     
@@ -68,7 +71,6 @@ function renderHomeData(wizardData) {
     const dpText = document.querySelector('.dp-text');
     
     if(dpFill && dpText) {
-        // 애니메이션 효과를 위해 약간의 딜레이
         setTimeout(() => {
             dpFill.style.width = `${analyzePercent}%`;
             dpText.innerText = `${analyzePercent}%`;
@@ -85,11 +87,14 @@ auth.onAuthStateChanged(async (user) => {
                 renderHomeData(userDoc.data().wizardData);
             }
         } catch(e) { console.error("데이터 로드 실패:", e); }
+    } else {
+        // 로그인 정보가 없을 경우 기본 렌더링을 위해 더미 호출
+        renderHomeData({ question_6: { value: 6 } });
     }
 });
 
 // ==========================================
-// 3. 버튼 클릭 및 컨디션 체크 이벤트 바인딩
+// 3. 버튼 클릭 및 이벤트 바인딩
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     const btnGoCondition = document.getElementById('btn-go-condition');
