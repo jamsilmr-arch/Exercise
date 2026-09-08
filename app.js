@@ -10,12 +10,11 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// 전역 상태 변수
 window.currentRoutine = [];
 window.totalGlobalSets = 0;
 
 // ==========================================
-// 2. DOM 로드 시 공통 UI(네비게이션, 팝업) 자동 주입
+// 2. DOM 로드 시 공통 UI 및 팝업 주입
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     const path = window.location.pathname;
@@ -36,11 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const timerHtml = `
         <div class="global-sticky-timer" id="global-timer-ui">
             <div class="gst-top">
-                <div class="gst-info">
-                    <span class="gst-name" id="gst-ex-name">운동 이름</span>
-                    <span class="gst-sub" id="gst-rest-text">권장 휴식 시간 01:30</span>
-                    <div class="gst-time" id="gst-time-display">01:30</div>
-                </div>
+                <div class="gst-info"><span class="gst-name" id="gst-ex-name">운동 이름</span><span class="gst-sub" id="gst-rest-text">권장 휴식 시간 01:30</span><div class="gst-time" id="gst-time-display">01:30</div></div>
                 <div class="gst-controls"><span id="gst-pause">⏸</span><span id="gst-close">✕</span></div>
             </div>
             <div class="gst-progress-bar"><div class="gst-progress-fill" id="gst-progress"></div></div>
@@ -113,12 +108,36 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.insertAdjacentHTML('beforeend', navHtml);
     document.body.insertAdjacentHTML('beforeend', modalsHtml);
 
+    // 뷰 전환 로직 (화면 넘김 시 하단 메뉴 제어 포함)
+    window.switchView = function(targetId) {
+        document.querySelectorAll('.view-container').forEach(view => { 
+            view.classList.remove('active'); 
+            view.style.display = 'none'; 
+        });
+        const targetView = document.getElementById(targetId);
+        if(targetView) { 
+            targetView.classList.add('active'); 
+            targetView.style.display = 'block'; 
+            window.scrollTo(0, 0); 
+        }
+        
+        const mainNav = document.getElementById('main-nav');
+        if (mainNav) {
+            if (targetId === 'view-workout' || targetId === 'view-condition' || targetId === 'view-summary' || targetId === 'view-routine-detail') {
+                mainNav.style.display = 'none';
+            } else {
+                mainNav.style.display = 'flex';
+            }
+        }
+    };
+
     attachCommonEvents();
     if(typeof initWorkoutData === 'function') initWorkoutData(); 
 });
 
+
 // ==========================================
-// 3. 공통 팝업 및 이벤트 제어 로직
+// 3. 모달 이벤트 및 글로벌 타이머
 // ==========================================
 function attachCommonEvents() {
     const modalOverlay = document.getElementById('common-modal-overlay');
@@ -130,243 +149,55 @@ function attachCommonEvents() {
         clearInterval(window.globalTimerInterval);
         document.getElementById('global-timer-ui').style.display = 'none';
     });
+
+    // 유산소 마법사
+    document.getElementById('btn-cw-prev').addEventListener('click', () => {
+        if(window.cardioStepIdx > 0) { window.cardioStepIdx--; renderCardioStep(); }
+    });
+    document.getElementById('btn-cw-next').addEventListener('click', () => {
+        if(window.cardioStepIdx < 4) { window.cardioStepIdx++; renderCardioStep(); }
+        else { closeModal(); alert('유산소 설정이 저장되었습니다!'); }
+    });
+
+    // 과부하 코치 진입(요약 화면에서 '다음' 클릭 시)
+    const btnSubmitFeedback = document.getElementById('btn-submit-feedback');
+    if(btnSubmitFeedback) {
+        btnSubmitFeedback.addEventListener('click', () => {
+            closeModal();
+            switchView('view-summary'); 
+        });
+    }
+
+    const btnCoachNext = document.getElementById('btn-coach-next');
+    if(btnCoachNext) {
+        btnCoachNext.addEventListener('click', () => {
+            if(window.coachStepIdx < coachData.length - 1) {
+                window.coachStepIdx++;
+                renderCoachStep();
+            } else {
+                closeModal();
+                switchView('view-feedback'); 
+                window.scrollTo(0, 0);
+            }
+        });
+    }
 }
 
 window.hideAllModals = function() {
     const overlay = document.getElementById('common-modal-overlay');
     if(overlay) overlay.querySelectorAll('.guide-modal, .alert-modal, .feedback-modal, .coach-modal, .bottom-sheet-modal, .full-bottom-sheet').forEach(m => m.classList.remove('active'));
 };
-
 window.openBottomSheet = function(type) {
     hideAllModals();
     document.getElementById('common-modal-overlay').classList.add('active');
     document.getElementById(`bs-${type}`).classList.add('active');
 };
-
 window.closeModal = function() {
     const overlay = document.getElementById('common-modal-overlay');
     if(overlay) overlay.classList.remove('active');
     hideAllModals();
 };
 
-// ==========================================
-// 4. 운동 가이드 & 메모 데이터베이스 (신규 가이드 추가 반영)
-// ==========================================
-const exerciseGuideDB = {
-    'day2_ex1': { // 오버헤드 프레스
-        badge: '어깨(전/측면) 복합', vid: null,
-        guide: '바벨을 쇄골 위쪽 또는 어깨 앞쪽에 올린 상태에서 시작하고, 손목은 과하게 꺾이지 않게 세웁니다. 복부와 엉덩이에 힘을 주어 몸통을 단단히 고정하고, 허리가 뒤로 젖혀지지 않게 합니다. 바를 밀어 올릴 때는 얼굴을 살짝 뒤로 빼 바가 수직에 가깝게 올라가도록 만들고, 바가 이마를 지나면 머리를 다시 앞으로 넣습니다. 위쪽에서는 팔을 뻗되 어깨를 과하게 으쓱하지 말고, 전신이 일직선에 가깝게 정렬되도록 합니다. 내려올 때는 바를 통제하면서 다시 쇄골 위쪽으로 천천히 가져옵니다.'
-    },
-    'day2_ex2': { // 바벨 프리처 컬
-        badge: '이두근 고립', vid: 'https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif',
-        guide: '프리처 벤치에 상완을 패드에 고정하고, 바벨이나 EZ바를 잡은 상태에서 시작합니다. 팔꿈치가 패드에서 뜨지 않게 유지하고, 하단에서 팔을 과하게 잠그지 않도록 주의합니다. 바를 올릴 때는 몸을 뒤로 젖히거나 어깨를 들어 올리지 말고, 이두근으로 팔꿈치를 접어 들어 올립니다. 상단에서는 완전히 말아 올려 긴장이 빠지는 지점까지 가지 말고, 이두에 힘이 남아 있는 위치에서 멈추는 것이 좋습니다. 내려올 때는 바벨이 갑자기 떨어지지 않게 천천히 버티며 이두를 늘립니다.'
-    },
-    'day2_ex3': { // 원암 덤벨/케이블 익스텐션
-        badge: '삼두근 고립', vid: null,
-        guide: '한 팔씩 덤벨이나 케이블을 사용해 팔꿈치를 펴는 운동입니다. 덤벨로 할 경우 머리 위에서 수행하면 삼두 장두가 길게 늘어나고, 케이블로 할 경우 장력이 일정하게 유지되는 장점이 있습니다. 시작 자세에서 팔꿈치를 충분히 접어 삼두가 늘어나게 하고, 팔꿈치 위치가 흔들리지 않게 고정합니다. 올릴 때는 어깨로 밀지 말고 팔꿈치를 펴며 삼두를 수축합니다. 한 팔씩 수행하므로 무게를 욕심내기보다 팔꿈치가 편한 궤적과 좌우 균형을 우선합니다.'
-    },
-    'day2_ex4': { // 바벨 바이셉 컬
-        badge: '이두근 고립', vid: 'https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif',
-        guide: '바벨을 어깨너비 정도로 잡고, 가슴을 세운 상태에서 똑바로 섭니다. 팔꿈치는 몸통 옆에 고정하고, 바를 들어 올릴 때 몸을 뒤로 젖히거나 엉덩이 반동을 쓰지 않습니다. 손목은 과하게 꺾이지 않게 중립에 가깝게 유지하고, 팔꿈치를 접으며 바벨을 위로 올립니다. 상단에서는 이두를 강하게 수축하되, 팔꿈치가 앞으로 너무 많이 나가 긴장이 빠지지 않게 합니다. 내려올 때는 팔을 거의 다 펴면서도 무게를 놓지 않고 천천히 컨트롤합니다.'
-    },
-    'day2_ex5': { // 케이블 트라이셉 푸시다운
-        badge: '삼두근 고립', vid: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Pushdown_animation.gif',
-        guide: '케이블을 높은 위치에 세팅하고, 바나 로프를 잡은 뒤 팔꿈치를 몸통 옆에 고정합니다. 시작 자세에서 팔꿈치가 접혀 삼두가 약간 늘어난 상태를 만들고, 손잡이를 아래로 밀어 팔을 펴줍니다. 하단에서는 팔꿈치를 완전히 펴며 삼두를 수축하고, 로프를 사용할 경우 끝에서 살짝 바깥으로 벌려 수축감을 더할 수 있습니다. 올라올 때는 무게에 끌려 팔꿈치가 앞으로 올라가지 않도록 천천히 버팁니다. 상체를 과하게 숙이거나 어깨로 누르면 삼두보다 몸통 반동이 커질 수 있습니다.'
-    },
-    'day2_ex6': { // 리버스 펙덱
-        badge: '어깨 후면 고립', vid: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif',
-        guide: '가슴을 패드에 붙이고 앉아 손잡이가 어깨 높이 정도에 오도록 시트 높이를 조절합니다. 팔꿈치는 살짝 굽힌 상태에서 손잡이를 잡고, 어깨가 앞으로 말리지 않게 가슴을 패드에 안정적으로 고정합니다. 손잡이를 뒤로 벌릴 때는 견갑골을 과하게 모으기보다, 후면 어깨로 팔을 바깥쪽으로 벌린다는 느낌으로 수행합니다. 끝 지점에서 잠깐 수축을 느낀 뒤, 무게가 떨어지지 않게 천천히 앞으로 돌아옵니다. 무게가 너무 무거우면 승모근이나 등으로 당기기 쉬우므로, 컨트롤 가능한 중량을 사용합니다.'
-    },
-    'day2_ex7': { // 덤벨 레터럴 레이즈
-        badge: '어깨(전/측면) 고립', vid: 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif',
-        guide: '양손에 덤벨을 들고 서서 시작하며, 무릎은 살짝 풀고 몸통은 안정적으로 세웁니다. 팔꿈치를 약간 굽힌 상태로 유지한 채 양팔을 옆으로 들어 올리고, 손목은 자연스럽게 유지합니다. 덤벨은 중력 때문에 하단에서 긴장이 상대적으로 약해질 수 있으므로, 시작할 때 몸통 옆 완전 이완보다 약간 긴장이 남는 위치에서 시작해도 좋습니다. 올릴 때는 어깨를 으쓱하지 말고 팔꿈치를 옆으로 넓게 보낸다는 느낌으로 수행하며, 보통 어깨 높이 전후까지 들어 올리면 충분합니다. 상체를 흔들며 치팅하기보다, 가벼운 중량으로 정확한 반복을 쌓는 것이 측면 삼각근 발달에 더 유리합니다.'
-    }
-};
-
-window.openMemoModal = function(exId, exName) {
-    const dbData = exerciseGuideDB[exId] || { badge: '전신', guide: '운동을 정확한 자세로 수행하세요.' };
-    const savedMemo = localStorage.getItem(`memo_${exId}`) || '';
-    
-    const vidHtml = dbData.vid ? `<div class="bs-memo-vid"><img src="${dbData.vid}"></div>` : '';
-
-    const html = `
-        <div class="bs-memo-header-wrap">
-            ${vidHtml}
-            <div class="bs-memo-title-wrap">
-                <div class="bs-memo-title">${exName}</div>
-                <div class="bs-memo-badge">${dbData.badge}</div>
-            </div>
-        </div>
-        
-        <div class="bs-memo-section">
-            <span class="bs-memo-sec-badge">메모</span>
-            <textarea class="bs-memo-textarea" id="memo-input-${exId}" placeholder="이 운동에 대해 기억해 둘 것을 적어보세요">${savedMemo}</textarea>
-        </div>
-
-        <div class="bs-memo-section" style="border-color:#333;">
-            <span class="bs-memo-sec-badge grey">수행 가이드</span>
-            <div class="bs-guide-text">${dbData.guide}</div>
-        </div>
-    `;
-
-    document.getElementById('bs-memo-content').innerHTML = html;
-    
-    document.getElementById(`memo-input-${exId}`).addEventListener('input', function() {
-        localStorage.setItem(`memo_${exId}`, this.value);
-    });
-
-    openBottomSheet('memo');
-};
-
-// ==========================================
-// 5. Day 2 훈련 리스트 및 렌더링 (팔 운동 타이머 60초 반영)
-// ==========================================
-function initWorkoutData() {
-    window.currentRoutine = [
-        { id: 'day2_ex1', name: '오버헤드 프레스', img: 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif', type: 'weight', rest: 90, sets: [{type:'warmup',rir:6,weight:'저중량',reps:6},{type:'warmup',rir:5,weight:'중간중량',reps:5},{type:'top',rir:1,weight:'고중량',reps:'4-7'},{type:'main',rir:1,weight:'중간중량',reps:'8-12'},{type:'main',rir:1,weight:'중간중량',reps:'8-12'},{type:'main',rir:1,weight:'중간중량',reps:'8-12'}] },
-        { id: 'day2_ex2', name: '바벨 프리처 컬', img: 'https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif', type: 'weight', rest: 60, sets: [{type:'warmup',rir:6,weight:'중간중량',reps:6},{type:'top',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'}] },
-        { id: 'day2_ex3', name: '원암 덤벨/케이블 익스텐션', img: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Pushdown_animation.gif', type: 'weight', hasLR: true, rest: 60, sets: [{type:'warmup',rir:6,weight:'중간중량',reps:6},{type:'top',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'}] },
-        { id: 'day2_ex4', name: '바벨 바이셉 컬', img: 'https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif', type: 'weight', rest: 60, sets: [{type:'warmup',rir:6,weight:'중간중량',reps:6},{type:'top',rir:0,weight:'고중량',reps:'4-7'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'}] },
-        { id: 'day2_ex5', name: '케이블 트라이셉 푸시다운', img: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Pushdown_animation.gif', type: 'weight', rest: 60, sets: [{type:'warmup',rir:6,weight:'중간중량',reps:6},{type:'top',rir:0,weight:'고중량',reps:'4-7'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'}] },
-        { id: 'day2_ex6', name: '리버스 펙덱', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif', type: 'weight', rest: 90, sets: [{type:'warmup',rir:6,weight:'중간중량',reps:6},{type:'top',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'}] },
-        { id: 'day2_ex7', name: '덤벨 레터럴 레이즈', img: 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif', type: 'weight', rest: 90, sets: [{type:'warmup',rir:6,weight:'중간중량',reps:6},{type:'top',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'},{type:'main',rir:0,weight:'중간중량',reps:'8-12'}] }
-    ];
-
-    window.totalGlobalSets = 0;
-    window.currentRoutine.forEach(ex => { window.totalGlobalSets += ex.hasLR ? ex.sets.length * 2 : ex.sets.length; });
-
-    const todayCount = document.getElementById('home-today-count');
-    const todaySets = document.getElementById('home-today-sets');
-    if(todayCount) todayCount.innerText = `${window.currentRoutine.length}개 운동`;
-    if(todaySets) todaySets.innerText = `${window.totalGlobalSets}세트`;
-}
-
-window.renderWorkoutList = function() {
-    const listContainer = document.getElementById('workout-exercise-list');
-    if(!listContainer) return;
-    let html = '';
-
-    window.currentRoutine.forEach((ex, index) => {
-        const totalSets = ex.hasLR ? ex.sets.length * 2 : ex.sets.length;
-        const savedData = JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || [];
-        const completedCount = savedData.length;
-        const badgeColor = completedCount === totalSets ? '#E50914' : '#222';
-        const badgeTextColor = completedCount === totalSets ? '#fff' : '#aaa';
-        
-        let toggleHtml = `<div class="toggle-switch-group"><div class="toggle-item active">kg</div><div class="toggle-item">lbs</div></div>`;
-        let lrToggleHtml = ex.hasLR ? `<div style="display:flex; justify-content:center; margin-bottom:15px;"><div class="toggle-switch-group" style="background:#333; padding:4px; border-radius:20px;"><div class="toggle-item active" style="padding:6px 20px;" onclick="switchArm(this, 'R', '${ex.id}', ${index})">오른쪽</div><div class="toggle-item" style="padding:6px 20px;" onclick="switchArm(this, 'L', '${ex.id}', ${index})">왼쪽</div></div></div>` : '';
-        const formHeader = `<div class="set-header-row"><span>중량 (kg)</span><span>횟수</span></div>`;
-
-        let setsHtml = '';
-        let lastType = '';
-        
-        ex.sets.forEach((set, sIdx) => {
-            if (lastType !== set.type) {
-                if (setsHtml !== '') setsHtml += `</div>`; 
-                const badgeText = set.type === 'warmup' ? '웜업 세트' : (set.type === 'top' ? '탑 세트' : '본 세트');
-                setsHtml += `<div class="set-group"><div class="set-badge">${badgeText}</div>${formHeader}`;
-                lastType = set.type;
-            }
-            const defaultSetId = `${set.type}_${sIdx}`;
-            const isChecked = savedData.includes(defaultSetId) ? 'completed' : '';
-            // 웜업은 35초 고정, 탑/본 세트는 각 운동의 권장 휴식시간(rest) 적용
-            const setTimer = set.type === 'warmup' ? 35 : ex.rest; 
-            
-            setsHtml += `
-            <div class="set-row">
-                <div class="set-label">${set.rir} RIR</div>
-                <div class="set-input-box">
-                    <input type="text" class="set-input" placeholder="${set.weight}">
-                    <input type="text" class="set-input" placeholder="${set.reps}">
-                </div>
-                <div class="set-check ${isChecked}" data-id="${defaultSetId}" data-time="${setTimer}" data-ex="${ex.name}">✓</div>
-            </div>`;
-        });
-        setsHtml += `</div>`;
-
-        html += `
-            <div class="ex-row" id="ex-row-${index}">
-                <div class="ex-header" onclick="toggleAccordion(${index})">
-                    <div class="ex-thumb"><img src="${ex.img}"></div>
-                    <div class="ex-info">
-                        <div class="ex-name">${ex.name}</div>
-                        <div class="ex-progress-badge" id="badge-${index}" style="background:${badgeColor}; color:${badgeTextColor};">${completedCount} / ${totalSets} 완료</div>
-                    </div>
-                    <div class="ex-drag-icon">⋮⋮</div>
-                </div>
-                <div class="ex-details">
-                    <div class="ex-detail-img"><img src="${ex.img}"><button class="btn-memo" onclick="openMemoModal('${ex.id}', '${ex.name}'); event.stopPropagation();">메모</button></div>
-                    <div class="ex-tools"><button class="btn-superset">+ 슈퍼세트</button>${toggleHtml}</div>
-                    ${lrToggleHtml}
-                    <div id="sets-container-${index}">${setsHtml}</div>
-                    <div class="set-add-btns"><button>+ 세트 추가</button><button>- 세트 삭제</button></div>
-                </div>
-            </div>
-        `;
-    });
-    
-    listContainer.innerHTML = html + `<div style="height:20px;"></div><div style="width:100%; display:flex; justify-content:center;"><button class="primary-btn" onclick="checkFinishWorkout()" style="margin-bottom:20px; width:100%; max-width:600px;">운동 완료</button></div>`;
-
-    document.querySelectorAll('.set-check').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation(); 
-            this.classList.toggle('completed');
-            const exIndex = this.closest('.ex-row').id.split('-')[2];
-            const exData = window.currentRoutine[exIndex];
-            
-            let setId = this.getAttribute('data-id');
-            if (exData.hasLR && !setId.startsWith('R_') && !setId.startsWith('L_')) {
-                setId = `R_${setId}`;
-                this.setAttribute('data-id', setId);
-            }
-
-            let savedData = JSON.parse(localStorage.getItem(`workout_${exData.id}`)) || [];
-
-            if (this.classList.contains('completed')) {
-                if (!savedData.includes(setId)) savedData.push(setId);
-                startGlobalTimer(parseInt(this.getAttribute('data-time')), this.getAttribute('data-ex'));
-            } else { 
-                savedData = savedData.filter(id => id !== setId); 
-            }
-            
-            localStorage.setItem(`workout_${exData.id}`, JSON.stringify(savedData));
-            
-            const totalSets = exData.hasLR ? exData.sets.length * 2 : exData.sets.length;
-            const badge = document.getElementById(`badge-${exIndex}`);
-            badge.innerText = `${savedData.length} / ${totalSets} 완료`;
-            badge.style.background = savedData.length === totalSets ? '#E50914' : '#222';
-            badge.style.color = savedData.length === totalSets ? '#fff' : '#aaa';
-        });
-    });
-};
-
-window.toggleAccordion = function(index) { document.getElementById(`ex-row-${index}`).classList.toggle('expanded'); };
-
-window.switchArm = function(btn, side, exId, index) {
-    btn.parentElement.querySelectorAll('.toggle-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const savedData = JSON.parse(localStorage.getItem(`workout_${exId}`)) || [];
-    const container = document.getElementById(`sets-container-${index}`);
-    const checks = container.querySelectorAll('.set-check');
-    
-    checks.forEach((check) => {
-        const baseId = check.getAttribute('data-id').replace(/^[RL]_/, '');
-        const newId = `${side}_${baseId}`;
-        check.setAttribute('data-id', newId);
-        
-        if (savedData.includes(newId)) {
-            check.classList.add('completed');
-        } else {
-            check.classList.remove('completed');
-        }
-    });
-};
-
-
-// ==========================================
-// 6. 타이머 및 피드백 모달
-// ==========================================
 window.globalTimerInterval = null;
 window.startGlobalTimer = function(seconds, exName) {
     clearInterval(window.globalTimerInterval);
@@ -395,22 +226,110 @@ window.startGlobalTimer = function(seconds, exName) {
     }, 100);
 };
 
-window.checkFinishWorkout = function() {
-    let completed = 0;
-    window.currentRoutine.forEach(ex => completed += (JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || []).length);
-    
-    if (completed < window.totalGlobalSets) { 
-        hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById('modal-alert-incomplete').classList.add('active'); 
-    } else { 
-        hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); 
-    }
+// ==========================================
+// 4. 유산소 설정 마법사 로직
+// ==========================================
+const cardioSteps = [
+    { title: '어떤 유산소 기구를<br>쓸 수 있나요?', sub: '여러 개 고를 수 있어요.', type: 'multi', options: ['트레드밀', '실내 사이클', '일립티컬', '로잉머신', '없음'] },
+    { title: '불편한 부위가<br>있나요?', sub: '여러 개 고를 수 있어요.', type: 'multi', options: ['무릎·발목', '허리', '어깨·팔꿈치', '없음'] },
+    { title: '유산소로 무엇을<br>얻고 싶나요?', sub: '', type: 'single', options: ['건강 유지', '심폐 체력', '체지방 감량'] },
+    { title: '일주일에 몇 번<br>하실 건가요?', sub: '유산소는 근력 운동을 하는 날에 이어서 해요.', type: 'grid', options: [1,2,3,4,5,6,7], rec: 3 },
+    { title: '한 번에 몇 분<br>하실 건가요?', sub: '', type: 'time', chips: ['걷기 (러닝머신)', '사이클링', '인클라인 걷기 (러닝머신)'] }
+];
+
+window.cardioStepIdx = 0;
+window.currentCardioMins = 60;
+
+window.startCardioWizard = function() {
+    window.cardioStepIdx = 0;
+    window.currentCardioMins = 60; 
+    renderCardioStep();
+    openBottomSheet('cardio-wizard');
 };
 
-window.forceEndWorkout = function() { 
-    hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); 
+window.renderCardioStep = function() {
+    const data = cardioSteps[window.cardioStepIdx];
+    document.getElementById('cw-step-text').innerText = `질문 ${window.cardioStepIdx+1}/5`;
+    document.getElementById('cw-progress-fill').style.width = `${((window.cardioStepIdx+1)/5)*100}%`;
+
+    let html = `<div class="cw-q-num" style="margin-top:20px;">질문 ${window.cardioStepIdx+1}</div><div class="cw-q-title">${data.title}</div><div class="cw-q-sub">${data.sub}</div>`;
+
+    if (data.type === 'multi' || data.type === 'single') {
+        html += `<div class="cw-options">`;
+        data.options.forEach(opt => { html += `<div class="cw-opt-btn" onclick="toggleCardioOpt(this, '${data.type}')"><div class="cw-check"></div>${opt}</div>`; });
+        html += `</div>`;
+    } else if (data.type === 'grid') {
+        html += `<div class="cw-grid">`;
+        data.options.forEach(opt => {
+            const isRec = opt === data.rec ? `<div class="cw-rec-badge">추천</div>` : '';
+            html += `<div class="cw-grid-btn ${opt===data.rec?'active':''}" onclick="selectCardioGrid(this)">${isRec}<span class="cw-g-num">${opt}</span><span class="cw-g-sub">회/주</span></div>`;
+        });
+        html += `</div>`;
+    } else if (data.type === 'time') {
+        html += `<div class="cw-time-wrap"><div class="cw-t-chips">` + data.chips.map((c,i) => `<div class="cw-t-chip ${i===0?'active':''}" onclick="changeCardioType(this, '${c}')">${c}</div>`).join('') + `</div>`;
+        html += `<div class="cw-time-box"><button class="cw-t-btn" onclick="changeCardioTime(-5)">-</button><div class="cw-t-val-box"><div class="cw-t-val" id="cw-time-val">${window.currentCardioMins}<span>분</span></div><div class="cw-t-badge">추천</div></div><button class="cw-t-btn" onclick="changeCardioTime(5)">+</button></div></div>`;
+    }
+
+    document.getElementById('cw-render-area').innerHTML = html;
+    document.getElementById('btn-cw-prev').style.display = window.cardioStepIdx === 0 ? 'none' : 'block';
+    document.getElementById('btn-cw-next').innerText = window.cardioStepIdx === 4 ? '유산소 저장하기' : '다음';
 };
-window.selectFeedback = function(btn) {
-    document.querySelectorAll('.fm-opt-btn').forEach(b => b.classList.remove('active'));
+
+window.toggleCardioOpt = function(btn, type) {
+    if (type === 'single') btn.parentElement.querySelectorAll('.cw-opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.toggle('active');
+};
+window.selectCardioGrid = function(btn) {
+    btn.parentElement.querySelectorAll('.cw-grid-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('btn-submit-feedback').disabled = false;
+};
+window.changeCardioType = function(btn, type) {
+    btn.parentElement.querySelectorAll('.cw-t-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (type.includes('사이클링')) window.currentCardioMins = 35;
+    else if (type.includes('인클라인')) window.currentCardioMins = 30;
+    else window.currentCardioMins = 60;
+    document.getElementById('cw-time-val').innerHTML = `${window.currentCardioMins}<span>분</span>`;
+};
+window.changeCardioTime = function(amount) {
+    window.currentCardioMins += amount;
+    if(window.currentCardioMins < 5) window.currentCardioMins = 5;
+    document.getElementById('cw-time-val').innerHTML = `${window.currentCardioMins}<span>분</span>`;
+};
+
+// ==========================================
+// 5. 과부하 코치 로직 (8단계)
+// ==========================================
+const coachData = [
+    { sub: '', title: '두 번째 운동도 완료했어요!', content: '<p class="coach-desc" style="color:#fff;">두 번째 운동까지 잘 마무리하셨네요.<br><br>지금은 사용자님의 운동 패턴을 알아가는 첫 주예요. 오늘도 실제로 수행한 중량과 횟수를 정확하게 기록해주세요.<br><br>오늘 운동도 수고하셨어요!</p>' },
+    { sub: '완료 현황', title: '마치지 못한 세트가 있어요', content: '<div class="coach-box"><div class="cb-row"><span class="cb-name" style="color:#fff;">케이블 트라이셉 푸시다운</span><span style="color:#888;">1번째 세트 미완료</span></div><div class="cb-row"><span class="cb-name" style="color:#fff;">덤벨 레터럴 레이즈</span><span style="color:#888;">1번째 세트 미완료</span></div></div><p class="coach-desc" style="margin-top:20px;">컨디션이 좋지 않거나 시간이 부족했다면 억지로 완료할 필요는 없어요.<br><br>다음 운동에서 다시 차근차근 이어가보세요!<br><br>2주차부터는 알고리즘이 피로도에 따라 루틴을 조절해드리니 걱정하지 않으셔도 됩니다:)</p>' },
+    { sub: '세트 퍼포먼스 분석', title: '강도를 조금 더 높여봐도 좋아요', content: '<div class="coach-box"><span class="cb-name">바벨 프리처 컬</span><div class="cb-row"><span>2번째 세트</span><span class="cb-val">9회</span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val">9회</span></div></div><p class="coach-desc" style="margin-top:20px;">일반적으로 세트가 진행될수록 횟수가 감소하는 게 정상이에요.<br><br>아마 <span style="color:var(--primary); font-weight:bold;">세트 사이 회복이 충분했거나</span> 회복 속도가 빨라 횟수가 유지된 것 같아요. 큰 문제는 아니에요.<br><br>다만 스스로 느끼시기에 강도가 높지 않았다면, 더 좋은 근성장을 위해 다음엔 권장 RIR에 맞춰 조금 더 높은 강도로 수행해보세요.</p>' },
+    { sub: '세트 퍼포먼스 분석', title: '강도를 조금 더 높여봐요', content: '<div class="coach-box"><span class="cb-name">원암 덤벨 트라이셉 익스텐션</span><div class="cb-row"><span>1번째 세트</span><span class="cb-val">11회</span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val">12회</span></div></div><p class="coach-desc" style="margin-top:20px;">보통 세트가 진행될수록 피로로 횟수가 줄어드는데, 뒤 세트에서 오히려 더 많이 수행했어요.<br><br>앞선 세트의 강도가 낮았을 수 있어요. 다음엔 권장 RIR에 맞춰 조금 더 높은 강도로 수행해보세요!</p>' },
+    { sub: '세트 퍼포먼스 분석', title: '강도를 조금 더 높여봐요', content: '<div class="coach-box"><span class="cb-name">바벨 바이셉 컬</span><div class="cb-row"><span>1번째 세트</span><span class="cb-val">6회</span></div><div class="cb-row"><span>2번째 세트</span><span class="cb-val">7회</span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val">10회</span></div></div><p class="coach-desc" style="margin-top:20px;">보통 세트가 진행될수록 피로로 횟수가 줄어드는데, 뒤 세트에서 오히려 더 많이 수행했어요.<br><br>앞선 세트의 강도가 낮았을 수 있어요. 다음엔 권장 RIR에 맞춰 조금 더 높은 강도로 수행해보세요!</p>' },
+    { sub: '권장 횟수 분석', title: '중량이 조금 가벼웠어요', content: '<div class="coach-box"><span class="cb-name">오버헤드 프레스</span><div class="cb-row" style="margin-bottom:8px;"><span>1번째 세트</span><span class="cb-val" style="color:#aaa;">60kg × 9회 <span style="color:#666;">· 권장 4~7회</span></span></div><div class="cb-row" style="margin-bottom:8px;"><span>2번째 세트</span><span class="cb-val" style="color:#aaa;">20kg × 25회 <span style="color:#666;">· 권장 8~12회</span></span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val" style="color:#aaa;">30kg × 20회 <span style="color:#666;">· 권장 8~12회</span></span></div></div><p class="coach-desc" style="margin-top:20px;">위 세트가 <span style="color:var(--primary); font-weight:bold;">권장 횟수 범위</span>를 넘어섰어요. 적정 중량을 아직 가늠하지 못해 조금 가볍게 설정했을 수 있어요.<br><br>괜찮아요! 이번 수행 결과를 바탕으로 다음주부터는 더 적절한 중량을 안내해드릴게요.</p>' },
+    { sub: '권장 횟수 분석', title: '중량이 조금 무거웠어요', content: '<div class="coach-box"><span class="cb-name">바벨 프리처 컬</span><div class="cb-row" style="margin-bottom:12px;"><span>수행</span><span class="cb-val" style="color:#aaa;">25kg × 6회</span></div><div class="cb-row" style="margin-bottom:12px;"><span>권장</span><span class="cb-val" style="color:#aaa;">8~12회</span></div><div class="cb-row"><span>차이</span><span class="cb-val" style="color:#aaa;">-2회</span></div></div><p class="coach-desc" style="margin-top:20px;">권장 범위보다 <span style="color:var(--primary); font-weight:bold;">적게</span> 수행하셨어요. 아직 익숙하지 않은 운동이라면 적정 중량을 가늠하기 어려울 수 있어요.<br><br>괜찮아요! 이번 수행 결과를 바탕으로 다음주부터는 더 적절한 중량을 안내해드릴게요.</p>' },
+    { sub: '권장 횟수 분석', title: '중량이 조금 가벼웠어요', content: '<div class="coach-box"><span class="cb-name">원암 덤벨 트라이셉 익스텐션</span><div class="cb-row" style="margin-bottom:12px;"><span>수행</span><span class="cb-val" style="color:#aaa;">6kg × 15회</span></div><div class="cb-row" style="margin-bottom:12px;"><span>권장</span><span class="cb-val" style="color:#aaa;">8~12회</span></div><div class="cb-row"><span>차이</span><span class="cb-val" style="color:#aaa;">+3회</span></div></div><p class="coach-desc" style="margin-top:20px;">권장 범위보다 <span style="color:var(--primary); font-weight:bold;">많이</span> 수행하셨어요. 아직 익숙하지 않은 운동이라면 적정 중량을 가늠하기 어려울 수 있어요.<br><br>괜찮아요! 이번 수행 결과를 바탕으로 다음주부터는 더 적절한 중량을 안내해드릴게요.</p>' }
+];
+
+window.coachStepIdx = 0;
+
+window.startOverloadCoach = function() {
+    window.coachStepIdx = 0;
+    renderCoachStep();
+    openBottomSheet('coach');
+};
+
+window.renderCoachStep = function() {
+    const data = coachData[window.coachStepIdx];
+    const subText = document.getElementById('coach-sub-text');
+    if(data.sub) { subText.style.display = 'block'; subText.innerText = data.sub; } else { subText.style.display = 'none'; }
+    document.getElementById('coach-title-text').innerText = data.title;
+    document.getElementById('coach-content-area').innerHTML = data.content;
+    
+    let dotsHtml = '';
+    for(let i=0; i<coachData.length; i++) {
+        dotsHtml += `<div class="cdot ${i===window.coachStepIdx?'active':''}"></div>`;
+    }
+    document.getElementById('coach-dots-area').innerHTML = dotsHtml;
+    document.getElementById('btn-coach-next').innerText = window.coachStepIdx === coachData.length - 1 ? '완료' : '다음';
 };
