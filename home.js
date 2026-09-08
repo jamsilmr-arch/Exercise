@@ -1,3 +1,6 @@
+// ==========================================
+// 1. 화면 전환 핸들러
+// ==========================================
 window.switchView = function(targetId) {
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
@@ -20,7 +23,11 @@ window.switchView = function(targetId) {
     }
 };
 
+// ==========================================
+// 2. 홈 화면 데이터 바인딩 및 퍼센티지 계산
+// ==========================================
 function renderHomeData(wizardData) {
+    // 1. 선택한 루틴 타이틀
     const frequency = parseInt(wizardData?.question_6?.value) || 6;
     let splitName = '몸통-말단-하체';
     if (frequency === 3) splitName = '상체-하체-전신';
@@ -31,12 +38,10 @@ function renderHomeData(wizardData) {
         routineTitleElem.innerText = `주 ${frequency}회 (${splitName}) 루틴`;
     }
     
+    // 2. 주간 요일 블록 렌더링
+    // (임시로 현재를 1일차로 가정)
+    const currentDay = 1; 
     let weekBlocksHtml = '';
-    
-    // Day 2라고 가정 (실제로는 로컬스토리지나 DB에서 진행 일수를 가져와야 함)
-    // 지금은 스크린샷과 흐름에 맞추기 위해 강제로 2일차로 시뮬레이션 합니다.
-    const currentDay = 2; 
-
     for (let i = 1; i <= frequency; i++) {
         weekBlocksHtml += `<div class="wb-item ${i === currentDay ? 'active' : ''}"><span class="wb-num">${i}</span>Day</div>`;
     }
@@ -47,18 +52,23 @@ function renderHomeData(wizardData) {
         weekBlocksElem.innerHTML = weekBlocksHtml;
     }
 
-    // [신규] 맞춤 코칭 데이터 분석 퍼센티지 동적 계산 (총 7일 기준 현재 일수 비율)
-    const totalDaysInWeek = 7;
-    // 계산식: (현재까지 완료한 일수 / 일주일) * 100
-    // 여기서는 currentDay를 기준으로 보여줍니다.
-    let analyzePercent = Math.round((currentDay / totalDaysInWeek) * 100);
+    // 3. [완벽 수정본] 실제 입력 데이터를 기반으로 분석 퍼센티지 계산
+    // 로컬 스토리지에 저장된 '운동 완료된 날짜 수'를 가져옴 (없으면 0)
+    let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
+    
+    // 목표 일수 (1주일)
+    const targetDays = frequency; 
+    
+    // 퍼센티지 도출 (입력한 데이터가 없으면 0 / 목표 일수 = 0%)
+    let analyzePercent = Math.round((completedDays / targetDays) * 100);
     if(analyzePercent > 100) analyzePercent = 100;
+    if(analyzePercent < 0 || isNaN(analyzePercent)) analyzePercent = 0;
     
     const dpFill = document.querySelector('.dp-bar-fill');
     const dpText = document.querySelector('.dp-text');
     
     if(dpFill && dpText) {
-        // 애니메이션 효과를 위해 0.1초 뒤에 너비 지정
+        // 애니메이션 효과를 위해 약간의 딜레이
         setTimeout(() => {
             dpFill.style.width = `${analyzePercent}%`;
             dpText.innerText = `${analyzePercent}%`;
@@ -66,6 +76,7 @@ function renderHomeData(wizardData) {
     }
 }
 
+// 유저 데이터 로드
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         try {
@@ -77,6 +88,9 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
+// ==========================================
+// 3. 버튼 클릭 및 컨디션 체크 이벤트 바인딩
+// ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     const btnGoCondition = document.getElementById('btn-go-condition');
     if (btnGoCondition) {
