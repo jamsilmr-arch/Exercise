@@ -10,11 +10,12 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// 전역 상태 변수
 window.currentRoutine = [];
 window.totalGlobalSets = 0;
 
 // ==========================================
-// 2. 공통 UI 주입
+// 2. DOM 로드 시 공통 UI(네비게이션, 팝업) 자동 주입
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     const path = window.location.pathname;
@@ -35,7 +36,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const timerHtml = `
         <div class="global-sticky-timer" id="global-timer-ui">
             <div class="gst-top">
-                <div class="gst-info"><span class="gst-name" id="gst-ex-name">운동 이름</span><span class="gst-sub" id="gst-rest-text">권장 휴식 시간 01:30</span><div class="gst-time" id="gst-time-display">01:30</div></div>
+                <div class="gst-info">
+                    <span class="gst-name" id="gst-ex-name">운동 이름</span>
+                    <span class="gst-sub" id="gst-rest-text">권장 휴식 시간 01:30</span>
+                    <div class="gst-time" id="gst-time-display">01:30</div>
+                </div>
                 <div class="gst-controls"><span id="gst-pause">⏸</span><span id="gst-close">✕</span></div>
             </div>
             <div class="gst-progress-bar"><div class="gst-progress-fill" id="gst-progress"></div></div>
@@ -47,7 +52,10 @@ document.addEventListener("DOMContentLoaded", function () {
             
             <div class="bottom-sheet-modal" id="bs-info">
                 <div class="bs-header"><span style="width:24px;"></span><span class="bs-title">나의 정보</span><span class="modal-close" onclick="closeModal()">✕</span></div>
-                <div class="bs-content"><div class="st-item" style="padding:0; border:none; margin-bottom:15px;" onclick="openBottomSheet('gender')"><div class="st-left" style="font-size:1.1rem; font-weight:normal; color:#fff;">성별</div><div class="st-right" style="font-size:1.1rem;">남성 <span class="st-arrow">></span></div></div><div class="st-item" style="padding:0; border:none;" onclick="openBottomSheet('weight')"><div class="st-left" style="font-size:1.1rem; font-weight:normal; color:#fff;">몸무게</div><div class="st-right" style="font-size:1.1rem;">72kg <span class="st-arrow">></span></div></div></div>
+                <div class="bs-content">
+                    <div class="st-item" style="padding:0; border:none; margin-bottom:15px;" onclick="openBottomSheet('gender')"><div class="st-left" style="font-size:1.1rem; font-weight:normal; color:#fff;">성별</div><div class="st-right" style="font-size:1.1rem;">남성 <span class="st-arrow">></span></div></div>
+                    <div class="st-item" style="padding:0; border:none;" onclick="openBottomSheet('weight')"><div class="st-left" style="font-size:1.1rem; font-weight:normal; color:#fff;">몸무게</div><div class="st-right" style="font-size:1.1rem;">72kg <span class="st-arrow">></span></div></div>
+                </div>
             </div>
 
             <div class="bottom-sheet-modal" id="bs-gender">
@@ -60,7 +68,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="bs-content"><div class="bs-input-wrap"><input type="number" value="72"><span class="bs-unit">kg</span></div><button class="primary-btn" onclick="openBottomSheet('info')">저장</button></div>
             </div>
 
-            <!-- [신규] 근육통 선택 바텀 시트 -->
             <div class="full-bottom-sheet" id="bs-muscle-pain" style="height: 85vh;">
                 <div class="bs-header" style="border-bottom: none;">
                     <span class="bs-title">어디에 근육통이 있나요?</span><span class="modal-close" onclick="closeModal()">✕</span>
@@ -72,7 +79,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="pain-chip" onclick="this.classList.toggle('active')">목</div>
                         <div class="pain-chip" onclick="this.classList.toggle('active')">기립근</div>
                     </div>
-
                     <div class="pain-section-title">상체</div>
                     <div class="pain-chips-wrap">
                         <div class="pain-chip" onclick="this.classList.toggle('active')">가슴</div>
@@ -84,7 +90,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="pain-chip" onclick="this.classList.toggle('active')">삼두근</div>
                         <div class="pain-chip" onclick="this.classList.toggle('active')">전완</div>
                     </div>
-
                     <div class="pain-section-title">하체</div>
                     <div class="pain-chips-wrap">
                         <div class="pain-chip" onclick="this.classList.toggle('active')">대퇴사두</div>
@@ -144,10 +149,36 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.insertAdjacentHTML('beforeend', navHtml);
     document.body.insertAdjacentHTML('beforeend', modalsHtml);
 
+    // [핵심] 화면 전환 함수
+    window.switchView = function(targetId) {
+        document.querySelectorAll('.view-container').forEach(view => { 
+            view.classList.remove('active'); 
+            view.style.display = 'none'; 
+        });
+        const targetView = document.getElementById(targetId);
+        if(targetView) { 
+            targetView.classList.add('active'); 
+            targetView.style.display = 'block'; 
+            window.scrollTo(0, 0); 
+        }
+        
+        const mainNav = document.getElementById('main-nav');
+        if (mainNav) {
+            if (targetId === 'view-workout' || targetId === 'view-condition' || targetId === 'view-summary') {
+                mainNav.style.display = 'none';
+            } else {
+                mainNav.style.display = 'flex';
+            }
+        }
+    };
+
     attachCommonEvents();
     if(typeof initWorkoutData === 'function') initWorkoutData(); 
 });
 
+// ==========================================
+// 3. 공통 팝업 및 이벤트 제어 로직
+// ==========================================
 function attachCommonEvents() {
     const modalOverlay = document.getElementById('common-modal-overlay');
     modalOverlay.addEventListener('click', (e) => {
@@ -170,13 +201,33 @@ function attachCommonEvents() {
         }
     });
 
-    // [신규] 근육통 팝업 내 '운동 시작' 버튼 이벤트
     const btnPainStart = document.getElementById('btn-pain-start-workout');
     if (btnPainStart) {
         btnPainStart.addEventListener('click', () => {
             closeModal();
             if (typeof renderWorkoutList === 'function') renderWorkoutList();
             if (typeof switchView === 'function') switchView('view-workout');
+        });
+    }
+
+    const btnSubmitFeedback = document.getElementById('btn-submit-feedback');
+    if(btnSubmitFeedback) {
+        btnSubmitFeedback.addEventListener('click', () => {
+            closeModal();
+            if (typeof switchView === 'function') switchView('view-summary'); 
+        });
+    }
+
+    const btnCoachNext = document.getElementById('btn-coach-next');
+    if(btnCoachNext) {
+        btnCoachNext.addEventListener('click', () => {
+            if(window.coachStepIdx < coachData.length - 1) {
+                window.coachStepIdx++;
+                renderCoachStep();
+            } else {
+                closeModal();
+                if (typeof switchView === 'function') switchView('view-feedback'); 
+            }
         });
     }
 }
@@ -299,4 +350,62 @@ window.startGlobalTimer = function(seconds, exName) {
             document.getElementById('gst-progress').style.width = `${(remaining/totalDuration)*100}%`;
         }
     }, 100);
+};
+
+window.checkFinishWorkout = function() {
+    let completed = 0;
+    window.currentRoutine.forEach(ex => completed += (JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || []).length);
+    
+    if (completed < window.totalGlobalSets) { 
+        hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById('modal-alert-incomplete').classList.add('active'); 
+    } else { 
+        hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); 
+    }
+};
+
+window.forceEndWorkout = function() { 
+    hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); 
+};
+
+window.selectFeedback = function(btn) {
+    document.querySelectorAll('.fm-opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('btn-submit-feedback').disabled = false;
+};
+
+// ==========================================
+// 6. 과부하 코치 로직 (8단계 매핑)
+// ==========================================
+const coachData = [
+    { sub: '', title: '두 번째 운동도 완료했어요!', content: '<p class="coach-desc" style="color:#fff;">두 번째 운동까지 잘 마무리하셨네요.<br><br>지금은 사용자님의 운동 패턴을 알아가는 첫 주예요. 오늘도 실제로 수행한 중량과 횟수를 정확하게 기록해주세요.<br><br>오늘 운동도 수고하셨어요!</p>' },
+    { sub: '완료 현황', title: '마치지 못한 세트가 있어요', content: '<div class="coach-box"><div class="cb-row"><span class="cb-name" style="color:#fff;">케이블 트라이셉 푸시다운</span><span style="color:#888;">1번째 세트 미완료</span></div><div class="cb-row"><span class="cb-name" style="color:#fff;">덤벨 레터럴 레이즈</span><span style="color:#888;">1번째 세트 미완료</span></div></div><p class="coach-desc" style="margin-top:20px;">컨디션이 좋지 않거나 시간이 부족했다면 억지로 완료할 필요는 없어요.<br><br>다음 운동에서 다시 차근차근 이어가보세요!<br><br>2주차부터는 알고리즘이 피로도에 따라 루틴을 조절해드리니 걱정하지 않으셔도 됩니다:)</p>' },
+    { sub: '세트 퍼포먼스 분석', title: '강도를 조금 더 높여봐도 좋아요', content: '<div class="coach-box"><span class="cb-name">바벨 프리처 컬</span><div class="cb-row"><span>2번째 세트</span><span class="cb-val">9회</span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val">9회</span></div></div><p class="coach-desc" style="margin-top:20px;">일반적으로 세트가 진행될수록 횟수가 감소하는 게 정상이에요.<br><br>아마 <span style="color:var(--primary); font-weight:bold;">세트 사이 회복이 충분했거나</span> 회복 속도가 빨라 횟수가 유지된 것 같아요. 큰 문제는 아니에요.<br><br>다만 스스로 느끼시기에 강도가 높지 않았다면, 더 좋은 근성장을 위해 다음엔 권장 RIR에 맞춰 조금 더 높은 강도로 수행해보세요.</p>' },
+    { sub: '세트 퍼포먼스 분석', title: '강도를 조금 더 높여봐요', content: '<div class="coach-box"><span class="cb-name">원암 덤벨 트라이셉 익스텐션</span><div class="cb-row"><span>1번째 세트</span><span class="cb-val">11회</span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val">12회</span></div></div><p class="coach-desc" style="margin-top:20px;">보통 세트가 진행될수록 피로로 횟수가 줄어드는데, 뒤 세트에서 오히려 더 많이 수행했어요.<br><br>앞선 세트의 강도가 낮았을 수 있어요. 다음엔 권장 RIR에 맞춰 조금 더 높은 강도로 수행해보세요!</p>' },
+    { sub: '세트 퍼포먼스 분석', title: '강도를 조금 더 높여봐요', content: '<div class="coach-box"><span class="cb-name">바벨 바이셉 컬</span><div class="cb-row"><span>1번째 세트</span><span class="cb-val">6회</span></div><div class="cb-row"><span>2번째 세트</span><span class="cb-val">7회</span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val">10회</span></div></div><p class="coach-desc" style="margin-top:20px;">보통 세트가 진행될수록 피로로 횟수가 줄어드는데, 뒤 세트에서 오히려 더 많이 수행했어요.<br><br>앞선 세트의 강도가 낮았을 수 있어요. 다음엔 권장 RIR에 맞춰 조금 더 높은 강도로 수행해보세요!</p>' },
+    { sub: '권장 횟수 분석', title: '중량이 조금 가벼웠어요', content: '<div class="coach-box"><span class="cb-name">오버헤드 프레스</span><div class="cb-row" style="margin-bottom:8px;"><span>1번째 세트</span><span class="cb-val" style="color:#aaa;">60kg × 9회 <span style="color:#666;">· 권장 4~7회</span></span></div><div class="cb-row" style="margin-bottom:8px;"><span>2번째 세트</span><span class="cb-val" style="color:#aaa;">20kg × 25회 <span style="color:#666;">· 권장 8~12회</span></span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val" style="color:#aaa;">30kg × 20회 <span style="color:#666;">· 권장 8~12회</span></span></div></div><p class="coach-desc" style="margin-top:20px;">위 세트가 <span style="color:var(--primary); font-weight:bold;">권장 횟수 범위</span>를 넘어섰어요. 적정 중량을 아직 가늠하지 못해 조금 가볍게 설정했을 수 있어요.<br><br>괜찮아요! 이번 수행 결과를 바탕으로 다음주부터는 더 적절한 중량을 안내해드릴게요.</p>' },
+    { sub: '권장 횟수 분석', title: '중량이 조금 무거웠어요', content: '<div class="coach-box"><span class="cb-name">바벨 프리처 컬</span><div class="cb-row" style="margin-bottom:12px;"><span>수행</span><span class="cb-val" style="color:#aaa;">25kg × 6회</span></div><div class="cb-row" style="margin-bottom:12px;"><span>권장</span><span class="cb-val" style="color:#aaa;">8~12회</span></div><div class="cb-row"><span>차이</span><span class="cb-val" style="color:#aaa;">-2회</span></div></div><p class="coach-desc" style="margin-top:20px;">권장 범위보다 <span style="color:var(--primary); font-weight:bold;">적게</span> 수행하셨어요. 아직 익숙하지 않은 운동이라면 적정 중량을 가늠하기 어려울 수 있어요.<br><br>괜찮아요! 이번 수행 결과를 바탕으로 다음주부터는 더 적절한 중량을 안내해드릴게요.</p>' },
+    { sub: '권장 횟수 분석', title: '중량이 조금 가벼웠어요', content: '<div class="coach-box"><span class="cb-name">원암 덤벨 트라이셉 익스텐션</span><div class="cb-row" style="margin-bottom:12px;"><span>수행</span><span class="cb-val" style="color:#aaa;">6kg × 15회</span></div><div class="cb-row" style="margin-bottom:12px;"><span>권장</span><span class="cb-val" style="color:#aaa;">8~12회</span></div><div class="cb-row"><span>차이</span><span class="cb-val" style="color:#aaa;">+3회</span></div></div><p class="coach-desc" style="margin-top:20px;">권장 범위보다 <span style="color:var(--primary); font-weight:bold;">많이</span> 수행하셨어요. 아직 익숙하지 않은 운동이라면 적정 중량을 가늠하기 어려울 수 있어요.<br><br>괜찮아요! 이번 수행 결과를 바탕으로 다음주부터는 더 적절한 중량을 안내해드릴게요.</p>' }
+];
+
+window.coachStepIdx = 0;
+
+window.startOverloadCoach = function() {
+    window.coachStepIdx = 0;
+    renderCoachStep();
+    openBottomSheet('coach');
+};
+
+window.renderCoachStep = function() {
+    const data = coachData[window.coachStepIdx];
+    const subText = document.getElementById('coach-sub-text');
+    if(data.sub) { subText.style.display = 'block'; subText.innerText = data.sub; } else { subText.style.display = 'none'; }
+    document.getElementById('coach-title-text').innerText = data.title;
+    document.getElementById('coach-content-area').innerHTML = data.content;
+    
+    let dotsHtml = '';
+    for(let i=0; i<coachData.length; i++) {
+        dotsHtml += `<div class="cdot ${i===window.coachStepIdx?'active':''}"></div>`;
+    }
+    document.getElementById('coach-dots-area').innerHTML = dotsHtml;
+    document.getElementById('btn-coach-next').innerText = window.coachStepIdx === coachData.length - 1 ? '완료' : '다음';
 };
