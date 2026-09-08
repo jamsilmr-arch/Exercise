@@ -76,8 +76,8 @@ body {
 .target-split-bar {
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* 왼쪽부터 차례대로 정렬 */
-    gap: 15px; /* 블록과 텍스트 사이 간격 */
+    justify-content: flex-start;
+    gap: 15px; 
     width: 100%;
     margin-bottom: 25px;
     padding: 0 20px;
@@ -85,18 +85,18 @@ body {
 
 .split-blocks {
     display: flex;
-    gap: 4px; /* 블록 사이 간격 */
+    gap: 4px;
 }
 
 .s-block {
-    width: 32px; /* 스크린샷 비율에 맞춘 고정 너비 */
-    height: 18px; /* 스크린샷 비율에 맞춘 고정 높이 */
-    background-color: #6b4cff; /* 스크린샷의 보라색 */
+    width: 32px; 
+    height: 18px; 
+    background-color: #333; /* 근비대: 다크 그레이 (넷플릭스 서브 컬러) */
     border-radius: 4px;
 }
 
 .s-block.cyan { 
-    background-color: #00d2a0; /* 스크린샷의 민트색 */
+    background-color: var(--primary); /* 스트렝스: 강렬한 레드 (넷플릭스 메인 컬러) */
 }
 
 .target-split-text {
