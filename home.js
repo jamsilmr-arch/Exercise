@@ -24,20 +24,26 @@ window.switchView = function(targetId) {
 // 홈 화면 데이터 바인딩 및 동적 진행도 계산
 // ==========================================
 function renderHomeData(wizardData) {
-    // 1. 선택한 루틴 타이틀
-    const frequency = parseInt(wizardData?.question_6?.value) || 6;
-    let splitName = '몸통-말단-하체';
-    if (frequency === 3) splitName = '상체-하체-전신';
-    else if (frequency === 4) splitName = '상체-하체-상체-하체';
-
+    // 1. [수정됨] 루틴 타이틀 결정 (사용자가 변경/저장한 루틴 우선)
+    const activeTitle = localStorage.getItem('active_routine_title');
+    const activeFreq = parseInt(localStorage.getItem('active_routine_freq'));
+    
+    const frequency = activeFreq || parseInt(wizardData?.question_6?.value) || 6;
+    
     const routineTitleElem = document.getElementById('home-routine-title');
     if (routineTitleElem) {
-        routineTitleElem.innerText = `주 ${frequency}회 (${splitName}) 루틴`;
+        if (activeTitle) {
+            routineTitleElem.innerText = activeTitle;
+        } else {
+            // 기본값 폴백
+            let splitName = '몸통-말단-하체';
+            if (frequency === 3) splitName = '상체-하체-전신';
+            else if (frequency === 4) splitName = '상체-하체-상체-하체';
+            routineTitleElem.innerText = `주 ${frequency}회 (${splitName}) 루틴`;
+        }
     }
     
-    // 2. [신규] 스트렝스/근비대 목표 비율 동적 렌더링
-    // 온보딩에서 사용자가 입력한 목표치 (데이터가 없으면 기본값 25:75)
-    // 실제 wizardData 구조에 맞춰 question_X 부분을 수정해 사용하시면 됩니다.
+    // 2. 스트렝스/근비대 목표 비율 동적 렌더링
     const strengthRatio = parseInt(wizardData?.goal_strength?.value) || 25; 
     const hypertrophyRatio = parseInt(wizardData?.goal_hypertrophy?.value) || 75;
     
@@ -46,13 +52,11 @@ function renderHomeData(wizardData) {
         ratioTextElem.innerText = `스트렝스 ${strengthRatio} : 근비대 ${hypertrophyRatio}`;
     }
 
-    // 블록 4개 색상 동적 렌더링 (25%당 블록 1개 할당)
     const strengthBlocksCount = Math.round(strengthRatio / 25);
     const splitBlocksContainer = document.querySelector('.split-blocks');
     if (splitBlocksContainer) {
         let blocksHtml = '';
         for (let i = 0; i < 4; i++) {
-            // 스트렝스 비율만큼 민트색(cyan), 나머지는 보라색 할당
             if (i < strengthBlocksCount) {
                 blocksHtml += `<div class="s-block cyan"></div>`;
             } else {
@@ -62,7 +66,7 @@ function renderHomeData(wizardData) {
         splitBlocksContainer.innerHTML = blocksHtml;
     }
 
-    // 3. 완료한 일수 데이터를 로컬스토리지에서 가져옴 (초기값 0)
+    // 3. 완료한 일수 데이터를 로컬스토리지에서 가져옴
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     
     let currentDay = completedDays + 1;
