@@ -1,5 +1,43 @@
+// 하단 공통 메뉴 렌더링 (현재 'routine' 탭 활성화)
+// app.js가 먼저 로드되므로, DOMContentLoaded 이후에 메뉴가 생기지만 명시적으로 상태를 남김
+window.activeTab = 'routine';
+
 // ==========================================
-// 1. 썸네일 이미지 DB 및 프리셋
+// 1. 유저 데이터 연동 (동적 문구 렌더링)
+// ==========================================
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        try {
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            if (userDoc.exists && userDoc.data().wizardData) {
+                const wizardData = userDoc.data().wizardData;
+                
+                // 1) 온보딩에서 입력한 주 N회 데이터 가져오기
+                const frequency = parseInt(wizardData?.question_6?.value) || 6;
+                
+                // 2) 상단 알림 문구 동적 변경
+                const noticeElem = document.getElementById('routine-notice-text');
+                if (noticeElem) {
+                    noticeElem.innerText = `ⓘ 주 ${frequency}일(!)로 루틴을 수정하세요`;
+                }
+
+                // 3) '내 루틴' 사용 중인 카드 제목 변경
+                let splitName = '몸통-말단-하체';
+                if (frequency === 3) splitName = '상체-하체-전신';
+                else if (frequency === 4) splitName = '상체-하체-상체-하체';
+                
+                const currentTitleElem = document.getElementById('rl-current-title');
+                if(currentTitleElem) {
+                    currentTitleElem.innerText = `주 ${frequency}회 (${splitName}) 루틴`;
+                }
+            }
+        } catch(e) { console.error("데이터 로드 실패:", e); }
+    }
+});
+
+
+// ==========================================
+// 2. 썸네일 이미지 DB 및 프리셋
 // ==========================================
 const imgDB = {
     chest_bench: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif',
@@ -24,7 +62,7 @@ const thumbPresets = {
 };
 
 // ==========================================
-// 2. 전체 루틴 데이터베이스
+// 3. 전체 루틴 데이터베이스
 // ==========================================
 const routineDB = {
     'rt_2_full': {
@@ -149,7 +187,7 @@ const routineDB = {
 };
 
 // ==========================================
-// 3. 루틴 상세 프리뷰 오픈 로직
+// 4. 루틴 상세 프리뷰 오픈 로직
 // ==========================================
 window.openDetail = function(rtId) {
     const data = routineDB[rtId] || routineDB['rt_6_body_limb_lower']; 
