@@ -620,3 +620,44 @@ body {
     color: #aaa;
     white-space: nowrap; /* 텍스트가 줄바꿈되지 않도록 고정 */
 }
+/* --- [수정됨] 하단 네비게이션 고정 및 디자인 (색상 구분) --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
+    background-color: #1e1e1e; /* 본문(검정)보다 살짝 밝은 회색으로 변경 */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #333; /* 경계선 색상 강화 */
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.5); /* 상단에 그림자를 줘서 입체감 형성 */
+    z-index: 9999;
+}
+
+.bottom-nav .nav-item {
+    color: #888; /* 기본 아이콘 색상 살짝 밝게 */
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.bottom-nav .nav-item.active {
+    color: var(--primary); /* 활성화 탭 빨간색 */
+}
+
+.bottom-nav .nav-item .nav-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+/* 메뉴 높이만큼 본문 하단에 여백 추가 */
+body {
+    padding-bottom: 80px !important; 
+}
