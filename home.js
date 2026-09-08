@@ -1,6 +1,3 @@
-// ==========================================
-// 1. 화면 전환 핸들러
-// ==========================================
 window.switchView = function(targetId) {
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
@@ -24,7 +21,7 @@ window.switchView = function(targetId) {
 };
 
 // ==========================================
-// 2. 홈 화면 데이터 바인딩 및 동적 진행도 계산
+// 홈 화면 데이터 바인딩 및 동적 진행도 계산
 // ==========================================
 function renderHomeData(wizardData) {
     // 1. 선택한 루틴 타이틀
@@ -38,19 +35,42 @@ function renderHomeData(wizardData) {
         routineTitleElem.innerText = `주 ${frequency}회 (${splitName}) 루틴`;
     }
     
-    // [수정됨] 완료한 일수 데이터를 로컬스토리지에서 가져옴 (초기값 0)
+    // 2. [신규] 스트렝스/근비대 목표 비율 동적 렌더링
+    // 온보딩에서 사용자가 입력한 목표치 (데이터가 없으면 기본값 25:75)
+    // 실제 wizardData 구조에 맞춰 question_X 부분을 수정해 사용하시면 됩니다.
+    const strengthRatio = parseInt(wizardData?.goal_strength?.value) || 25; 
+    const hypertrophyRatio = parseInt(wizardData?.goal_hypertrophy?.value) || 75;
+    
+    const ratioTextElem = document.getElementById('home-ratio-text');
+    if (ratioTextElem) {
+        ratioTextElem.innerText = `스트렝스 ${strengthRatio} : 근비대 ${hypertrophyRatio}`;
+    }
+
+    // 블록 4개 색상 동적 렌더링 (25%당 블록 1개 할당)
+    const strengthBlocksCount = Math.round(strengthRatio / 25);
+    const splitBlocksContainer = document.querySelector('.split-blocks');
+    if (splitBlocksContainer) {
+        let blocksHtml = '';
+        for (let i = 0; i < 4; i++) {
+            // 스트렝스 비율만큼 민트색(cyan), 나머지는 보라색 할당
+            if (i < strengthBlocksCount) {
+                blocksHtml += `<div class="s-block cyan"></div>`;
+            } else {
+                blocksHtml += `<div class="s-block"></div>`;
+            }
+        }
+        splitBlocksContainer.innerHTML = blocksHtml;
+    }
+
+    // 3. 완료한 일수 데이터를 로컬스토리지에서 가져옴 (초기값 0)
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     
-    // 현재 진행해야 할 날짜 계산 (완료한 날짜 + 1)
     let currentDay = completedDays + 1;
-    // 설정한 빈도수를 초과하면 1로 초기화 (또는 루틴 완료 처리)
     if(currentDay > frequency) currentDay = 1;
 
-    // 홈 화면 카드 타이틀 업데이트
     const todayDayElem = document.getElementById('home-today-day');
     if(todayDayElem) todayDayElem.innerText = `Day ${currentDay}`;
     
-    // 주간 요일 블록 렌더링
     let weekBlocksHtml = '';
     for (let i = 1; i <= frequency; i++) {
         weekBlocksHtml += `<div class="wb-item ${i === currentDay ? 'active' : ''}"><span class="wb-num">${i}</span>Day</div>`;
@@ -62,7 +82,7 @@ function renderHomeData(wizardData) {
         weekBlocksElem.innerHTML = weekBlocksHtml;
     }
 
-    // 맞춤 코칭 데이터 분석 퍼센티지 동적 계산 (총 빈도수 기준)
+    // 4. 맞춤 코칭 데이터 분석 퍼센티지
     let analyzePercent = Math.round((completedDays / frequency) * 100);
     if(analyzePercent > 100) analyzePercent = 100;
     if(analyzePercent < 0 || isNaN(analyzePercent)) analyzePercent = 0;
@@ -88,14 +108,10 @@ auth.onAuthStateChanged(async (user) => {
             }
         } catch(e) { console.error("데이터 로드 실패:", e); }
     } else {
-        // 로그인 정보가 없을 경우 기본 렌더링을 위해 더미 호출
         renderHomeData({ question_6: { value: 6 } });
     }
 });
 
-// ==========================================
-// 3. 버튼 클릭 및 이벤트 바인딩
-// ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     const btnGoCondition = document.getElementById('btn-go-condition');
     if (btnGoCondition) {
