@@ -1,24 +1,86 @@
-<!-- analysis.html의 <main class="content-area"> 내부 예시 -->
-<div class="perf-list-group">
-    <span class="perf-badge">어깨</span>
-    <div class="perf-list-box">
-        <div class="perf-item" onclick="openPerfDetail('오버헤드 프레스')">
-            <span class="perf-name">오버헤드 프레스</span><span class="perf-arrow">></span>
-        </div>
-        <div class="perf-item" onclick="openPerfDetail('덤벨 레터럴 레이즈')">
-            <span class="perf-name">덤벨 레터럴 레이즈</span><span class="perf-arrow">></span>
-        </div>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JHP - 분석</title>
+    <!-- 필수: CSS 연결 -->
+    <link rel="stylesheet" href="style.css">
+    <!-- 필수: Firebase 연결 -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
 
-<div class="perf-list-group">
-    <span class="perf-badge">팔 (이두 / 삼두)</span>
-    <div class="perf-list-box">
-        <div class="perf-item" onclick="openPerfDetail('바벨 바이셉 컬')">
-            <span class="perf-name">바벨 바이셉 컬</span><span class="perf-arrow">></span>
-        </div>
-        <div class="perf-item" onclick="openPerfDetail('케이블 트라이셉 푸시다운')">
-            <span class="perf-name">케이블 트라이셉 푸시다운</span><span class="perf-arrow">></span>
-        </div>
+    <!-- [1] 분석 메인 리스트 화면 -->
+    <div class="view-container active" id="view-analysis-list">
+        <header class="top-nav-bar center-logo">
+            <div class="logo font-pinyon">JHP</div>
+        </header>
+        
+        <main class="content-area" style="padding-top:20px;">
+            <!-- 어깨 그룹 -->
+            <div class="perf-list-group">
+                <span class="perf-badge">어깨</span>
+                <div class="perf-list-box">
+                    <div class="perf-item" onclick="openPerfDetail('오버헤드 프레스')">
+                        <div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif"></div>
+                        <span class="perf-name">오버헤드 프레스</span>
+                        <span class="perf-arrow">></span>
+                    </div>
+                    <div class="perf-item" onclick="openPerfDetail('덤벨 레터럴 레이즈')">
+                        <div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif"></div>
+                        <span class="perf-name">덤벨 레터럴 레이즈</span>
+                        <span class="perf-arrow">></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 팔 그룹 -->
+            <div class="perf-list-group">
+                <span class="perf-badge">팔 (이두 / 삼두)</span>
+                <div class="perf-list-box">
+                    <div class="perf-item" onclick="openPerfDetail('바벨 바이셉 컬')">
+                        <div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif"></div>
+                        <span class="perf-name">바벨 바이셉 컬</span>
+                        <span class="perf-arrow">></span>
+                    </div>
+                    <div class="perf-item" onclick="openPerfDetail('케이블 트라이셉 푸시다운')">
+                        <div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/6/63/Pushdown_animation.gif"></div>
+                        <span class="perf-name">케이블 트라이셉 푸시다운</span>
+                        <span class="perf-arrow">></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 등 그룹 -->
+            <div class="perf-list-group">
+                <span class="perf-badge">등 중/상부</span>
+                <div class="perf-list-box">
+                    <div class="perf-item" onclick="openPerfDetail('체스트 서포티드 머신 로우')">
+                        <div class="perf-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif"></div>
+                        <span class="perf-name">체스트 서포티드 머신 로우 (레버)</span>
+                        <span class="perf-arrow">></span>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
-</div>
+
+    <!-- [2] 상세 분석 차트 화면 -->
+    <div class="view-container" id="view-analysis-detail">
+        <header class="top-nav-bar">
+            <button class="icon-btn" onclick="closePerfDetail()">←</button>
+            <span class="tn-title" id="ad-title">상세 분석</span>
+            <div style="width:30px;"></div>
+        </header>
+        <main class="content-area" style="padding-top:20px;" id="ad-render"></main>
+    </div>
+
+    <!-- 필수: 스크립트 연결 (app.js가 공통 메뉴와 팝업을 렌더링함) -->
+    <script src="app.js"></script>
+    <script src="analysis.js"></script>
+
+</body>
+</html>
