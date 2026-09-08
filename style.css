@@ -440,3 +440,43 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
 
 .sum-footer { position: fixed; bottom: 0; left: 0; width: 100%; padding: 20px; display: flex; background: var(--bg-dark); border-top: 1px solid var(--border-color); z-index: 2000; justify-content: center;}
 .sum-footer button { max-width: 600px; }
+/* --- [완벽 수정본] 홈 화면 및 하단 메뉴 스타일 교정 --- */
+
+/* 1. 홈 화면 로고 완벽 중앙 정렬 */
+.home-header .top-logo-area {
+    display: flex;
+    justify-content: center; /* 로고를 중앙으로 땡김 */
+    align-items: center;
+    margin-bottom: 15px;
+    width: 100%;
+}
+.home-header .top-logo-area .logo {
+    font-size: 2.8rem; /* 로고 크기 살짝 더 키움 */
+    margin: 0;
+}
+
+/* 2. 스트렝스/근비대 막대 그래프 좌우 양끝 정렬 */
+.target-split-bar {
+    display: flex;
+    justify-content: space-between; /* 좌우 양끝으로 밀어냄 */
+    align-items: center;
+    width: 100%;
+    margin-bottom: 25px;
+}
+.split-blocks {
+    display: flex;
+    gap: 4px;
+    flex: 1; /* 남은 공간을 블록이 다 차지하게 늘림 */
+    margin-right: 20px; /* 텍스트와의 간격 확 벌림 */
+    height: 12px;
+}
+.target-split-text {
+    flex-shrink: 0; /* 글자가 밀려서 찌그러지지 않게 방어 */
+}
+
+/* 3. 하단 메뉴바 확실한 색상 변경 및 그림자 (구분감 극대화) */
+.bottom-nav {
+    background-color: #222224 !important; /* 본문(검정)과 확연히 차이나는 짙은 회색 */
+    border-top: 1px solid #3a3a3c !important; /* 상단 테두리를 살짝 더 밝게 */
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.7) !important; /* 위로 쏘는 짙은 그림자 */
+}
