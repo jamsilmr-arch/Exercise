@@ -13,10 +13,9 @@ window.switchView = function(targetId) {
         window.scrollTo(0, 0);
     }
     
-    // 훈련 진행 및 컨디션 체크 중에는 하단 메뉴바 숨김
     const mainNav = document.getElementById('main-nav');
     if (mainNav) {
-        if (targetId === 'view-workout' || targetId === 'view-condition') {
+        if (targetId === 'view-workout' || targetId === 'view-condition' || targetId === 'view-summary') {
             mainNav.style.display = 'none';
         } else {
             mainNav.style.display = 'flex';
@@ -40,7 +39,6 @@ function renderHomeData(wizardData) {
     
     let weekBlocksHtml = '';
     for (let i = 1; i <= frequency; i++) {
-        // Day 2 카드가 메인이므로 2번에 active 표시
         weekBlocksHtml += `<div class="wb-item ${i === 2 ? 'active' : ''}"><span class="wb-num">${i}</span>Day</div>`;
     }
     weekBlocksHtml += `<div class="wb-item rest">휴식</div>`;
@@ -51,7 +49,6 @@ function renderHomeData(wizardData) {
     }
 }
 
-// Firebase 데이터 로드
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         try {
@@ -67,7 +64,6 @@ auth.onAuthStateChanged(async (user) => {
 // 3. 버튼 클릭 및 컨디션 체크 이벤트 바인딩
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
-    // 1) '오늘 운동 시작' 클릭 -> 컨디션 화면으로 이동
     const btnGoCondition = document.getElementById('btn-go-condition');
     if (btnGoCondition) {
         btnGoCondition.addEventListener('click', () => {
@@ -75,7 +71,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 2) 컨디션 슬라이더 조작
     const condSlider = document.getElementById('cond-slider');
     const condScore = document.getElementById('cond-score');
     const condText = document.getElementById('cond-text');
@@ -89,7 +84,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 3) 근육통 토글 버튼
     const btnMusclePain = document.getElementById('btn-muscle-pain');
     if (btnMusclePain) {
         btnMusclePain.addEventListener('click', () => {
@@ -97,14 +91,24 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 4) 컨디션 확인 후 '운동 시작' 클릭 -> Day 2 리스트 렌더링 및 화면 전환
+    // [수정됨] 근육통 여부에 따른 동작 분기
     const btnStartWorkout = document.getElementById('btn-start-workout-list');
     if (btnStartWorkout) {
         btnStartWorkout.addEventListener('click', () => {
-            if (typeof renderWorkoutList === 'function') {
-                renderWorkoutList(); // app.js에 정의된 Day 2 렌더러 호출
+            // 근육통 버튼이 켜져 있으면 부위 선택 팝업 오픈
+            if (btnMusclePain && btnMusclePain.classList.contains('active')) {
+                openBottomSheet('muscle-pain');
+            } 
+            // 꺼져 있으면 바로 훈련 화면으로 이동
+            else {
+                if (typeof renderWorkoutList === 'function') renderWorkoutList();
+                switchView('view-workout');
             }
-            switchView('view-workout');
         });
+    }
+    
+    // URL 파라미터 확인 후 유산소 마법사 자동 실행 (옵션)
+    if (new URLSearchParams(window.location.search).get('openCardio') === 'true') {
+        if(typeof startCardioWizard === 'function') startCardioWizard();
     }
 });
