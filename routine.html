@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JHP - 루틴</title>
-    <!-- CSS 연결 (이 줄이 없어서 스타일이 깨졌습니다) -->
     <link rel="stylesheet" href="style.css">
     
     <!-- Firebase 공통 로드 -->
@@ -21,7 +20,8 @@
             <div class="logo font-pinyon">JHP</div>
         </header>
         
-        <div class="rt-notice">ⓘ 주 3일(!)로 루틴을 수정하세요</div>
+        <!-- [반영완료] id="routine-notice-text" 적용 -->
+        <div class="rt-notice" id="routine-notice-text">ⓘ 주 ?일(!)로 루틴을 수정하세요</div>
         
         <div class="rt-section-title">내 루틴</div>
         <div class="rt-card" style="border-color:var(--primary);" onclick="openDetail('rt_6_body_limb_lower')">
@@ -64,13 +64,10 @@
             <span class="tn-title">루틴 선택</span>
             <div style="width:30px;"></div>
         </header>
-        <!-- 이 영역에 routine.js에서 만든 썸네일 타임라인이 그려집니다 -->
         <div id="rd-render-area"></div>
     </div>
 
-    <!-- 스크립트 연결 (app.js가 먼저, routine.js가 뒤에 와야 에러가 안 납니다) -->
     <script src="app.js"></script>
     <script src="routine.js"></script>
-
 </body>
 </html>
