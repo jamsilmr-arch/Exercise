@@ -25,7 +25,7 @@ let currentExercise = '';
 
 window.openPerfDetail = function(name) {
     currentExercise = name;
-    currentChartType = '1RM';
+    currentChartType = '1RM'; // 기본 탭은 1RM
     renderAnalysisDetail();
     
     document.getElementById('view-analysis-list').classList.remove('active');
@@ -55,16 +55,16 @@ window.switchChartType = function(type) {
 function renderAnalysisDetail() {
     document.getElementById('ad-title').innerText = currentExercise;
     
-    // 데이터가 없는 종목 처리
+    // 데이터가 없는 종목은 더미 데이터 생성
     const history = mockHistoryData[currentExercise] || [
-        { date: '09. 08', weight: 20, reps: 10, sets: 3 },
-        { date: '09. 15', weight: 25, reps: 8, sets: 3 }
+        { date: '09. 01', weight: 15, reps: 12, sets: 3 },
+        { date: '09. 08', weight: 20, reps: 10, sets: 3 }
     ];
 
-    // 데이터 분석
     let max1RM = 0;
     let maxVol = 0;
     
+    // 데이터 분석
     const chartData = history.map(h => {
         const est1RM = calculate1RM(h.weight, h.reps);
         const volume = h.weight * h.reps * h.sets;
@@ -72,9 +72,6 @@ function renderAnalysisDetail() {
         if(volume > maxVol) maxVol = volume;
         return { date: h.date, rm: est1RM, vol: volume, raw: h };
     });
-
-    // 최근 기록 및 성과 계산
-    const latest = chartData[chartData.length - 1];
     
     let html = `
         <div class="ad-top-summary">
@@ -94,7 +91,6 @@ function renderAnalysisDetail() {
         </div>
     `;
 
-    // 그래프 렌더링 로직
     const yMax = currentChartType === '1RM' ? max1RM * 1.2 : maxVol * 1.2;
     const yMid = Math.round(yMax / 2);
     
@@ -124,7 +120,7 @@ function renderAnalysisDetail() {
     chartHtml += `</div></div>`;
     html += chartHtml;
 
-    // 하단 히스토리 리스트
+    // 히스토리 내역
     html += `<div class="ad-history-title">최근 운동 기록</div><div class="ad-history-list">`;
     [...chartData].reverse().forEach(d => {
         html += `
@@ -138,10 +134,11 @@ function renderAnalysisDetail() {
 
     document.getElementById('ad-render').innerHTML = html;
 
-    // 선 그리기 로직 (1RM 선택 시)
+    // 1RM 선 그리기
     if (currentChartType === '1RM') {
         setTimeout(() => {
             const box = document.getElementById('chart-line-box');
+            if(!box) return;
             const dots = box.querySelectorAll('.ad-dot');
             for(let i=0; i<dots.length-1; i++) {
                 const d1 = dots[i].getBoundingClientRect();
