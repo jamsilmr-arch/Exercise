@@ -602,3 +602,40 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
     word-break: keep-all;
     white-space: pre-line;
 }
+/* --- 가이드 모달 이전/다음 버튼 (레드 테마) --- */
+.modal-footer {
+    display: flex;
+    gap: 12px; /* 버튼 사이 간격 */
+    margin-top: 25px;
+    width: 100%;
+}
+
+/* 버튼 공통 스타일 */
+.modal-btn-prev, .modal-btn-next {
+    flex: 1;
+    padding: 14px 0;
+    border-radius: 8px; /* RIR 버튼과 동일한 둥근 모서리 */
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* 다음/확인 버튼 (강렬한 넷플릭스 레드 꽉 채움) */
+.modal-btn-next {
+    background-color: var(--primary, #E50914);
+    color: #fff;
+    border: none;
+}
+
+/* 이전 버튼 (동일한 레드 테마이되, 테두리로 밸런스 조절) */
+.modal-btn-prev {
+    background-color: transparent;
+    color: var(--primary, #E50914);
+    border: 1px solid var(--primary, #E50914);
+}
+
+.modal-btn-prev:active, .modal-btn-next:active {
+    opacity: 0.7;
+}
