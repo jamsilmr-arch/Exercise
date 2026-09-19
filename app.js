@@ -170,12 +170,12 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. 운동 리스트 렌더링 (세트 구분 기능 추가)
+// 4. 운동 리스트 렌더링 (웜업/탑/본세트 그룹핑 UI 적용)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
     const data = routineDB[rtId];
-    if(!data) { console.error("루틴 데이터 없음"); return; }
+    if(!data) return;
 
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     const freq = parseInt(localStorage.getItem('active_routine_freq')) || 6;
@@ -198,7 +198,6 @@ window.renderWorkoutList = function() {
     exercisesToRender.forEach((exName, idx) => {
         let sets = conditionScore < 3 ? 3 : 4; 
         window.totalGlobalSets += sets;
-        
         window.currentRoutine.push({ id: `ex_${idx}`, name: exName });
         
         html += `
@@ -207,30 +206,66 @@ window.renderWorkoutList = function() {
                 <span class="we-name">${exName}</span>
                 <span class="we-arrow" id="arrow-ex_${idx}">▼</span>
             </div>
-            <div class="we-sets" id="sets-ex_${idx}" style="display:none;">
-                <div class="we-set-row header"><span>세트</span><span>kg</span><span>회</span><span>완료</span></div>
+            <div class="we-sets" id="sets-ex_${idx}" style="display:none; padding:20px;">
         `;
         
-        for(let s=1; s<=sets; s++) {
-            // [신규] 첫 번째 세트는 기본적으로 '웜업', 나머지는 '본세트'로 설정
-            const isWarmup = s === 1 ? 'selected' : '';
-            const isMain = s > 1 ? 'selected' : '';
-
+        // 1. 웜업 세트 (1~2세트)
+        html += `
+            <div class="we-group-badge">웜업 세트</div>
+            <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
+        `;
+        const warmupCount = sets > 3 ? 2 : 1;
+        for(let s=1; s<=warmupCount; s++) {
+            let rir = s === 1 ? '6 RIR' : '5 RIR';
             html += `
-            <div class="we-set-row" id="row-ex_${idx}-${s}">
-                <select class="we-set-type">
-                    <option value="warmup" ${isWarmup}>웜업</option>
-                    <option value="main" ${isMain}>본세트</option>
-                    <option value="top">탑세트</option>
-                </select>
-                <input type="number" class="we-input" value="20" placeholder="0">
-                <input type="number" class="we-input" value="10" placeholder="0">
-                <div class="we-check" onclick="checkSet(this, 'ex_${idx}', ${s})"></div>
-            </div>
-            `;
+            <div class="we-row" id="row-ex_${idx}-${s}">
+                <span class="we-rir-label">${rir}</span>
+                <input type="number" class="we-val-input" value="20">
+                <input type="number" class="we-val-input" value="10">
+                <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${s})">✓</div>
+            </div>`;
         }
-        
-        html += `</div></div>`;
+
+        // 2. 탑 세트 (1세트)
+        const topSetNum = warmupCount + 1;
+        html += `
+            <div style="height:20px;"></div>
+            <div class="we-group-badge">탑 세트</div>
+            <div class="we-top-history"><span>지난주 탑 세트</span><span>중량 <strong>35kg</strong>&nbsp;&nbsp;횟수 <strong>7회</strong></span></div>
+            <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
+            <div class="we-row" id="row-ex_${idx}-${topSetNum}">
+                <span class="we-rir-label">1 RIR</span>
+                <input type="number" class="we-val-input" value="35">
+                <input type="number" class="we-val-input" value="7">
+                <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${topSetNum})">✓</div>
+            </div>
+        `;
+
+        // 3. 본 세트 (나머지 세트)
+        if(sets > topSetNum) {
+            html += `
+                <div style="height:20px;"></div>
+                <div class="we-group-badge">본 세트</div>
+                <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
+            `;
+            for(let s = topSetNum + 1; s <= sets; s++) {
+                html += `
+                <div class="we-row" id="row-ex_${idx}-${s}">
+                    <span class="we-rir-label">1 RIR</span>
+                    <input type="number" class="we-val-input" value="30">
+                    <input type="number" class="we-val-input" value="10">
+                    <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${s})">✓</div>
+                </div>`;
+            }
+        }
+
+        // 세트 추가/삭제 버튼
+        html += `
+            <div class="we-controls">
+                <button class="we-ctrl-btn">+ 세트 추가</button>
+                <button class="we-ctrl-btn">- 세트 삭제</button>
+            </div>
+        </div></div>`;
     });
 
     html += `<button class="primary-btn" style="margin-top:20px; width:100%; display:block;" onclick="checkFinishWorkout()">운동 완료</button>`;
@@ -243,13 +278,10 @@ window.renderWorkoutList = function() {
         const viewWorkout = document.getElementById('view-workout');
         if (viewWorkout) viewWorkout.appendChild(renderArea);
     }
-    
     renderArea.innerHTML = html;
 };
 
-// toggleSets, checkSet 등 기존 코드는 그대로 유지 (이전 답변과 동일)
-
-// 이하 toggleSets, checkSet 함수 등은 기존과 동일합니다.
+// 기존 함수들 유지 (toggleSets, checkSet 등)
 window.toggleSets = function(exId) {
     const setsDiv = document.getElementById(`sets-${exId}`);
     const arrow = document.getElementById(`arrow-${exId}`);
@@ -270,7 +302,6 @@ window.checkSet = function(btn, exId, setNum) {
         let saved = JSON.parse(localStorage.getItem(`workout_${exId}`)) || [];
         if(!saved.includes(setNum)) saved.push(setNum);
         localStorage.setItem(`workout_${exId}`, JSON.stringify(saved));
-        
         startGlobalTimer(60, document.querySelector(`#we-card-${exId} .we-name`).innerText);
     } else {
         row.style.opacity = '1';
