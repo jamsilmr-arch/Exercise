@@ -14,6 +14,23 @@ window.currentRoutine = [];
 window.totalGlobalSets = 0;
 
 // ==========================================
+// [추가됨] 유저 스트렝스/근비대 비율 동기화 로직
+// ==========================================
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        try {
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            if (userDoc.exists && userDoc.data().wizardData) {
+                // 스트렝스 비율을 로컬 스토리지에 저장하여 렌더링 시 빠르게 참조
+                const strRatio = parseInt(userDoc.data().wizardData?.goal_strength?.value) || 25;
+                localStorage.setItem('user_strength_ratio', strRatio);
+            }
+        } catch(e) { console.error("비율 데이터 동기화 실패:", e); }
+    }
+});
+// ==========================================
+
+// ==========================================
 // 2. 운동 DB (좌/우 통합 및 교차 분할 루틴)
 // ==========================================
 const textPresets = {
@@ -182,7 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. 운동 리스트 렌더링 (세트 추가/삭제 기능 연동)
+// [수정됨] 4. 운동 리스트 렌더링 (스트렝스/근비대 비율 기반 커스텀 횟수 및 증량)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
@@ -205,17 +222,43 @@ window.renderWorkoutList = function() {
     window.totalGlobalSets = 0;
 
     const conditionScore = parseInt(localStorage.getItem('workout_intensity_score')) || 3;
-    const exercisesToRender = todayWorkout.texts.slice(0, todayWorkout.count);
-
+    const strengthRatio = parseInt(localStorage.getItem('user_strength_ratio')) || 25; // 비율 로드 (기본 25)
+    
     const isolationKeywords = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀'];
 
-    exercisesToRender.forEach((exName, idx) => {
+    todayWorkout.texts.forEach((exName, idx) => {
         let isIsolation = isolationKeywords.some(keyword => exName.includes(keyword));
         
         let warmupCount = 1, hasTopSet = false, mainCount = 2;
         if (isIsolation) { warmupCount = 1; hasTopSet = false; mainCount = 2; } 
         else { warmupCount = 2; hasTopSet = true; mainCount = 1; }
         if (conditionScore < 3 && mainCount > 1) mainCount -= 1;
+
+        // [수정됨] 비율에 따른 추천 반복수(Reps) 및 증량폭(Overload) 자동 계산
+        let topReps, mainReps, overloadTop, overloadMain;
+
+        if (strengthRatio >= 75) { // 스트렝스 특화
+            topReps = "3-5";
+            mainReps = isIsolation ? "8-10" : "5-8";
+            overloadTop = 5.0; 
+            overloadMain = isIsolation ? 2.0 : 5.0;
+        } else if (strengthRatio >= 50) { // 밸런스형
+            topReps = "5-7";
+            mainReps = isIsolation ? "10-12" : "8-10";
+            overloadTop = 2.5;
+            overloadMain = isIsolation ? 2.0 : 2.5;
+        } else { // 근비대 특화 (25 이하)
+            topReps = "8-10";
+            mainReps = isIsolation ? "12-15" : "10-12";
+            overloadTop = 2.5;
+            overloadMain = isIsolation ? 1.0 : 2.5;
+        }
+
+        // 컨디션 저조 시 증량 취소
+        if (conditionScore < 3) {
+            overloadTop = 0;
+            overloadMain = 0;
+        }
 
         const totalSets = warmupCount + (hasTopSet ? 1 : 0) + mainCount;
         window.totalGlobalSets += totalSets;
@@ -254,6 +297,10 @@ window.renderWorkoutList = function() {
 
         // 2. 탑 세트
         if (hasTopSet) {
+            // 가상의 이전 기록
+            const lastTopWeight = 35;
+            const targetTopWeight = lastTopWeight + overloadTop;
+
             html += `
                 <div style="height:20px;"></div>
                 <div class="we-group-badge">탑 세트</div>
@@ -261,16 +308,19 @@ window.renderWorkoutList = function() {
                 <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
                 <div class="we-row top-set-row" id="row-ex_${idx}-${currentSetNum}">
                     <span class="we-rir-label">1 RIR</span>
-                    <input type="number" class="we-val-input" value="" placeholder="0">
-                    <input type="number" class="we-val-input" value="" placeholder="7-8">
+                    <input type="number" class="we-val-input" value="" placeholder="${targetTopWeight}">
+                    <input type="number" class="we-val-input" value="" placeholder="${topReps}">
                     <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum})">✓</div>
                 </div>
             `;
             currentSetNum++;
         }
 
-        // 3. 본 세트 (클래스명 main-set-row 추가로 제어)
+        // 3. 본 세트
         if (mainCount > 0) {
+            const lastMainWeight = 30;
+            const targetMainWeight = lastMainWeight + overloadMain;
+
             html += `
                 <div style="height:20px;"></div>
                 <div class="we-group-badge">본 세트</div>
@@ -281,8 +331,8 @@ window.renderWorkoutList = function() {
                 html += `
                 <div class="we-row main-set-row" id="row-ex_${idx}-${currentSetNum}">
                     <span class="we-rir-label">1 RIR</span>
-                    <input type="number" class="we-val-input" value="" placeholder="0">
-                    <input type="number" class="we-val-input" value="" placeholder="10-12">
+                    <input type="number" class="we-val-input" value="" placeholder="${targetMainWeight}">
+                    <input type="number" class="we-val-input" value="" placeholder="${mainReps}">
                     <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum})">✓</div>
                 </div>`;
                 currentSetNum++;
@@ -311,13 +361,11 @@ window.renderWorkoutList = function() {
 };
 
 // ==========================================
-// 4-1. 본 세트 동적 추가/삭제 함수 [신규]
+// 4-1. 본 세트 동적 추가/삭제 로직
 // ==========================================
 window.addMainSet = function(exId) {
     const setsContainer = document.getElementById(`sets-${exId}`);
     const controls = setsContainer.querySelector('.we-controls');
-    
-    // 마지막 세트 번호 추출하여 다음 번호 계산
     const allRows = setsContainer.querySelectorAll('.we-row');
     const lastRow = allRows[allRows.length - 1];
     let nextSetNum = allRows.length + 1;
@@ -326,18 +374,25 @@ window.addMainSet = function(exId) {
         nextSetNum = parseInt(idParts[idParts.length - 1]) + 1;
     }
     
-    // 새로운 본 세트 DOM 요소 생성
+    // 스트렝스 비율 기반 반복수 다시 가져오기
+    const strengthRatio = parseInt(localStorage.getItem('user_strength_ratio')) || 25;
+    const isIsolation = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀'].some(keyword => document.querySelector(`#we-card-${exId} .we-name`).innerText.includes(keyword));
+    
+    let mainReps = "10-12";
+    if (strengthRatio >= 75) mainReps = isIsolation ? "8-10" : "5-8";
+    else if (strengthRatio >= 50) mainReps = isIsolation ? "10-12" : "8-10";
+    else mainReps = isIsolation ? "12-15" : "10-12";
+
     const newRow = document.createElement('div');
     newRow.className = 'we-row main-set-row';
     newRow.id = `row-${exId}-${nextSetNum}`;
     newRow.innerHTML = `
         <span class="we-rir-label">1 RIR</span>
         <input type="number" class="we-val-input" value="" placeholder="0">
-        <input type="number" class="we-val-input" value="" placeholder="10-12">
+        <input type="number" class="we-val-input" value="" placeholder="${mainReps}">
         <div class="we-circle-check" onclick="checkSet(this, '${exId}', ${nextSetNum})">✓</div>
     `;
     
-    // 버튼 영역 바로 위에 삽입
     setsContainer.insertBefore(newRow, controls);
     window.totalGlobalSets += 1;
 };
@@ -347,7 +402,6 @@ window.deleteMainSet = function(exId) {
     const mainSetRows = setsContainer.querySelectorAll('.we-row.main-set-row');
     
     if (mainSetRows.length > 0) {
-        // 가장 마지막에 위치한 본 세트를 찾아서 삭제
         const lastMainSetRow = mainSetRows[mainSetRows.length - 1];
         const idParts = lastMainSetRow.id.split('-');
         const setNum = parseInt(idParts[idParts.length - 1]);
@@ -355,7 +409,6 @@ window.deleteMainSet = function(exId) {
         lastMainSetRow.remove();
         window.totalGlobalSets -= 1;
         
-        // 로컬스토리지 완료 데이터에서도 제거
         let saved = JSON.parse(localStorage.getItem(`workout_${exId}`)) || [];
         saved = saved.filter(s => s !== setNum);
         localStorage.setItem(`workout_${exId}`, JSON.stringify(saved));
@@ -687,12 +740,9 @@ window.openGuideModal = function(type) {
     if(type === 'rir' || type === 'warmup') {
         window.currentGuideType = type;
         window.currentGuideIdx = 0;
-        
         const badge = document.getElementById('modal-badge-title');
         if(badge) badge.innerText = type === 'rir' ? 'RIR 가이드' : '웜업 가이드';
-        
         renderGuideStep();
-        
         hideAllModals();
         document.getElementById('common-modal-overlay').classList.add('active');
         document.getElementById('modal-guide').classList.add('active');
@@ -702,33 +752,16 @@ window.openGuideModal = function(type) {
 window.renderGuideStep = function() {
     const dataList = guideData[window.currentGuideType];
     if(!dataList) return;
-    
     const stepData = dataList[window.currentGuideIdx];
-    
-    let html = `
-        <div style="color:#fff; font-size:0.85rem; margin-bottom:10px;">
-            ${window.currentGuideType === 'rir' ? 'RIR(Reps In Reserve) 가이드' : ''}
-        </div>
-        <h2 style="color:#fff; font-size:1.3rem; margin-bottom:20px; font-weight:bold;">${stepData.title}</h2>
-        <div>${stepData.content}</div>
-    `;
-    
+    let html = `<div style="color:#fff; font-size:0.85rem; margin-bottom:10px;">${window.currentGuideType === 'rir' ? 'RIR(Reps In Reserve) 가이드' : ''}</div><h2 style="color:#fff; font-size:1.3rem; margin-bottom:20px; font-weight:bold;">${stepData.title}</h2><div>${stepData.content}</div>`;
     document.getElementById('modal-content-area').innerHTML = html;
     
     const btnPrev = document.getElementById('modal-btn-prev');
     const btnNext = document.getElementById('modal-btn-next');
-    
     if(window.currentGuideIdx === 0) { btnPrev.style.visibility = 'hidden'; } else { btnPrev.style.visibility = 'visible'; }
     if(window.currentGuideIdx === dataList.length - 1) { btnNext.innerText = '확인'; } else { btnNext.innerText = '다음'; }
     
-    btnPrev.onclick = function() {
-        if(window.currentGuideIdx > 0) { window.currentGuideIdx--; renderGuideStep(); }
-    };
-    
-    btnNext.onclick = function() {
-        if(window.currentGuideIdx < dataList.length - 1) { window.currentGuideIdx++; renderGuideStep(); } 
-        else { closeModal(); }
-    };
+    btnPrev.onclick = function() { if(window.currentGuideIdx > 0) { window.currentGuideIdx--; renderGuideStep(); } };
+    btnNext.onclick = function() { if(window.currentGuideIdx < dataList.length - 1) { window.currentGuideIdx++; renderGuideStep(); } else { closeModal(); } };
 };
-// 구버전 onclick="openModal('rir')" 호환용
 window.openModal = window.openGuideModal;
