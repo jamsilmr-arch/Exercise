@@ -788,3 +788,34 @@ window.renderGuideStep = function() {
     btnNext.onclick = function() { if(window.currentGuideIdx < dataList.length - 1) { window.currentGuideIdx++; renderGuideStep(); } else { closeModal(); } };
 };
 window.openModal = window.openGuideModal;
+// ==========================================
+// 6. 운동 화면 강제 종료 (뒤로가기) 로직
+// ==========================================
+window.forceExitWorkout = function() {
+    if (confirm("진행 중인 운동 기록은 저장되지 않습니다. 운동을 취소하고 메인 화면으로 돌아가시겠습니까?")) {
+        // 타이머 및 모달 강제 종료
+        clearInterval(window.globalTimerInterval);
+        document.getElementById('global-timer-ui').style.display = 'none';
+        hideAllModals();
+
+        // 운동 화면 숨기기
+        const workoutView = document.getElementById('view-workout');
+        if (workoutView) {
+            workoutView.classList.remove('active');
+            workoutView.style.display = 'none';
+        }
+        
+        // 메인 홈 화면(view-summary) 표시
+        const summaryView = document.getElementById('view-summary');
+        if (summaryView) {
+            summaryView.classList.add('active');
+            summaryView.style.display = 'block';
+        }
+        
+        // 하단 네비게이션 바 복구
+        const mainNav = document.getElementById('main-nav');
+        if (mainNav) mainNav.style.display = 'flex';
+        
+        window.scrollTo(0, 0);
+    }
+};
