@@ -170,41 +170,43 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. [신규 복구] 운동 리스트 렌더링 (운동 시작 클릭 시 호출)
+// 4. [보완됨] 운동 리스트 렌더링 (강제 DOM 주입 로직 추가)
 // ==========================================
 window.renderWorkoutList = function() {
     // 1. 현재 선택된 루틴과 Day 정보 가져오기
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
     const data = routineDB[rtId];
-    if(!data) return;
+    if(!data) {
+        console.error("선택된 루틴 데이터가 없습니다.");
+        return;
+    }
 
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     const freq = parseInt(localStorage.getItem('active_routine_freq')) || 6;
-    let currentDayIndex = completedDays % freq; // 0-based index
+    let currentDayIndex = completedDays % freq; 
 
     // timeline에서 'workout' 타입만 필터링하여 오늘 할 운동 찾기
     const workoutDays = data.timeline.filter(t => t.type === 'workout');
     const todayWorkout = workoutDays[currentDayIndex];
-    if(!todayWorkout) return;
+    if(!todayWorkout) {
+        console.error("오늘 날짜에 해당하는 운동 데이터가 없습니다.");
+        return;
+    }
 
     // 헤더에 Day 표시 업데이트
     const topBarTitle = document.querySelector('#view-workout .tn-title');
     if(topBarTitle) topBarTitle.innerText = `Day ${currentDayIndex + 1}`;
 
-    // 2. 종목 리스트 HTML 렌더링
+    // 2. 종목 리스트 HTML 렌더링 준비
     let html = '';
     window.currentRoutine = [];
     window.totalGlobalSets = 0;
 
-    // 컨디션 점수 체크 (세트 수 증감 등에 활용 가능)
     const conditionScore = parseInt(localStorage.getItem('workout_intensity_score')) || 3;
-
-    // todayWorkout.texts 배열에 있는 텍스트를 순회하며 렌더링
-    // count 프로퍼티가 있으면 그만큼 자르거나 반복
     const exercisesToRender = todayWorkout.texts.slice(0, todayWorkout.count);
 
     exercisesToRender.forEach((exName, idx) => {
-        let sets = conditionScore < 3 ? 3 : 4; // 컨디션 안좋으면 3세트, 기본 4세트
+        let sets = conditionScore < 3 ? 3 : 4; 
         window.totalGlobalSets += sets;
         
         window.currentRoutine.push({ id: `ex_${idx}`, name: exName });
@@ -233,31 +235,31 @@ window.renderWorkoutList = function() {
         html += `</div></div>`;
     });
 
-    html += `<button class="secondary-btn" style="margin-top:20px;" onclick="checkFinishWorkout()">운동 완료</button>`;
+    html += `<button class="primary-btn" style="margin-top:20px; width:100%; display:block;" onclick="checkFinishWorkout()">운동 완료</button>`;
     
-    // 렌더링 영역에 삽입
-    const renderArea = document.getElementById('workout-render-area');
-    // 만약 home.html 안에 id="workout-render-area" 가 없다면 view-workout 의 content-area를 찾음
-    if(renderArea) {
-        renderArea.innerHTML = html;
-    } else {
+    // 3. 확실한 DOM 주입 로직
+    let renderArea = document.getElementById('workout-render-area');
+    
+    // 만약 HTML에 렌더링 영역이 지정되어 있지 않다면 강제로 생성해서 붙입니다.
+    if (!renderArea) {
+        renderArea = document.createElement('div');
+        renderArea.id = 'workout-render-area';
+        renderArea.style.padding = '0 20px 100px 20px'; // 하단 네비게이션 여백 확보
+        
         const viewWorkout = document.getElementById('view-workout');
-        if(viewWorkout) {
-            const contentArea = viewWorkout.querySelector('.content-area');
-            if(contentArea) {
-                // 기존 가이드 버튼들은 유지하고, 리스트 영역만 새로 생성 (안전장치)
-                let listWrap = document.getElementById('workout-dynamic-list');
-                if(!listWrap) {
-                    listWrap = document.createElement('div');
-                    listWrap.id = 'workout-dynamic-list';
-                    contentArea.appendChild(listWrap);
-                }
-                listWrap.innerHTML = html;
-            }
+        if (viewWorkout) {
+            viewWorkout.appendChild(renderArea);
+        } else {
+            console.error("운동 화면 컨테이너(#view-workout)를 찾을 수 없습니다.");
+            return;
         }
     }
+    
+    // 최종 HTML 삽입
+    renderArea.innerHTML = html;
 };
 
+// 이하 toggleSets, checkSet 함수 등은 기존과 동일합니다.
 window.toggleSets = function(exId) {
     const setsDiv = document.getElementById(`sets-${exId}`);
     const arrow = document.getElementById(`arrow-${exId}`);
@@ -279,7 +281,6 @@ window.checkSet = function(btn, exId, setNum) {
         if(!saved.includes(setNum)) saved.push(setNum);
         localStorage.setItem(`workout_${exId}`, JSON.stringify(saved));
         
-        // 세트 완료 시 타이머 60초 자동 실행 (팔/어깨 등)
         startGlobalTimer(60, document.querySelector(`#we-card-${exId} .we-name`).innerText);
     } else {
         row.style.opacity = '1';
