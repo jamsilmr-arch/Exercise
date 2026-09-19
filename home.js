@@ -24,7 +24,7 @@ window.switchView = function(targetId) {
 // 홈 화면 데이터 바인딩 및 동적 진행도 계산
 // ==========================================
 function renderHomeData(wizardData) {
-    // 1. [수정됨] 루틴 타이틀 결정 (사용자가 변경/저장한 루틴 우선)
+    // 1. 루틴 타이틀 결정 (사용자가 변경/저장한 루틴 우선)
     const activeTitle = localStorage.getItem('active_routine_title');
     const activeFreq = parseInt(localStorage.getItem('active_routine_freq'));
     
@@ -35,7 +35,6 @@ function renderHomeData(wizardData) {
         if (activeTitle) {
             routineTitleElem.innerText = activeTitle;
         } else {
-            // 기본값 폴백
             let splitName = '몸통-말단-하체';
             if (frequency === 3) splitName = '상체-하체-전신';
             else if (frequency === 4) splitName = '상체-하체-상체-하체';
@@ -144,16 +143,54 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // ==========================================
+    // [신규] 컨디션 점수 기반 운동 강도 자동 조절 알고리즘
+    // ==========================================
+    function applyConditionAndStart() {
+        const score = parseInt(condSlider ? condSlider.value : 3);
+        let msg = "";
+        
+        if (score === 1) {
+            msg = "⚠️ 컨디션 1점\n오늘은 무리하지 마세요.\n부상 방지를 위해 전체 운동의 세트 수를 1개씩 줄이고 목표 횟수를 하향 조절했습니다.";
+        } else if (score === 2) {
+            msg = "🔋 컨디션 2점\n피로가 덜 풀렸네요.\n전체 운동의 세트 수를 1개씩 줄여 루틴을 가볍게 조절했습니다.";
+        } else if (score === 3) {
+            msg = "✅ 컨디션 3점\n계획된 정규 루틴 그대로 운동을 시작합니다. 파이팅!";
+        } else if (score === 4) {
+            msg = "🔥 컨디션 4점\n컨디션이 좋네요!\n원래 계획대로 진행하되, 여력이 있다면 마지막 세트에서 횟수를 추가해보세요.";
+        } else if (score === 5) {
+            msg = "🚀 컨디션 5점\n최상의 컨디션!\n점진적 과부하를 위해 오늘 운동의 목표 횟수와 강도를 한 단계 상향 조절했습니다.";
+        }
+
+        // 로컬스토리지에 배율/상태를 저장하여 운동 화면(workout.js)에서 렌더링 시 참고하도록 설정
+        localStorage.setItem('workout_intensity_score', score);
+        
+        // 조절 내역 팝업 안내
+        alert(msg);
+
+        // 실제 운동 화면으로 전환
+        if (typeof renderWorkoutList === 'function') renderWorkoutList();
+        switchView('view-workout');
+    }
+
     const btnStartWorkout = document.getElementById('btn-start-workout-list');
     if (btnStartWorkout) {
         btnStartWorkout.addEventListener('click', () => {
             if (btnMusclePain && btnMusclePain.classList.contains('active')) {
                 openBottomSheet('muscle-pain');
             } else {
-                if (typeof renderWorkoutList === 'function') renderWorkoutList();
-                switchView('view-workout');
+                applyConditionAndStart();
             }
         });
+    }
+    
+    // 근육통 위치 선택 후 나오는 모달 내부의 '운동 시작' 버튼에도 동일 로직 덮어쓰기
+    const btnPainStart = document.getElementById('btn-pain-start-workout');
+    if (btnPainStart) {
+        btnPainStart.onclick = () => {
+            if (typeof closeModal === 'function') closeModal();
+            applyConditionAndStart();
+        };
     }
     
     if (new URLSearchParams(window.location.search).get('openCardio') === 'true') {
