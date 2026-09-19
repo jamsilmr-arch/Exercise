@@ -833,3 +833,107 @@ window.forceExitWorkout = function() {
         window.scrollTo(0, 0);
     }
 };
+// ==========================================
+// 7. 운동 요약 화면 동적 렌더링 로직 (실제 데이터 연동)
+// ==========================================
+window.generateWorkoutSummary = function() {
+    // 실제 완료 날짜 가져오기
+    const date = new Date();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dateStr = `${month}월 ${day}일`;
+    
+    let totalExercises = 0;
+    let totalSets = 0;
+    let html = '';
+    
+    // 피드백 데이터 (사용자가 누른 평가 문구)
+    const feedbackBtn = document.querySelector('.fm-opt-btn.active');
+    const feedbackText = feedbackBtn ? feedbackBtn.innerText : "무리없이 해냈고, 강도가 딱 알맞았어요!";
+    
+    // 사용자가 방금 수행한 운동 루틴 순회하며 실제 기록된 중량/횟수 추출
+    window.currentRoutine.forEach(ex => {
+        const saved = JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || [];
+        if(saved.length > 0) {
+            totalExercises++;
+            totalSets += saved.length;
+            
+            html += `
+            <div style="background:#1a1a1a; border-radius:10px; padding:20px; margin-bottom:15px; border:1px solid #333;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <div style="color:#fff; font-weight:bold;">${ex.name}</div>
+                    <div style="color:#888; font-size:0.85rem;">${saved.length}세트</div>
+                </div>
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <div style="display:flex; flex-direction:column; gap:8px; flex:1;">
+                        <div style="display:flex; gap:10px; color:#aaa; font-size:0.85rem;">
+                            <span style="width:60px;">중량 (kg)</span>
+            `;
+            
+            let weightsHtml = '';
+            let repsHtml = '';
+            
+            // 각 세트별로 입력한 input 값을 DOM에서 직접 긁어오기
+            saved.forEach(setNum => {
+                const row = document.getElementById(`row-${ex.id}-${setNum}`);
+                if (row) {
+                    const inputs = row.querySelectorAll('input');
+                    const w = inputs[0].value || inputs[0].placeholder || '-';
+                    const r = inputs[1].value || inputs[1].placeholder || '-';
+                    weightsHtml += `<span style="color:#fff; font-weight:bold; min-width:25px; text-align:center;">${w}</span>`;
+                    repsHtml += `<span style="color:#fff; font-weight:bold; min-width:25px; text-align:center;">${r}</span>`;
+                }
+            });
+            
+            html += `${weightsHtml}</div>
+                        <div style="display:flex; gap:10px; color:#aaa; font-size:0.85rem;">
+                            <span style="width:60px;">횟수 (회)</span>
+                            ${repsHtml}
+                        </div>
+                    </div>
+                    <div style="width:40px; height:40px; background:#222; border-radius:8px; display:flex; justify-content:center; align-items:center; border:1px solid #444;">
+                        <span style="color:#666; font-size:1.2rem;">✓</span>
+                    </div>
+                </div>
+            </div>`;
+        }
+    });
+    
+    // 요약 화면 전체 조립
+    const summaryHtml = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px;">
+            <h2 style="color:#fff; font-size:1.5rem; font-weight:bold;">${dateStr}</h2>
+            <span style="color:#888; font-size:0.85rem;">${totalExercises}개 운동 · ${totalSets}세트</span>
+        </div>
+        <div style="background:rgba(229, 9, 20, 0.1); color:var(--primary, #E50914); padding:15px; border-radius:8px; font-size:0.9rem; font-weight:bold; margin-bottom:30px;">
+            ${feedbackText}
+        </div>
+        ${html}
+    `;
+    
+    const renderArea = document.getElementById('summary-render-area');
+    if(renderArea) renderArea.innerHTML = summaryHtml;
+};
+
+// 피드백 '제출' 버튼 클릭 시 위 함수가 동작하도록 이벤트 업데이트
+document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(() => {
+        const btnSubmitFeedback = document.getElementById('btn-submit-feedback');
+        if(btnSubmitFeedback) {
+            // 기존 이벤트를 덮어쓰기 위해 cloneNode 사용
+            const newBtn = btnSubmitFeedback.cloneNode(true);
+            btnSubmitFeedback.parentNode.replaceChild(newBtn, btnSubmitFeedback);
+            
+            newBtn.addEventListener('click', () => {
+                closeModal();
+                let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
+                localStorage.setItem('completed_analysis_days', completedDays + 1);
+                
+                // 화면 넘어가기 전에 동적 요약 화면 생성!
+                generateWorkoutSummary();
+                
+                if (typeof switchView === 'function') switchView('view-summary'); 
+            });
+        }
+    }, 1000); // UI 주입 대기
+});
