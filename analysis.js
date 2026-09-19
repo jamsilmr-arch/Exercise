@@ -42,14 +42,9 @@ window.switchChartType = function(type) {
 function renderAnalysisDetail() {
     document.getElementById('ad-title').innerText = currentExercise;
     
-    // 시각적 데모를 위해 모든 운동에 그럴싸한 성장형 더미 데이터를 동적으로 부여합니다.
-    const baseWeight = Math.floor(Math.random() * 40) + 20; // 20 ~ 60kg 사이의 랜덤 기준 중량
-    const history = [
-        { date: '08. 20', weight: baseWeight, reps: 12, sets: 3 },
-        { date: '08. 27', weight: baseWeight + 5, reps: 10, sets: 3 },
-        { date: '09. 03', weight: baseWeight + 5, reps: 12, sets: 4 },
-        { date: '09. 10', weight: baseWeight + 10, reps: 8, sets: 4 }
-    ];
+    // [수정됨] 고정 더미 데이터 삭제. 
+    // 나중에 localStorage나 DB 연동 시 이 배열 안에 데이터를 푸시하면 자동으로 차트가 그려집니다.
+    const history = []; 
 
     let max1RM = 0;
     let maxVol = 0;
@@ -80,6 +75,23 @@ function renderAnalysisDetail() {
             <button class="ad-tab ${currentChartType === 'VOL' ? 'active' : ''}" onclick="switchChartType('VOL')">총 볼륨 추이</button>
         </div>
     `;
+
+    // [신규] 입력된 데이터가 없을 때의 텅 빈 화면(Empty State) 처리
+    if (chartData.length === 0) {
+        html += `
+            <div class="ad-chart-container" style="display:flex; justify-content:center; align-items:center; color:#666; font-size:0.9rem; text-align:center;">
+                아직 기록된 데이터가 없습니다.<br>운동을 완료하면 분석 그래프가 나타납니다.
+            </div>
+            <div class="ad-history-title">최근 운동 기록</div>
+            <div class="ad-history-list">
+                <div class="ad-history-item" style="justify-content:center; color:#555; font-size:0.9rem;">
+                    기록 없음
+                </div>
+            </div>
+        `;
+        document.getElementById('ad-render').innerHTML = html;
+        return; // 차트 그리기 로직 건너뜀
+    }
 
     const yMax = currentChartType === '1RM' ? max1RM * 1.2 : maxVol * 1.2;
     const yMid = Math.round(yMax / 2);
@@ -125,7 +137,7 @@ function renderAnalysisDetail() {
     document.getElementById('ad-render').innerHTML = html;
 
     // 1RM 선 긋기 애니메이션
-    if (currentChartType === '1RM') {
+    if (currentChartType === '1RM' && chartData.length > 1) {
         setTimeout(() => {
             const box = document.getElementById('chart-line-box');
             if(!box) return;
