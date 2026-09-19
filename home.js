@@ -24,7 +24,6 @@ window.switchView = function(targetId) {
 // 홈 화면 데이터 바인딩 및 동적 진행도 계산
 // ==========================================
 function renderHomeData(wizardData) {
-    // 1. 루틴 타이틀 결정 (사용자가 변경/저장한 루틴 우선)
     const activeTitle = localStorage.getItem('active_routine_title');
     const activeFreq = parseInt(localStorage.getItem('active_routine_freq'));
     
@@ -42,7 +41,6 @@ function renderHomeData(wizardData) {
         }
     }
     
-    // 2. 스트렝스/근비대 목표 비율 동적 렌더링
     const strengthRatio = parseInt(wizardData?.goal_strength?.value) || 25; 
     const hypertrophyRatio = parseInt(wizardData?.goal_hypertrophy?.value) || 75;
     
@@ -65,7 +63,6 @@ function renderHomeData(wizardData) {
         splitBlocksContainer.innerHTML = blocksHtml;
     }
 
-    // 3. 완료한 일수 데이터를 로컬스토리지에서 가져옴
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     
     let currentDay = completedDays + 1;
@@ -85,7 +82,6 @@ function renderHomeData(wizardData) {
         weekBlocksElem.innerHTML = weekBlocksHtml;
     }
 
-    // 4. 맞춤 코칭 데이터 분석 퍼센티지
     let analyzePercent = Math.round((completedDays / frequency) * 100);
     if(analyzePercent > 100) analyzePercent = 100;
     if(analyzePercent < 0 || isNaN(analyzePercent)) analyzePercent = 0;
@@ -101,7 +97,6 @@ function renderHomeData(wizardData) {
     }
 }
 
-// 유저 데이터 로드
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         try {
@@ -144,28 +139,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================================
-    // [신규] 컨디션 점수 기반 운동 강도 자동 조절 알고리즘
+    // [수정됨] 컨디션 + 근육통 복합 강도 조절 알고리즘
     // ==========================================
     function applyConditionAndStart() {
         const score = parseInt(condSlider ? condSlider.value : 3);
         let msg = "";
         
+        // 1. 컨디션 점수 기반 기본 메시지
         if (score === 1) {
-            msg = "⚠️ 컨디션 1점\n오늘은 무리하지 마세요.\n부상 방지를 위해 전체 운동의 세트 수를 1개씩 줄이고 목표 횟수를 하향 조절했습니다.";
+            msg = "⚠️ 컨디션 1점\n오늘은 무리하지 마세요. 부상 방지를 위해 전체 운동의 세트 수를 1개씩 줄이고 목표 횟수를 하향 조절했습니다.";
         } else if (score === 2) {
-            msg = "🔋 컨디션 2점\n피로가 덜 풀렸네요.\n전체 운동의 세트 수를 1개씩 줄여 루틴을 가볍게 조절했습니다.";
+            msg = "🔋 컨디션 2점\n피로가 덜 풀렸네요. 전체 운동의 세트 수를 1개씩 줄여 루틴을 가볍게 조절했습니다.";
         } else if (score === 3) {
             msg = "✅ 컨디션 3점\n계획된 정규 루틴 그대로 운동을 시작합니다. 파이팅!";
         } else if (score === 4) {
-            msg = "🔥 컨디션 4점\n컨디션이 좋네요!\n원래 계획대로 진행하되, 여력이 있다면 마지막 세트에서 횟수를 추가해보세요.";
+            msg = "🔥 컨디션 4점\n컨디션이 좋네요! 원래 계획대로 진행하되, 여력이 있다면 마지막 세트에서 횟수를 추가해보세요.";
         } else if (score === 5) {
-            msg = "🚀 컨디션 5점\n최상의 컨디션!\n점진적 과부하를 위해 오늘 운동의 목표 횟수와 강도를 한 단계 상향 조절했습니다.";
+            msg = "🚀 컨디션 5점\n최상의 컨디션! 점진적 과부하를 위해 오늘 운동의 목표 횟수와 강도를 상향 조절했습니다.";
         }
 
-        // 로컬스토리지에 배율/상태를 저장하여 운동 화면(workout.js)에서 렌더링 시 참고하도록 설정
+        // 2. 근육통 여부 파악 및 추가 메시지 병합
+        const hasMusclePain = btnMusclePain && btnMusclePain.classList.contains('active');
+        let selectedPains = [];
+
+        if (hasMusclePain) {
+            // 바텀시트에서 활성화된 근육통 칩을 모두 수집
+            const activeChips = document.querySelectorAll('#bs-muscle-pain .pain-chip.active');
+            activeChips.forEach(chip => selectedPains.push(chip.innerText));
+            
+            if (selectedPains.length > 0) {
+                msg += `\n\n🩹 근육통 감지 (${selectedPains.join(', ')})\n선택하신 부위의 회복을 고려하여, 해당 부위가 강하게 쓰이는 종목의 중량과 세트 수를 안전하게 하향 조절했습니다.`;
+            }
+        }
+
+        // 3. 로컬 스토리지에 데이터 저장 (추후 운동 렌더링 시 연동)
         localStorage.setItem('workout_intensity_score', score);
+        localStorage.setItem('workout_pain_areas', JSON.stringify(selectedPains));
         
-        // 조절 내역 팝업 안내
+        // 조절 내역 안내 팝업
         alert(msg);
 
         // 실제 운동 화면으로 전환
@@ -184,7 +195,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
     
-    // 근육통 위치 선택 후 나오는 모달 내부의 '운동 시작' 버튼에도 동일 로직 덮어쓰기
     const btnPainStart = document.getElementById('btn-pain-start-workout');
     if (btnPainStart) {
         btnPainStart.onclick = () => {
