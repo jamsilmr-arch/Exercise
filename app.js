@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// [수정됨] 4. 운동 리스트 렌더링 (스트렝스/근비대 비율 기반 커스텀 횟수 및 증량)
+// 4. 운동 리스트 렌더링 (세트 유형별 타이머 인자 추가)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
@@ -237,7 +237,7 @@ window.renderWorkoutList = function() {
     window.totalGlobalSets = 0;
 
     const conditionScore = parseInt(localStorage.getItem('workout_intensity_score')) || 3;
-    const strengthRatio = parseInt(localStorage.getItem('user_strength_ratio')) || 25; // 비율 로드 (기본 25)
+    const strengthRatio = parseInt(localStorage.getItem('user_strength_ratio')) || 25; 
     
     const isolationKeywords = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀'];
 
@@ -249,31 +249,20 @@ window.renderWorkoutList = function() {
         else { warmupCount = 2; hasTopSet = true; mainCount = 1; }
         if (conditionScore < 3 && mainCount > 1) mainCount -= 1;
 
-        // [수정됨] 비율에 따른 추천 반복수(Reps) 및 증량폭(Overload) 자동 계산
         let topReps, mainReps, overloadTop, overloadMain;
 
-        if (strengthRatio >= 75) { // 스트렝스 특화
-            topReps = "3-5";
-            mainReps = isIsolation ? "8-10" : "5-8";
-            overloadTop = 5.0; 
-            overloadMain = isIsolation ? 2.0 : 5.0;
-        } else if (strengthRatio >= 50) { // 밸런스형
-            topReps = "5-7";
-            mainReps = isIsolation ? "10-12" : "8-10";
-            overloadTop = 2.5;
-            overloadMain = isIsolation ? 2.0 : 2.5;
-        } else { // 근비대 특화 (25 이하)
-            topReps = "8-10";
-            mainReps = isIsolation ? "12-15" : "10-12";
-            overloadTop = 2.5;
-            overloadMain = isIsolation ? 1.0 : 2.5;
+        if (strengthRatio >= 75) {
+            topReps = "3-5"; mainReps = isIsolation ? "8-10" : "5-8";
+            overloadTop = 5.0; overloadMain = isIsolation ? 2.0 : 5.0;
+        } else if (strengthRatio >= 50) {
+            topReps = "5-7"; mainReps = isIsolation ? "10-12" : "8-10";
+            overloadTop = 2.5; overloadMain = isIsolation ? 2.0 : 2.5;
+        } else {
+            topReps = "8-10"; mainReps = isIsolation ? "12-15" : "10-12";
+            overloadTop = 2.5; overloadMain = isIsolation ? 1.0 : 2.5;
         }
 
-        // 컨디션 저조 시 증량 취소
-        if (conditionScore < 3) {
-            overloadTop = 0;
-            overloadMain = 0;
-        }
+        if (conditionScore < 3) { overloadTop = 0; overloadMain = 0; }
 
         const totalSets = warmupCount + (hasTopSet ? 1 : 0) + mainCount;
         window.totalGlobalSets += totalSets;
@@ -290,7 +279,7 @@ window.renderWorkoutList = function() {
             <div class="we-sets" id="sets-ex_${idx}" style="display:none; padding:20px;">
         `;
         
-        // 1. 웜업 세트
+        // 1. 웜업 세트 ('warmup' 타입 전달)
         html += `
             <div class="we-group-badge">웜업 세트</div>
             <div class="we-top-history"><span>지난주 웜업 세트</span>${noRecordHtml}</div>
@@ -305,17 +294,15 @@ window.renderWorkoutList = function() {
                 <span class="we-rir-label">${rir}</span>
                 <input type="number" class="we-val-input" value="" placeholder="빈 바">
                 <input type="number" class="we-val-input" value="" placeholder="${guideReps}">
-                <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum})">✓</div>
+                <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum}, 'warmup')">✓</div>
             </div>`;
             currentSetNum++;
         }
 
-        // 2. 탑 세트
+        // 2. 탑 세트 ('top' 타입 전달)
         if (hasTopSet) {
-            // 가상의 이전 기록
             const lastTopWeight = 35;
             const targetTopWeight = lastTopWeight + overloadTop;
-
             html += `
                 <div style="height:20px;"></div>
                 <div class="we-group-badge">탑 세트</div>
@@ -325,17 +312,16 @@ window.renderWorkoutList = function() {
                     <span class="we-rir-label">1 RIR</span>
                     <input type="number" class="we-val-input" value="" placeholder="${targetTopWeight}">
                     <input type="number" class="we-val-input" value="" placeholder="${topReps}">
-                    <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum})">✓</div>
+                    <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum}, 'top')">✓</div>
                 </div>
             `;
             currentSetNum++;
         }
 
-        // 3. 본 세트
+        // 3. 본 세트 ('main' 타입 전달)
         if (mainCount > 0) {
             const lastMainWeight = 30;
             const targetMainWeight = lastMainWeight + overloadMain;
-
             html += `
                 <div style="height:20px;"></div>
                 <div class="we-group-badge">본 세트</div>
@@ -348,7 +334,7 @@ window.renderWorkoutList = function() {
                     <span class="we-rir-label">1 RIR</span>
                     <input type="number" class="we-val-input" value="" placeholder="${targetMainWeight}">
                     <input type="number" class="we-val-input" value="" placeholder="${mainReps}">
-                    <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum})">✓</div>
+                    <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum}, 'main')">✓</div>
                 </div>`;
                 currentSetNum++;
             }
@@ -376,7 +362,7 @@ window.renderWorkoutList = function() {
 };
 
 // ==========================================
-// 4-1. 본 세트 동적 추가/삭제 로직
+// 4-1. 본 세트 동적 추가/삭제 함수 (main 파라미터 연동)
 // ==========================================
 window.addMainSet = function(exId) {
     const setsContainer = document.getElementById(`sets-${exId}`);
@@ -389,7 +375,6 @@ window.addMainSet = function(exId) {
         nextSetNum = parseInt(idParts[idParts.length - 1]) + 1;
     }
     
-    // 스트렝스 비율 기반 반복수 다시 가져오기
     const strengthRatio = parseInt(localStorage.getItem('user_strength_ratio')) || 25;
     const isIsolation = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀'].some(keyword => document.querySelector(`#we-card-${exId} .we-name`).innerText.includes(keyword));
     
@@ -401,11 +386,12 @@ window.addMainSet = function(exId) {
     const newRow = document.createElement('div');
     newRow.className = 'we-row main-set-row';
     newRow.id = `row-${exId}-${nextSetNum}`;
+    // onclick 시 'main' 타입 전달
     newRow.innerHTML = `
         <span class="we-rir-label">1 RIR</span>
         <input type="number" class="we-val-input" value="" placeholder="0">
         <input type="number" class="we-val-input" value="" placeholder="${mainReps}">
-        <div class="we-circle-check" onclick="checkSet(this, '${exId}', ${nextSetNum})">✓</div>
+        <div class="we-circle-check" onclick="checkSet(this, '${exId}', ${nextSetNum}, 'main')">✓</div>
     `;
     
     setsContainer.insertBefore(newRow, controls);
@@ -433,7 +419,7 @@ window.deleteMainSet = function(exId) {
 };
 
 // ==========================================
-// 5. 공통 팝업 및 기능
+// 5. 공통 팝업 및 타이머 연동 (체크 시 시간 분기 처리)
 // ==========================================
 window.toggleSets = function(exId) {
     const setsDiv = document.getElementById(`sets-${exId}`);
@@ -447,15 +433,37 @@ window.toggleSets = function(exId) {
     }
 };
 
-window.checkSet = function(btn, exId, setNum) {
+// [수정됨] 세트 유형(setType) 파라미터 추가
+window.checkSet = function(btn, exId, setNum, setType = 'main') {
     btn.classList.toggle('active');
     const row = document.getElementById(`row-${exId}-${setNum}`);
     if(btn.classList.contains('active')) {
         row.style.opacity = '0.5';
+        
+        // 기록 저장
         let saved = JSON.parse(localStorage.getItem(`workout_${exId}`)) || [];
         if(!saved.includes(setNum)) saved.push(setNum);
         localStorage.setItem(`workout_${exId}`, JSON.stringify(saved));
-        startGlobalTimer(60, document.querySelector(`#we-card-${exId} .we-name`).innerText);
+        
+        // 타이머 로직 분기
+        const exName = document.querySelector(`#we-card-${exId} .we-name`).innerText;
+        let restTime = 60; // 기본 1분
+        
+        if (setType === 'warmup') {
+            restTime = 35; // 웜업 35초
+        } else {
+            // 대근육 복합 운동 키워드 (가슴, 등, 하체 메인)
+            const largeMuscleKeywords = ['스쿼트', '벤치 프레스', '풀업', '로우', '랫풀다운', '레그 프레스', '데드리프트', '딥스', '힙 쓰러스트', '런지', '레그 익스텐션', '레그 컬'];
+            
+            // 어깨, 팔, 복근 등은 위 배열에 없으므로 기본 60초 적용
+            if (largeMuscleKeywords.some(keyword => exName.includes(keyword))) {
+                restTime = 90; // 대근육 본세트는 1분 30초
+            } else {
+                restTime = 60; // 소근육 본세트는 1분
+            }
+        }
+        
+        startGlobalTimer(restTime, exName);
     } else {
         row.style.opacity = '1';
         let saved = JSON.parse(localStorage.getItem(`workout_${exId}`)) || [];
