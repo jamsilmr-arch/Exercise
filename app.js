@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. 운동 리스트 렌더링 (자동 증량 및 플레이스홀더 적용)
+// 4. 운동 리스트 렌더링 (모든 세트 이전 기록 노출)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
@@ -201,6 +201,7 @@ window.renderWorkoutList = function() {
         window.currentRoutine.push({ id: `ex_${idx}`, name: exName });
         
         // 가상의 지난주 운동 기록 (실제 서비스에서는 DB 연동)
+        const lastWarmupWeight = 20;
         const lastTopWeight = 35;
         const lastMainWeight = 30;
         
@@ -218,9 +219,10 @@ window.renderWorkoutList = function() {
             <div class="we-sets" id="sets-ex_${idx}" style="display:none; padding:20px;">
         `;
         
-        // 1. 웜업 세트 (빈 바 또는 가벼운 고정 무게, 횟수는 플레이스홀더 가이드)
+        // 1. 웜업 세트 (이전 기록 노출)
         html += `
             <div class="we-group-badge">웜업 세트</div>
+            <div class="we-top-history"><span>지난주 웜업 세트</span><span>중량 <strong>${lastWarmupWeight}kg</strong>&nbsp;&nbsp;횟수 <strong>10회</strong></span></div>
             <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
         `;
         const warmupCount = sets > 3 ? 2 : 1;
@@ -230,13 +232,13 @@ window.renderWorkoutList = function() {
             html += `
             <div class="we-row" id="row-ex_${idx}-${s}">
                 <span class="we-rir-label">${rir}</span>
-                <input type="number" class="we-val-input" value="20" placeholder="빈 바">
+                <input type="number" class="we-val-input" value="${lastWarmupWeight}" placeholder="빈 바">
                 <input type="number" class="we-val-input" value="" placeholder="${guideReps}">
                 <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${s})">✓</div>
             </div>`;
         }
 
-        // 2. 탑 세트 (증량된 무게 적용, 횟수는 빈칸 + 가이드 문구)
+        // 2. 탑 세트 (이전 기록 노출)
         const topSetNum = warmupCount + 1;
         html += `
             <div style="height:20px;"></div>
@@ -251,11 +253,12 @@ window.renderWorkoutList = function() {
             </div>
         `;
 
-        // 3. 본 세트 (증량된 무게 적용, 횟수는 빈칸 + 가이드 문구)
+        // 3. 본 세트 (이전 기록 노출)
         if(sets > topSetNum) {
             html += `
                 <div style="height:20px;"></div>
                 <div class="we-group-badge">본 세트</div>
+                <div class="we-top-history"><span>지난주 본 세트</span><span>중량 <strong>${lastMainWeight}kg</strong>&nbsp;&nbsp;횟수 <strong>10회</strong></span></div>
                 <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
             `;
             for(let s = topSetNum + 1; s <= sets; s++) {
