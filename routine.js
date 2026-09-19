@@ -45,27 +45,23 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // ==========================================
-// 2. [수정됨] 썸네일 이미지 링크 제거 -> 운동 명칭 텍스트 프리셋으로 변경 시작
+// 2. [수정됨] 운동 명칭 텍스트 프리셋 확장 (펼침 대비)
 // ==========================================
 const textPresets = {
-    full: ['스쿼트', '벤치\n프레스', '풀업', '오버헤드\n프레스'], 
-    upper: ['벤치\n프레스', '풀업', '오버헤드\n프레스', '바벨 로우'], 
-    lower: ['스쿼트', '루마니안\n데드', '레그\n프레스', '레그 컬'], 
-    push: ['벤치\n프레스', '오버헤드\n프레스', '인클라인\n프레스', '삼두\n푸시다운'], 
-    pull: ['풀업', '바벨 로우', '랫풀다운', '바벨 컬'], 
-    core: ['벤치\n프레스', '풀업', '바벨 로우', '펙덱\n플라이'], 
-    limb: ['오버헤드\n프레스', '사이드\n레터럴', '바벨 컬', '삼두\n푸시다운'],
-    glutes: ['스쿼트', '힙\n쓰러스트', '런지', '루마니안\n데드'],
-    w_upper: ['랫풀다운', '시티드\n로우', '숄더\n프레스', '사이드\n레터럴']
+    full: ['스쿼트', '벤치\n프레스', '풀업', '오버헤드\n프레스', '바벨 로우', '사이드\n레터럴', '바벨 컬', '삼두\n푸시다운'], 
+    upper: ['벤치\n프레스', '풀업', '오버헤드\n프레스', '바벨 로우', '인클라인\n프레스', '랫풀다운', '사이드\n레터럴', '바벨 컬'], 
+    lower: ['스쿼트', '루마니안\n데드', '레그\n프레스', '레그 컬', '카프 레이즈', '레그\n익스텐션', '힙\n쓰러스트', '이너 타이'], 
+    push: ['벤치\n프레스', '오버헤드\n프레스', '인클라인\n프레스', '삼두\n푸시다운', '펙덱\n플라이', '사이드\n레터럴', '딥스', '프론트\n레이즈'], 
+    pull: ['풀업', '바벨 로우', '랫풀다운', '바벨 컬', '시티드\n로우', '페이스 풀', '해머 컬', '리어 델트'], 
+    core: ['벤치\n프레스', '풀업', '바벨 로우', '펙덱\n플라이', '인클라인\n프레스', '랫풀다운', '시티드\n로우', '풀오버'], 
+    limb: ['오버헤드\n프레스', '사이드\n레터럴', '바벨 컬', '삼두\n푸시다운', '프론트\n레이즈', '해머 컬', '케이블\n푸시다운', '리버스\n펙덱'],
+    glutes: ['스쿼트', '힙\n쓰러스트', '런지', '루마니안\n데드', '힙\n어브덕션', '킥백', '와이드\n스쿼트', '브이\n스쿼트'],
+    w_upper: ['랫풀다운', '시티드\n로우', '숄더\n프레스', '사이드\n레터럴', '푸시업', '페이스 풀', '암 컬', '트라이셉\n익스텐션']
 };
-// ==========================================
-// [수정됨] 썸네일 이미지 링크 제거 -> 운동 명칭 텍스트 프리셋으로 변경 끝
-// ==========================================
 
 // ==========================================
-// 3. 전체 루틴 데이터베이스 (imgs -> texts 프로퍼티 변경)
+// 3. 전체 루틴 데이터베이스
 // ==========================================
-// [수정됨] 루틴 데이터 내 imgs를 texts로 일괄 변경 시작
 const routineDB = {
     'rt_2_full': { title: '주 2회 무분할 루틴', chips: ['남성'], desc: '운동 가능 일수가 적은 분들에게 안성맞춤입니다. 무분할로 진행되고 전신을 다 골고루 운동합니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.full }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full }, { type: 'rest', days: 3 } ] },
     'rt_3_hybrid': { title: '주 3회 (상체-하체-전신) 루틴', chips: ['상체-하체-전신', '남성'], desc: '2분할과 무분할을 섞은 하이브리드입니다. 전신을 골고루 운동합니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 6, texts: textPresets.lower }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full }, { type: 'rest', days: 1 } ] },
@@ -80,10 +76,9 @@ const routineDB = {
     'rt_w_hipup': { title: '힙업 루틴', chips: ['여성'], desc: '전신을 운동하지만 힙업에 많은 비중을 두는 루틴입니다. 주 4회로 구성되며 전신을 운동하고 싶지만 힙업을 주 목표로 하시는 여성분들께 추천하는 루틴입니다. 상체의 비중이 낮고 하체에 집중합니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 5, texts: textPresets.glutes }, { type: 'workout', label: 'Day 2', count: 5, texts: textPresets.w_upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 4', count: 6, texts: textPresets.glutes }, { type: 'workout', label: 'Day 5', count: 5, texts: textPresets.w_upper }, { type: 'rest', days: 2 } ] },
     'rt_w_hiponly': { title: '힙 only 루틴', chips: ['여성', '힙 only'], desc: '다른 신체 부위 말고, 오로지 힙업만 원하는 여성분들을 위한 루틴입니다. 부담스럽지 않게 주 3회로 구성되어 있습니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 6', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 1 } ] }
 };
-// [수정됨] 루틴 데이터 내 imgs를 texts로 일괄 변경 끝
 
 // ==========================================
-// 4. 루틴 상세 오픈 및 저장/적용 로직
+// 4. [수정됨] 루틴 상세 오픈 및 펼침(Expansion) 로직
 // ==========================================
 window.openDetail = function(rtId) {
     window.currentViewedRoutineId = rtId; 
@@ -99,16 +94,19 @@ window.openDetail = function(rtId) {
         <div class="rd-timeline">
     `;
     
-    // [수정됨] 이미지 렌더링 대신 텍스트 렌더링 로직으로 교체 시작
-    data.timeline.forEach(item => {
+    data.timeline.forEach((item, dayIndex) => {
         if(item.type === 'workout') {
-            html += `<div class="rd-item"><div class="rd-dot"></div><div class="rd-content"><div class="rd-day-title">${item.label} <span>| 총 ${item.count}개 운동</span></div><div class="rd-thumbnails">`;
+            html += `<div class="rd-item"><div class="rd-dot"></div><div class="rd-content"><div class="rd-day-title">${item.label} <span>| 총 ${item.count}개 운동</span></div>`;
+            
+            // 1. 접힌 상태 (기본 노출)
+            html += `<div class="rd-thumbnails" id="thumb-col-${dayIndex}">`;
             const displayTexts = item.texts.slice(0, 4);
             
             displayTexts.forEach((txt, index) => {
                 if (index === 3 && item.count > 4) {
+                    // +N 버튼 영역: 클릭 시 접힌 영역을 숨기고 펼쳐진 영역을 보여줌
                     html += `
-                        <div class="rd-thumb">
+                        <div class="rd-thumb" style="cursor:pointer;" onclick="document.getElementById('thumb-col-${dayIndex}').style.display='none'; document.getElementById('thumb-exp-${dayIndex}').style.display='grid';">
                             <span class="rd-thumb-text">${txt}</span>
                             <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; color:#fff; font-size:1.1rem; font-weight:bold;">
                                 +${item.count - 4}
@@ -118,12 +116,24 @@ window.openDetail = function(rtId) {
                     html += `<div class="rd-thumb"><span class="rd-thumb-text">${txt}</span></div>`;
                 }
             });
-            html += `</div></div></div>`;
+            html += `</div>`;
+            
+            // 2. 펼쳐진 상태 (숨김 처리됨)
+            if (item.count > 4) {
+                html += `<div class="rd-thumbnails" id="thumb-exp-${dayIndex}" style="display:none;">`;
+                // count 수만큼 배열에서 슬라이스하여 모두 렌더링
+                const expandedTexts = item.texts.slice(0, item.count);
+                expandedTexts.forEach((txt) => {
+                    html += `<div class="rd-thumb"><span class="rd-thumb-text">${txt}</span></div>`;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div></div>`;
         } else {
             html += `<div class="rd-item"><div class="rd-dot rest"></div><div class="rd-content"><div class="rd-day-title" style="color:#aaa;">휴식 <span>| ${item.days}일</span></div></div></div>`;
         }
     });
-    // [수정됨] 이미지 렌더링 대신 텍스트 렌더링 로직으로 교체 끝
     
     html += `</div>
         <div class="rd-footer">
