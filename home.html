@@ -118,23 +118,24 @@
         </main>
     </div>
 
-    <!-- [4] 오늘 운동 요약 화면 (반영 완료) -->
-    <div id="view-summary" class="view-container">
-        <header class="summary-header"><span class="summary-title">오늘 운동 요약</span></header>
-        <div class="sum-top-info"><span class="sum-date">9월 8일</span><span class="sum-stats">8개 운동 · 24세트</span></div>
-        <div class="sum-feedback-badge">무리없이 해냈고, 강도가 딱 알맞았어요!</div>
+   <!-- [3] 운동 요약 화면 -->
+    <div class="view-container" id="view-summary" style="display:none;">
+        <header class="top-nav-bar center-logo">
+            <div class="logo font-pinyon">JHP</div>
+        </header>
         
-        <main class="sum-list">
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">오버헤드 프레스</span><span class="sum-i-setcount">4세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span>횟수 (회)</span></div><div class="sum-col"><span class="val">60</span><span class="val">9</span></div><div class="sum-col"><span class="val">20</span><span class="val">25</span></div><div class="sum-col"><span class="val">30</span><span class="val">20</span></div><div class="sum-col"><span class="val">50</span><span class="val">11</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">바벨 프리처 컬</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span>횟수 (회)</span></div><div class="sum-col"><span class="val">25</span><span class="val">6</span></div><div class="sum-col"><span class="val">25</span><span class="val">9</span></div><div class="sum-col"><span class="val">25</span><span class="val">9</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">원암 덤벨/케이블 익스텐션 (왼쪽)</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span>횟수 (회)</span></div><div class="sum-col"><span class="val">8</span><span class="val">11</span></div><div class="sum-col"><span class="val">6</span><span class="val">15</span></div><div class="sum-col"><span class="val">8</span><span class="val">12</span></div></div><div class="sum-i-thumb" style="display:flex; justify-content:center; align-items:center; color:#555; font-size:1.5rem;">🔗</div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">원암 덤벨/케이블 익스텐션 (오른쪽)</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span>횟수 (회)</span></div><div class="sum-col"><span class="val">8</span><span class="val">11</span></div><div class="sum-col"><span class="val">6</span><span class="val">15</span></div><div class="sum-col"><span class="val">8</span><span class="val">12</span></div></div><div class="sum-i-thumb" style="display:flex; justify-content:center; align-items:center; color:#555; font-size:1.5rem;">🔗</div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">바벨 바이셉 컬</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span>횟수 (회)</span></div><div class="sum-col"><span class="val">15</span><span class="val">6</span></div><div class="sum-col"><span class="val">15</span><span class="val">7</span></div><div class="sum-col"><span class="val">15</span><span class="val">10</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">리버스 펙덱</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span>횟수 (회)</span></div><div class="sum-col"><span class="val">25</span><span class="val">10</span></div><div class="sum-col"><span class="val">20</span><span class="val">14</span></div><div class="sum-col"><span class="val">22.5</span><span class="val">13</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">케이블 트라이셉 푸시다운</span><span class="sum-i-setcount">2세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span>횟수 (회)</span></div><div class="sum-col"><span class="val">17.5</span><span class="val">19</span></div><div class="sum-col"><span class="val">20</span><span class="val">10</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/6/63/Pushdown_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">덤벨 레터럴 레이즈</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span>횟수 (회)</span></div><div class="sum-col"><span class="val">6</span><span class="val">11</span></div><div class="sum-col"><span class="val">6</span><span class="val">11</span></div><div class="sum-col"><span class="val">6</span><span class="val">9</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif"></div></div>
+        <!-- 하단 네비게이션 바에 가리지 않도록 padding-bottom을 100px로 넉넉하게 줌 -->
+        <main class="content-area" style="padding:20px; padding-bottom:100px;">
+            <div style="text-align:center; font-weight:bold; color:#fff; margin-bottom:30px;">오늘 운동 요약</div>
+            
+            <!-- 이곳에 자바스크립트가 실제 날짜와 운동 데이터를 자동으로 그려줍니다 -->
+            <div id="summary-render-area">
+                <div style="color:#666; text-align:center; padding:50px 0;">아직 완료된 운동이 없습니다.</div>
+            </div>
+
+            <!-- 하단 고정 버튼 (안 잘리게 여유 공간 확보) -->
+            <button class="primary-btn" onclick="location.href='routine.html'" style="width:100%; margin-top:20px;">다음 루틴 준비하기</button>
         </main>
-        <div class="sum-footer"><button class="primary-btn" onclick="startOverloadCoach()">다음</button></div>
     </div>
 <!-- [신규] 오늘 운동 요약 화면 -->
     <div id="view-summary" class="view-container">
