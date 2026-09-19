@@ -170,34 +170,24 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. [보완됨] 운동 리스트 렌더링 (강제 DOM 주입 로직 추가)
+// 4. 운동 리스트 렌더링 (세트 구분 기능 추가)
 // ==========================================
 window.renderWorkoutList = function() {
-    // 1. 현재 선택된 루틴과 Day 정보 가져오기
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
     const data = routineDB[rtId];
-    if(!data) {
-        console.error("선택된 루틴 데이터가 없습니다.");
-        return;
-    }
+    if(!data) { console.error("루틴 데이터 없음"); return; }
 
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     const freq = parseInt(localStorage.getItem('active_routine_freq')) || 6;
     let currentDayIndex = completedDays % freq; 
 
-    // timeline에서 'workout' 타입만 필터링하여 오늘 할 운동 찾기
     const workoutDays = data.timeline.filter(t => t.type === 'workout');
     const todayWorkout = workoutDays[currentDayIndex];
-    if(!todayWorkout) {
-        console.error("오늘 날짜에 해당하는 운동 데이터가 없습니다.");
-        return;
-    }
+    if(!todayWorkout) return;
 
-    // 헤더에 Day 표시 업데이트
     const topBarTitle = document.querySelector('#view-workout .tn-title');
     if(topBarTitle) topBarTitle.innerText = `Day ${currentDayIndex + 1}`;
 
-    // 2. 종목 리스트 HTML 렌더링 준비
     let html = '';
     window.currentRoutine = [];
     window.totalGlobalSets = 0;
@@ -222,9 +212,17 @@ window.renderWorkoutList = function() {
         `;
         
         for(let s=1; s<=sets; s++) {
+            // [신규] 첫 번째 세트는 기본적으로 '웜업', 나머지는 '본세트'로 설정
+            const isWarmup = s === 1 ? 'selected' : '';
+            const isMain = s > 1 ? 'selected' : '';
+
             html += `
             <div class="we-set-row" id="row-ex_${idx}-${s}">
-                <span>${s}</span>
+                <select class="we-set-type">
+                    <option value="warmup" ${isWarmup}>웜업</option>
+                    <option value="main" ${isMain}>본세트</option>
+                    <option value="top">탑세트</option>
+                </select>
                 <input type="number" class="we-input" value="20" placeholder="0">
                 <input type="number" class="we-input" value="10" placeholder="0">
                 <div class="we-check" onclick="checkSet(this, 'ex_${idx}', ${s})"></div>
@@ -237,27 +235,19 @@ window.renderWorkoutList = function() {
 
     html += `<button class="primary-btn" style="margin-top:20px; width:100%; display:block;" onclick="checkFinishWorkout()">운동 완료</button>`;
     
-    // 3. 확실한 DOM 주입 로직
     let renderArea = document.getElementById('workout-render-area');
-    
-    // 만약 HTML에 렌더링 영역이 지정되어 있지 않다면 강제로 생성해서 붙입니다.
     if (!renderArea) {
         renderArea = document.createElement('div');
         renderArea.id = 'workout-render-area';
-        renderArea.style.padding = '0 20px 100px 20px'; // 하단 네비게이션 여백 확보
-        
+        renderArea.style.padding = '0 20px 100px 20px'; 
         const viewWorkout = document.getElementById('view-workout');
-        if (viewWorkout) {
-            viewWorkout.appendChild(renderArea);
-        } else {
-            console.error("운동 화면 컨테이너(#view-workout)를 찾을 수 없습니다.");
-            return;
-        }
+        if (viewWorkout) viewWorkout.appendChild(renderArea);
     }
     
-    // 최종 HTML 삽입
     renderArea.innerHTML = html;
 };
+
+// toggleSets, checkSet 등 기존 코드는 그대로 유지 (이전 답변과 동일)
 
 // 이하 toggleSets, checkSet 함수 등은 기존과 동일합니다.
 window.toggleSets = function(exId) {
