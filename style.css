@@ -639,3 +639,115 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
 .modal-btn-prev:active, .modal-btn-next:active {
     opacity: 0.7;
 }
+/* ==========================================================================
+   12. 운동 시작 (Workout Tracking) 화면 스타일
+   ========================================================================== */
+#workout-render-area {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.we-card {
+    background: var(--card-bg, #121212);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 12px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.we-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: #1a1a1a;
+    cursor: pointer;
+    user-select: none;
+}
+
+.we-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.we-arrow {
+    color: #888;
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+}
+
+.we-sets {
+    padding: 10px 20px 20px;
+    background: #121212;
+}
+
+.we-set-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #aaa;
+    font-size: 0.95rem;
+    transition: opacity 0.3s ease;
+}
+
+.we-set-row.header {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+/* 열 너비 비율 조정 */
+.we-set-row > span:first-child { width: 15%; text-align: center; } /* 세트 번호 */
+.we-set-row > span:nth-child(2), .we-set-row > input:nth-child(2) { width: 30%; text-align: center; } /* kg */
+.we-set-row > span:nth-child(3), .we-set-row > input:nth-child(3) { width: 25%; text-align: center; } /* 회 */
+.we-set-row > span:last-child, .we-set-row > div:last-child { width: 20%; display: flex; justify-content: center; } /* 완료 체크 */
+
+.we-input {
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.we-input:focus {
+    border-color: var(--primary, #E50914);
+}
+
+.we-check {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.we-check::after {
+    content: '✓';
+    color: #121212;
+    font-size: 1.2rem;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+/* 완료 체크 시 넷플릭스 레드 활성화 */
+.we-check.active {
+    background: var(--primary, #E50914);
+}
+
+.we-check.active::after {
+    opacity: 1;
+}
