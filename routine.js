@@ -45,7 +45,7 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // ==========================================
-// 2. [수정됨] 운동 명칭 텍스트 프리셋 확장 (펼침 대비)
+// 2. 운동 명칭 텍스트 프리셋
 // ==========================================
 const textPresets = {
     full: ['스쿼트', '벤치\n프레스', '풀업', '오버헤드\n프레스', '바벨 로우', '사이드\n레터럴', '바벨 컬', '삼두\n푸시다운'], 
@@ -78,7 +78,7 @@ const routineDB = {
 };
 
 // ==========================================
-// 4. [수정됨] 루틴 상세 오픈 및 펼침(Expansion) 로직
+// 4. 루틴 상세 오픈, 저장 및 탭 이동(자동스크롤) 로직
 // ==========================================
 window.openDetail = function(rtId) {
     window.currentViewedRoutineId = rtId; 
@@ -98,13 +98,11 @@ window.openDetail = function(rtId) {
         if(item.type === 'workout') {
             html += `<div class="rd-item"><div class="rd-dot"></div><div class="rd-content"><div class="rd-day-title">${item.label} <span>| 총 ${item.count}개 운동</span></div>`;
             
-            // 1. 접힌 상태 (기본 노출)
             html += `<div class="rd-thumbnails" id="thumb-col-${dayIndex}">`;
             const displayTexts = item.texts.slice(0, 4);
             
             displayTexts.forEach((txt, index) => {
                 if (index === 3 && item.count > 4) {
-                    // +N 버튼 영역: 클릭 시 접힌 영역을 숨기고 펼쳐진 영역을 보여줌
                     html += `
                         <div class="rd-thumb" style="cursor:pointer;" onclick="document.getElementById('thumb-col-${dayIndex}').style.display='none'; document.getElementById('thumb-exp-${dayIndex}').style.display='grid';">
                             <span class="rd-thumb-text">${txt}</span>
@@ -118,10 +116,8 @@ window.openDetail = function(rtId) {
             });
             html += `</div>`;
             
-            // 2. 펼쳐진 상태 (숨김 처리됨)
             if (item.count > 4) {
                 html += `<div class="rd-thumbnails" id="thumb-exp-${dayIndex}" style="display:none;">`;
-                // count 수만큼 배열에서 슬라이스하여 모두 렌더링
                 const expandedTexts = item.texts.slice(0, item.count);
                 expandedTexts.forEach((txt) => {
                     html += `<div class="rd-thumb"><span class="rd-thumb-text">${txt}</span></div>`;
@@ -191,4 +187,26 @@ window.saveRoutineOnly = function() {
 window.useRoutineNow = function() {
     saveRoutineToLocal();
     location.href = 'home.html';
+};
+
+// ==========================================
+// 5. [신규] 탭 클릭 시 부드러운 스크롤 이동 로직
+// ==========================================
+window.scrollToSection = function(sectionId, btn) {
+    // 모든 탭 활성화 해제 후 클릭한 탭만 빨간색 활성화
+    document.querySelectorAll('.rt-filter').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+
+    // 목표 섹션으로 부드럽게 스크롤 (상단 JHP 로고 헤더 공간 80px 제외)
+    const target = document.getElementById(sectionId);
+    if (target) {
+        const headerOffset = 80;
+        const elementPosition = target.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+        });
+    }
 };
