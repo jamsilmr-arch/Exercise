@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JHP - 분석</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -33,13 +36,13 @@
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-                <div class="m-card" style="grid-column: 1 / -1; display:flex; align-items:center; gap:15px;" onclick="switchAnalysisView('list')">
+                <div class="m-card" style="grid-column: 1 / -1; display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="switchAnalysisView('list')">
                     <span style="font-size:1.8rem;">📊</span><span style="color:#fff; font-weight:bold; font-size:1.1rem;">운동별 퍼포먼스 변화</span>
                 </div>
-                <div class="m-card" style="display:flex; flex-direction:column; gap:15px; align-items:flex-start;" onclick="switchAnalysisView('volume')">
+                <div class="m-card" style="display:flex; flex-direction:column; gap:15px; align-items:flex-start; cursor:pointer;" onclick="switchAnalysisView('volume')">
                     <span style="font-size:1.8rem;">📈</span><span style="color:#fff; font-weight:bold; font-size:0.95rem;">부위별 볼륨 변화</span>
                 </div>
-                <div class="m-card" style="display:flex; flex-direction:column; gap:15px; align-items:flex-start;" onclick="switchAnalysisView('growth')">
+                <div class="m-card" style="display:flex; flex-direction:column; gap:15px; align-items:flex-start; cursor:pointer;" onclick="switchAnalysisView('growth')">
                     <span style="font-size:1.8rem;">📉</span><span style="color:#fff; font-weight:bold; font-size:0.95rem;">부위별 성장률</span>
                 </div>
             </div>
@@ -49,7 +52,6 @@
     <!-- [2] 부위별 볼륨 변화 화면 -->
     <div class="view-container" id="view-analysis-volume" style="display: none;">
         <header class="top-nav-bar">
-            <!-- 뒤로가기 시 대시보드로 강제 이동 -->
             <button class="icon-btn" onclick="switchAnalysisView('dash')">←</button>
             <span class="tn-title">부위별 볼륨 변화</span>
             <div style="width:30px;"></div>
@@ -60,18 +62,11 @@
                 <span style="color:#888; font-size:0.9rem;">지난 주 같은 시점보다</span>
                 <span style="background:#333; color:#888; padding:3px 8px; border-radius:4px; font-size:0.8rem;">-</span>
             </div>
-
             <div style="height:250px; border-bottom:1px dashed #333; position:relative; margin-bottom:40px; display:flex; justify-content:center; align-items:center; color:#555; font-size:0.9rem;">
                 누적된 운동 데이터가 없습니다.
             </div>
-
             <div class="chip-scroll">
-                <span class="filter-chip active">가슴</span>
-                <span class="filter-chip">등 중/상부</span>
-                <span class="filter-chip">광배근</span>
-                <span class="filter-chip">어깨(전/측면)</span>
-                <span class="filter-chip">대퇴사두</span>
-                <span class="filter-chip">햄스트링</span>
+                <span class="filter-chip active">가슴</span><span class="filter-chip">등 중/상부</span><span class="filter-chip">광배근</span><span class="filter-chip">어깨(전/측면)</span><span class="filter-chip">대퇴사두</span><span class="filter-chip">햄스트링</span>
             </div>
         </main>
     </div>
@@ -79,7 +74,6 @@
     <!-- [3] 부위별 성장률 화면 -->
     <div class="view-container" id="view-analysis-growth" style="display: none;">
         <header class="top-nav-bar">
-            <!-- 뒤로가기 시 대시보드로 강제 이동 -->
             <button class="icon-btn" onclick="switchAnalysisView('dash')">←</button>
             <span class="tn-title">부위별 성장률</span>
             <div style="width:30px;"></div>
@@ -87,26 +81,17 @@
         <main class="content-area" style="padding:20px;">
             <h2 style="color:#fff; font-size:1.2rem; font-weight:bold; margin-bottom:5px;">부위별 퍼포먼스 성장률</h2>
             <p style="color:#666; font-size:0.85rem; margin-bottom:30px;">신체 부위별로 퍼포먼스 증감을 한 눈에 확인해요</p>
-
             <div style="height:200px; border-bottom:1px solid #444; margin-bottom:30px; display:flex; justify-content:center; align-items:center; color:#555; font-size:0.9rem;">
                 비교할 과거 데이터가 없습니다.
             </div>
-
             <div class="growth-box" style="border-left: 4px solid var(--primary);">
                 <div class="growth-title">최고 퍼포먼스</div>
-                <div class="growth-row">
-                    <span class="g-badge">-</span>
-                    <span class="g-name">기록 없음</span>
-                </div>
+                <div class="growth-row"><span class="g-badge">-</span><span class="g-name">기록 없음</span></div>
                 <div class="g-desc">데이터가 쌓이면 최고 퍼포먼스 종목을 알려드려요.</div>
             </div>
-
             <div class="growth-box" style="border-left: 4px solid #444;">
                 <div class="growth-title">최저 퍼포먼스</div>
-                <div class="growth-row">
-                    <span class="g-badge">-</span>
-                    <span style="color:#fff; font-weight:bold; font-size:1rem;">기록 없음</span>
-                </div>
+                <div class="growth-row"><span class="g-badge">-</span><span style="color:#fff; font-weight:bold; font-size:1rem;">기록 없음</span></div>
                 <div class="g-desc">성장이 정체된 종목을 파악할 수 있어요.</div>
             </div>
         </main>
@@ -115,40 +100,33 @@
     <!-- [4] 기존 운동 리스트 화면 -->
     <div class="view-container" id="view-analysis-list" style="display: none;">
         <header class="top-nav-bar">
-            <!-- 뒤로가기 시 대시보드로 강제 이동 -->
             <button class="icon-btn" onclick="switchAnalysisView('dash')">←</button>
             <span class="tn-title">운동별 퍼포먼스 변화</span>
             <div style="width:30px;"></div>
         </header>
         <main class="content-area" style="padding-top:20px; padding-bottom:50px;">
-            
             <div class="perf-list-group"><span class="perf-badge">가슴</span><div class="perf-list-box">
                 <div class="perf-item" onclick="openPerfDetail('벤치 프레스')"><span class="perf-name">벤치 프레스</span><span class="perf-arrow">></span></div>
                 <div class="perf-item" onclick="openPerfDetail('인클라인 스미스 머신 벤치 프레스')"><span class="perf-name">인클라인 스미스 머신 벤치 프레스</span><span class="perf-arrow">></span></div>
                 <div class="perf-item" onclick="openPerfDetail('펙덱 플라이')"><span class="perf-name">펙덱 플라이</span><span class="perf-arrow">></span></div>
             </div></div>
-
             <div class="perf-list-group"><span class="perf-badge">등 중/상부</span><div class="perf-list-box">
                 <div class="perf-item" onclick="openPerfDetail('바벨 로우')"><span class="perf-name">바벨 로우</span><span class="perf-arrow">></span></div>
                 <div class="perf-item" onclick="openPerfDetail('시티드 로우')"><span class="perf-name">시티드 로우</span><span class="perf-arrow">></span></div>
                 <div class="perf-item" onclick="openPerfDetail('랫풀다운')"><span class="perf-name">랫풀다운</span><span class="perf-arrow">></span></div>
             </div></div>
-
             <div class="perf-list-group"><span class="perf-badge">대퇴사두</span><div class="perf-list-box">
                 <div class="perf-item" onclick="openPerfDetail('스쿼트')"><span class="perf-name">스쿼트</span><span class="perf-arrow">></span></div>
                 <div class="perf-item" onclick="openPerfDetail('레그 프레스')"><span class="perf-name">레그 프레스</span><span class="perf-arrow">></span></div>
                 <div class="perf-item" onclick="openPerfDetail('레그 익스텐션')"><span class="perf-name">레그 익스텐션</span><span class="perf-arrow">></span></div>
             </div></div>
-
             <div style="text-align:center; padding: 20px; color:#555; font-size:0.9rem;">... 기타 종목 생략 (실제 앱 구동 시 자동 로드) ...</div>
-            
         </main>
     </div>
 
-    <!-- [5] 상세 분석 차트 화면 (기존) -->
+    <!-- [5] 상세 분석 차트 화면 -->
     <div class="view-container" id="view-analysis-detail" style="display: none;">
         <header class="top-nav-bar">
-            <!-- 뒤로가기 시 리스트로 강제 이동 -->
             <button class="icon-btn" onclick="switchAnalysisView('list')">←</button>
             <span class="tn-title" id="ad-title">상세 분석</span>
             <div style="width:30px;"></div>
@@ -156,16 +134,84 @@
         <main class="content-area" style="padding-top:20px;" id="ad-render"></main>
     </div>
 
-    <!-- 하단 네비게이션바 -->
-    <nav class="bottom-nav" id="main-nav">
-        <div class="nav-item" onclick="location.href='home.html'"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
-        <div class="nav-item" onclick="location.href='routine.html'"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
-        <div class="nav-item active" onclick="location.href='analysis.html'"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
-        <div class="nav-item" onclick="location.href='settings.html'"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
-    </nav>
-
     <script src="app.js"></script>
-    <script src="analysis.js"></script>
 
+    <!-- 캐시 문제 완벽 방어를 위해 스크립트를 HTML 내부에 직접 작성 -->
+    <script>
+        window.activeTab = 'analysis';
+
+        function calculate1RM(weight, reps) {
+            if(reps === 1) return weight;
+            return Math.round(weight * (1 + (reps / 30)) * 10) / 10;
+        }
+
+        window.switchAnalysisView = function(viewName) {
+            console.log("전환 요청됨: ", viewName); // 디버깅용 로그
+            document.querySelectorAll('.view-container').forEach(v => v.style.display = 'none');
+            
+            const targetView = document.getElementById('view-analysis-' + viewName);
+            if(targetView) {
+                targetView.style.display = 'block';
+                window.scrollTo(0, 0);
+            }
+
+            const mainNav = document.getElementById('main-nav');
+            if(viewName === 'dash') {
+                if(mainNav) mainNav.style.display = 'flex';
+                try { history.replaceState({ view: 'dash' }, '', '#dash'); } catch(e) {}
+            } else {
+                if(mainNav) mainNav.style.display = 'none';
+                try { history.pushState({ view: viewName }, '', '#' + viewName); } catch(e) {}
+            }
+        };
+
+        window.addEventListener('popstate', (e) => {
+            if (!location.hash || location.hash === '#dash') switchAnalysisView('dash');
+            else if (location.hash === '#list') switchAnalysisView('list');
+            else if (location.hash === '#volume') switchAnalysisView('volume');
+            else if (location.hash === '#growth') switchAnalysisView('growth');
+            else if (location.hash === '#detail') switchAnalysisView('list');
+        });
+
+        let currentChartType = '1RM';
+        let currentExercise = '';
+
+        window.openPerfDetail = function(name) {
+            currentExercise = name;
+            currentChartType = '1RM'; 
+            renderAnalysisDetail();
+            switchAnalysisView('detail');
+        };
+
+        window.closePerfDetail = function() { switchAnalysisView('list'); };
+
+        window.switchChartType = function(type) {
+            currentChartType = type;
+            renderAnalysisDetail();
+        };
+
+        function renderAnalysisDetail() {
+            document.getElementById('ad-title').innerText = currentExercise;
+            let html = `
+                <div class="ad-top-summary">
+                    <div class="ad-sum-box highlight"><span class="ad-sum-label">최고 추정 1RM</span><span class="ad-sum-val">0<span>kg</span></span></div>
+                    <div class="ad-sum-box"><span class="ad-sum-label">최대 볼륨</span><span class="ad-sum-val">0<span>kg</span></span></div>
+                </div>
+                <div class="ad-tabs"><button class="ad-tab active">추정 1RM 추이</button><button class="ad-tab">총 볼륨 추이</button></div>
+                <div class="ad-chart-container" style="display:flex; justify-content:center; align-items:center; color:#666; font-size:0.9rem; text-align:center;">
+                    아직 기록된 데이터가 없습니다.<br>운동을 완료하면 분석 그래프가 나타납니다.
+                </div>
+                <div class="ad-history-title">최근 운동 기록</div>
+                <div class="ad-history-list"><div class="ad-history-item" style="justify-content:center; color:#555; font-size:0.9rem;">기록 없음</div></div>
+            `;
+            document.getElementById('ad-render').innerHTML = html;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!location.hash || location.hash === '#dash') {
+                switchAnalysisView('dash');
+            }
+        });
+    </script>
 </body>
 </html>
