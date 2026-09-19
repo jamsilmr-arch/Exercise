@@ -136,7 +136,7 @@
 
     <script src="app.js"></script>
 
-    <!-- 캐시 문제 완벽 방어를 위해 스크립트를 HTML 내부에 직접 작성 -->
+   <!-- 캐시 문제 완벽 방어를 위해 스크립트를 HTML 내부에 직접 작성 -->
     <script>
         window.activeTab = 'analysis';
 
@@ -146,15 +146,23 @@
         }
 
         window.switchAnalysisView = function(viewName) {
-            console.log("전환 요청됨: ", viewName); // 디버깅용 로그
-            document.querySelectorAll('.view-container').forEach(v => v.style.display = 'none');
+            console.log("화면 전환 실행: ", viewName);
             
+            // 1. 모든 화면에서 CSS active 클래스를 강제 박탈하고 숨김
+            document.querySelectorAll('.view-container').forEach(v => {
+                v.classList.remove('active');
+                v.style.display = 'none';
+            });
+            
+            // 2. 타겟 화면에만 active 클래스를 부여하고 표시
             const targetView = document.getElementById('view-analysis-' + viewName);
             if(targetView) {
+                targetView.classList.add('active');
                 targetView.style.display = 'block';
                 window.scrollTo(0, 0);
             }
 
+            // 3. 하단 네비게이션 제어
             const mainNav = document.getElementById('main-nav');
             if(viewName === 'dash') {
                 if(mainNav) mainNav.style.display = 'flex';
