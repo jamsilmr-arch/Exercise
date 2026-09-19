@@ -19,7 +19,6 @@
         </header>
         
         <div class="rt-section-title" style="margin-top: 20px;">내 루틴</div>
-        <!-- [수정됨] 자바스크립트가 내용을 바꿀 수 있도록 id 추가 -->
         <div class="rt-card" id="rl-current-card" style="border-color:var(--primary);" onclick="openDetail(localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower')">
             <div class="rt-c-top">
                 <span class="rt-c-badge">사용중</span>
@@ -34,14 +33,15 @@
 
         <div class="rt-section-title" style="margin-top:10px;">루틴 선택</div>
         <div class="rt-filters">
-            <div class="rt-filter active">운동횟수</div>
-            <div class="rt-filter">특수루틴</div>
-            <div class="rt-filter">여성헬스</div>
-            <div class="rt-filter">인플루언서</div>
+            <!-- [수정됨] 불필요한 탭 삭제 및 클릭 시 스크롤 이벤트 바인딩 -->
+            <div class="rt-filter active" onclick="scrollToSection('section-freq', this)">운동횟수</div>
+            <div class="rt-filter" onclick="scrollToSection('section-women', this)">여성헬스</div>
         </div>
         
         <div class="content-area" style="padding-top:0;">
-            <!-- 기존 남성/일반 루틴 -->
+            <!-- [신규] 스크롤 이동 앵커 (운동횟수 파트) -->
+            <div id="section-freq"></div>
+
             <div class="rt-card" onclick="openDetail('rt_2_full')"><div class="rt-c-title" style="margin-bottom:10px;">주 2회 무분할 루틴</div><div class="rt-c-chips"><span class="rt-chip">남성</span></div></div>
             <div class="rt-card" onclick="openDetail('rt_3_hybrid')"><div class="rt-c-title" style="margin-bottom:10px;">주 3회 (상체-하체-전신) 루틴</div><div class="rt-c-chips"><span class="rt-chip">상체-하체-전신</span><span class="rt-chip">남성</span></div></div>
             <div class="rt-card" onclick="openDetail('rt_3_full')"><div class="rt-c-title" style="margin-bottom:10px;">주 3회 무분할 (전신-전신-전신) 루틴</div><div class="rt-c-chips"><span class="rt-chip">전신-전신-전신</span><span class="rt-chip">남성</span></div></div>
@@ -52,8 +52,8 @@
             <div class="rt-card" onclick="openDetail('rt_6_push_pull')"><div class="rt-c-title" style="margin-bottom:10px;">주 6회 (밀기-당기기-하체) 루틴</div><div class="rt-c-chips"><span class="rt-chip">밀기-당기기-하체</span><span class="rt-chip">남성</span></div></div>
             <div class="rt-card" onclick="openDetail('rt_6_body_limb_lower')"><div class="rt-c-title" style="margin-bottom:10px;">주 6회 (몸통-말단-하체) 루틴</div><div class="rt-c-chips"><span class="rt-chip">몸통-말단-하체</span><span class="rt-chip">남성</span></div></div>
             
-            <!-- 여성 헬스 루틴 추가 -->
-            <div class="rt-section-title" style="margin-top:20px; border-top:1px solid #333; padding-top:20px;">여성 헬스</div>
+            <!-- [수정됨] 스크롤 이동 앵커 ID (여성 헬스 파트) -->
+            <div id="section-women" class="rt-section-title" style="margin-top:20px; border-top:1px solid #333; padding-top:20px;">여성 헬스</div>
             
             <div class="rt-card" onclick="openDetail('rt_w_fitness')"><div class="rt-c-title" style="margin-bottom:10px;">여성 헬스 루틴</div><div class="rt-c-chips"><span class="rt-chip">여성</span></div></div>
             <div class="rt-card" onclick="openDetail('rt_w_hipup')"><div class="rt-c-title" style="margin-bottom:10px;">힙업 루틴</div><div class="rt-c-chips"><span class="rt-chip">여성</span></div></div>
