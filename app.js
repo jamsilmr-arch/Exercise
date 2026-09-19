@@ -169,8 +169,8 @@ document.addEventListener("DOMContentLoaded", function () {
     attachCommonEvents();
 });
 
-// ==========================================
-// 4. 운동 리스트 렌더링 (모든 세트 이전 기록 노출)
+ㅍ// ==========================================
+// 4. 운동 리스트 렌더링 (데이터 없는 초기 공란 상태)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
@@ -195,20 +195,32 @@ window.renderWorkoutList = function() {
     const conditionScore = parseInt(localStorage.getItem('workout_intensity_score')) || 3;
     const exercisesToRender = todayWorkout.texts.slice(0, todayWorkout.count);
 
+    // 단관절/고립 운동 판별 키워드
+    const isolationKeywords = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀'];
+
     exercisesToRender.forEach((exName, idx) => {
-        let sets = conditionScore < 3 ? 3 : 4; 
-        window.totalGlobalSets += sets;
+        let isIsolation = isolationKeywords.some(keyword => exName.includes(keyword));
+        
+        let warmupCount = 1;
+        let hasTopSet = false;
+        let mainCount = 2;
+
+        if (isIsolation) {
+            warmupCount = 1; hasTopSet = false; mainCount = 2;
+        } else {
+            warmupCount = 2; hasTopSet = true; mainCount = 1;
+        }
+
+        if (conditionScore < 3 && mainCount > 1) {
+            mainCount -= 1;
+        }
+
+        const totalSets = warmupCount + (hasTopSet ? 1 : 0) + mainCount;
+        window.totalGlobalSets += totalSets;
         window.currentRoutine.push({ id: `ex_${idx}`, name: exName });
         
-        // 가상의 지난주 운동 기록 (실제 서비스에서는 DB 연동)
-        const lastWarmupWeight = 20;
-        const lastTopWeight = 35;
-        const lastMainWeight = 30;
-        
-        // 점진적 과부하 (컨디션 3 이상이면 +2.5kg 증량, 아니면 유지)
-        const overloadWeight = conditionScore >= 3 ? 2.5 : 0;
-        const targetTopWeight = lastTopWeight + overloadWeight;
-        const targetMainWeight = lastMainWeight + overloadWeight;
+        // 이전 기록이 없을 때 렌더링될 문구
+        const noRecordHtml = `<span style="color:#666; font-size:0.85rem;">기록 없음</span>`;
 
         html += `
         <div class="we-card" id="we-card-ex_${idx}">
@@ -219,56 +231,60 @@ window.renderWorkoutList = function() {
             <div class="we-sets" id="sets-ex_${idx}" style="display:none; padding:20px;">
         `;
         
-        // 1. 웜업 세트 (이전 기록 노출)
+        // 1. 웜업 세트 (중량/횟수 공란)
         html += `
             <div class="we-group-badge">웜업 세트</div>
-            <div class="we-top-history"><span>지난주 웜업 세트</span><span>중량 <strong>${lastWarmupWeight}kg</strong>&nbsp;&nbsp;횟수 <strong>10회</strong></span></div>
+            <div class="we-top-history"><span>지난주 웜업 세트</span>${noRecordHtml}</div>
             <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
         `;
-        const warmupCount = sets > 3 ? 2 : 1;
+        let currentSetNum = 1;
         for(let s=1; s<=warmupCount; s++) {
             let rir = s === 1 ? '6 RIR' : '5 RIR';
             let guideReps = s === 1 ? '6' : '5';
             html += `
-            <div class="we-row" id="row-ex_${idx}-${s}">
+            <div class="we-row" id="row-ex_${idx}-${currentSetNum}">
                 <span class="we-rir-label">${rir}</span>
-                <input type="number" class="we-val-input" value="${lastWarmupWeight}" placeholder="빈 바">
+                <input type="number" class="we-val-input" value="" placeholder="빈 바">
                 <input type="number" class="we-val-input" value="" placeholder="${guideReps}">
-                <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${s})">✓</div>
+                <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum})">✓</div>
             </div>`;
+            currentSetNum++;
         }
 
-        // 2. 탑 세트 (이전 기록 노출)
-        const topSetNum = warmupCount + 1;
-        html += `
-            <div style="height:20px;"></div>
-            <div class="we-group-badge">탑 세트</div>
-            <div class="we-top-history"><span>지난주 탑 세트</span><span>중량 <strong>${lastTopWeight}kg</strong>&nbsp;&nbsp;횟수 <strong>7회</strong></span></div>
-            <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
-            <div class="we-row" id="row-ex_${idx}-${topSetNum}">
-                <span class="we-rir-label">1 RIR</span>
-                <input type="number" class="we-val-input" value="${targetTopWeight}">
-                <input type="number" class="we-val-input" value="" placeholder="7-8">
-                <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${topSetNum})">✓</div>
-            </div>
-        `;
+        // 2. 탑 세트 (중량/횟수 공란)
+        if (hasTopSet) {
+            html += `
+                <div style="height:20px;"></div>
+                <div class="we-group-badge">탑 세트</div>
+                <div class="we-top-history"><span>지난주 탑 세트</span>${noRecordHtml}</div>
+                <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
+                <div class="we-row" id="row-ex_${idx}-${currentSetNum}">
+                    <span class="we-rir-label">1 RIR</span>
+                    <input type="number" class="we-val-input" value="" placeholder="0">
+                    <input type="number" class="we-val-input" value="" placeholder="7-8">
+                    <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum})">✓</div>
+                </div>
+            `;
+            currentSetNum++;
+        }
 
-        // 3. 본 세트 (이전 기록 노출)
-        if(sets > topSetNum) {
+        // 3. 본 세트 (중량/횟수 공란)
+        if (mainCount > 0) {
             html += `
                 <div style="height:20px;"></div>
                 <div class="we-group-badge">본 세트</div>
-                <div class="we-top-history"><span>지난주 본 세트</span><span>중량 <strong>${lastMainWeight}kg</strong>&nbsp;&nbsp;횟수 <strong>10회</strong></span></div>
+                <div class="we-top-history"><span>지난주 본 세트</span>${noRecordHtml}</div>
                 <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
             `;
-            for(let s = topSetNum + 1; s <= sets; s++) {
+            for(let s = 1; s <= mainCount; s++) {
                 html += `
-                <div class="we-row" id="row-ex_${idx}-${s}">
+                <div class="we-row" id="row-ex_${idx}-${currentSetNum}">
                     <span class="we-rir-label">1 RIR</span>
-                    <input type="number" class="we-val-input" value="${targetMainWeight}">
+                    <input type="number" class="we-val-input" value="" placeholder="0">
                     <input type="number" class="we-val-input" value="" placeholder="10-12">
-                    <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${s})">✓</div>
+                    <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${currentSetNum})">✓</div>
                 </div>`;
+                currentSetNum++;
             }
         }
 
