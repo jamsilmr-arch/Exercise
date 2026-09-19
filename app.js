@@ -812,18 +812,19 @@ window.forceExitWorkout = function() {
         document.getElementById('global-timer-ui').style.display = 'none';
         hideAllModals();
 
-        // 운동 화면 숨기기
-        const workoutView = document.getElementById('view-workout');
-        if (workoutView) {
-            workoutView.classList.remove('active');
-            workoutView.style.display = 'none';
-        }
+        // 모든 화면 뷰 안전하게 숨기기
+        document.querySelectorAll('.view-container').forEach(v => {
+            v.classList.remove('active');
+            v.style.display = 'none';
+        });
         
-        // 메인 홈 화면(view-summary) 표시
-        const summaryView = document.getElementById('view-summary');
-        if (summaryView) {
-            summaryView.classList.add('active');
-            summaryView.style.display = 'block';
+        // 진짜 메인 홈 화면(view-home) 표시
+        const homeView = document.getElementById('view-home');
+        if (homeView) {
+            homeView.classList.add('active');
+            homeView.style.display = 'block';
+        } else if (typeof switchView === 'function') {
+            switchView('view-home');
         }
         
         // 하단 네비게이션 바 복구
