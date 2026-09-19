@@ -1,19 +1,5 @@
 window.activeTab = 'analysis';
 
-// 가상의 운동 기록 데이터 (실제 서비스에서는 Firebase에서 불러옴)
-const mockHistoryData = {
-    '오버헤드 프레스': [
-        { date: '08. 25', weight: 40, reps: 8, sets: 4 }, // 1RM: 50.6, Vol: 1280
-        { date: '09. 01', weight: 45, reps: 7, sets: 4 }, // 1RM: 55.5, Vol: 1260
-        { date: '09. 08', weight: 50, reps: 6, sets: 4 }  // 1RM: 60.0, Vol: 1200
-    ],
-    '바벨 바이셉 컬': [
-        { date: '08. 25', weight: 20, reps: 10, sets: 3 }, // 1RM: 26.6, Vol: 600
-        { date: '09. 01', weight: 25, reps: 8, sets: 3 },  // 1RM: 31.6, Vol: 600
-        { date: '09. 08', weight: 25, reps: 10, sets: 3 }  // 1RM: 33.3, Vol: 750
-    ]
-};
-
 // 1RM 계산 공식 (Epley Formula)
 function calculate1RM(weight, reps) {
     if(reps === 1) return weight;
@@ -35,6 +21,7 @@ window.openPerfDetail = function(name) {
     
     const mainNav = document.getElementById('main-nav');
     if (mainNav) mainNav.style.display = 'none';
+    window.scrollTo(0, 0);
 };
 
 window.closePerfDetail = function() {
@@ -55,16 +42,19 @@ window.switchChartType = function(type) {
 function renderAnalysisDetail() {
     document.getElementById('ad-title').innerText = currentExercise;
     
-    // 데이터가 없는 종목은 더미 데이터 생성
-    const history = mockHistoryData[currentExercise] || [
-        { date: '09. 01', weight: 15, reps: 12, sets: 3 },
-        { date: '09. 08', weight: 20, reps: 10, sets: 3 }
+    // 시각적 데모를 위해 모든 운동에 그럴싸한 성장형 더미 데이터를 동적으로 부여합니다.
+    const baseWeight = Math.floor(Math.random() * 40) + 20; // 20 ~ 60kg 사이의 랜덤 기준 중량
+    const history = [
+        { date: '08. 20', weight: baseWeight, reps: 12, sets: 3 },
+        { date: '08. 27', weight: baseWeight + 5, reps: 10, sets: 3 },
+        { date: '09. 03', weight: baseWeight + 5, reps: 12, sets: 4 },
+        { date: '09. 10', weight: baseWeight + 10, reps: 8, sets: 4 }
     ];
 
     let max1RM = 0;
     let maxVol = 0;
     
-    // 데이터 분석
+    // 데이터 분석 계산
     const chartData = history.map(h => {
         const est1RM = calculate1RM(h.weight, h.reps);
         const volume = h.weight * h.reps * h.sets;
@@ -120,7 +110,7 @@ function renderAnalysisDetail() {
     chartHtml += `</div></div>`;
     html += chartHtml;
 
-    // 히스토리 내역
+    // 하단 히스토리 내역
     html += `<div class="ad-history-title">최근 운동 기록</div><div class="ad-history-list">`;
     [...chartData].reverse().forEach(d => {
         html += `
@@ -134,7 +124,7 @@ function renderAnalysisDetail() {
 
     document.getElementById('ad-render').innerHTML = html;
 
-    // 1RM 선 그리기
+    // 1RM 선 긋기 애니메이션
     if (currentChartType === '1RM') {
         setTimeout(() => {
             const box = document.getElementById('chart-line-box');
