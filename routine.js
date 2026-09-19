@@ -45,44 +45,12 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // ==========================================
-// 2. 운동 명칭 텍스트 프리셋
-// ==========================================
-const textPresets = {
-    full: ['스쿼트', '벤치\n프레스', '풀업', '오버헤드\n프레스', '바벨 로우', '사이드\n레터럴', '바벨 컬', '삼두\n푸시다운'], 
-    upper: ['벤치\n프레스', '풀업', '오버헤드\n프레스', '바벨 로우', '인클라인\n프레스', '랫풀다운', '사이드\n레터럴', '바벨 컬'], 
-    lower: ['스쿼트', '루마니안\n데드', '레그\n프레스', '레그 컬', '카프 레이즈', '레그\n익스텐션', '힙\n쓰러스트', '이너 타이'], 
-    push: ['벤치\n프레스', '오버헤드\n프레스', '인클라인\n프레스', '삼두\n푸시다운', '펙덱\n플라이', '사이드\n레터럴', '딥스', '프론트\n레이즈'], 
-    pull: ['풀업', '바벨 로우', '랫풀다운', '바벨 컬', '시티드\n로우', '페이스 풀', '해머 컬', '리어 델트'], 
-    core: ['벤치\n프레스', '풀업', '바벨 로우', '펙덱\n플라이', '인클라인\n프레스', '랫풀다운', '시티드\n로우', '풀오버'], 
-    limb: ['오버헤드\n프레스', '사이드\n레터럴', '바벨 컬', '삼두\n푸시다운', '프론트\n레이즈', '해머 컬', '케이블\n푸시다운', '리버스\n펙덱'],
-    glutes: ['스쿼트', '힙\n쓰러스트', '런지', '루마니안\n데드', '힙\n어브덕션', '킥백', '와이드\n스쿼트', '브이\n스쿼트'],
-    w_upper: ['랫풀다운', '시티드\n로우', '숄더\n프레스', '사이드\n레터럴', '푸시업', '페이스 풀', '암 컬', '트라이셉\n익스텐션']
-};
-
-// ==========================================
-// 3. 전체 루틴 데이터베이스
-// ==========================================
-const routineDB = {
-    'rt_2_full': { title: '주 2회 무분할 루틴', chips: ['남성'], desc: '운동 가능 일수가 적은 분들에게 안성맞춤입니다. 무분할로 진행되고 전신을 다 골고루 운동합니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.full }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full }, { type: 'rest', days: 3 } ] },
-    'rt_3_hybrid': { title: '주 3회 (상체-하체-전신) 루틴', chips: ['상체-하체-전신', '남성'], desc: '2분할과 무분할을 섞은 하이브리드입니다. 전신을 골고루 운동합니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 6, texts: textPresets.lower }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full }, { type: 'rest', days: 1 } ] },
-    'rt_3_full': { title: '주 3회 무분할 (전신-전신-전신) 루틴', chips: ['전신-전신-전신', '남성'], desc: '전신을 주 3회 운동하기 때문에 운동 주기가 아주 높습니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 8, texts: textPresets.full }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 8, texts: textPresets.full }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full }, { type: 'rest', days: 1 } ] },
-    'rt_4_hybrid': { title: '주 4회 (밀기-당기기-하체-전신) 루틴', chips: ['밀기-당기기-하체-전신', '남성'], desc: '전형적인 무분할과 3분할을 결합한 하이브리드입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.push }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.lower }, { type: 'workout', label: 'Day 4', count: 7, texts: textPresets.full }, { type: 'rest', days: 2 } ] },
-    'rt_4_split': { title: '주 4회 (상체-하체-상체-하체) 루틴', chips: ['상체-하체-상체-하체', '남성'], desc: '가장 기본적이고 효율적인 전형적인 주 4회 2분할 방식입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper }, { type: 'workout', label: 'Day 2', count: 5, texts: textPresets.lower }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 7, texts: textPresets.upper }, { type: 'workout', label: 'Day 2a', count: 5, texts: textPresets.lower }, { type: 'rest', days: 2 } ] },
-    'rt_5_push_pull': { title: '주 5회 (밀기-당기기-하체-밀기-당기기) 루틴', chips: ['밀기-당기기-하체-밀기-당기기', '남성'], desc: '하체 운동을 주 1회만 함으로써 상체에 더 집중할 수 있는 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.push }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull }, { type: 'workout', label: 'Day 3', count: 6, texts: textPresets.lower }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 5, texts: textPresets.push }, { type: 'workout', label: 'Day 2a', count: 6, texts: textPresets.pull }, { type: 'rest', days: 1 } ] },
-    'rt_5_hybrid': { title: '주 5회 (상체-하체-상체-하체-상체) 루틴', chips: ['상체-하체-상체-하체-상체', '남성'], desc: '상체에 3일, 하체에 2일 투자하여 상체 운동을 더 여유롭게 분배했습니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper }, { type: 'workout', label: 'Day 2', count: 5, texts: textPresets.lower }, { type: 'workout', label: 'Day 1a', count: 7, texts: textPresets.upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 2a', count: 4, texts: textPresets.lower }, { type: 'workout', label: 'Day 1b', count: 7, texts: textPresets.upper }, { type: 'rest', days: 1 } ] },
-    'rt_6_push_pull': { title: '주 6회 (밀기-당기기-하체) 루틴', chips: ['밀기-당기기-하체', '남성'], desc: '단순하고 수행하기 쉽기 때문에 흔하고 인기가 많은 3분할 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.push }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull }, { type: 'workout', label: 'Day 3', count: 4, texts: textPresets.lower }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 5, texts: textPresets.push }, { type: 'workout', label: 'Day 2a', count: 5, texts: textPresets.pull }, { type: 'workout', label: 'Day 3a', count: 5, texts: textPresets.lower } ] },
-    'rt_6_body_limb_lower': { title: '주 6회 (몸통-말단-하체) 루틴', chips: ['몸통-말단-하체', '남성'], desc: '세션 후반부의 피로 누적을 줄이고 안정적인 퍼포먼스를 유지하는 3분할 변형입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.core }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.limb }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.lower }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 6, texts: textPresets.core }, { type: 'workout', label: 'Day 2a', count: 7, texts: textPresets.limb }, { type: 'workout', label: 'Day 3a', count: 5, texts: textPresets.lower } ] },
-    'rt_w_fitness': { title: '여성 헬스 루틴', chips: ['여성'], desc: '여성분들의 니즈를 반영해 제작된 루틴입니다. 힙업과 탄력 있는 실루엣을 위해 둔근에 가장 집중하며, 복근과 등은 이차적으로 운동합니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 2', count: 4, texts: textPresets.w_upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 2 } ] },
-    'rt_w_hipup': { title: '힙업 루틴', chips: ['여성'], desc: '전신을 운동하지만 힙업에 많은 비중을 두는 루틴입니다. 주 4회로 구성되며 전신을 운동하고 싶지만 힙업을 주 목표로 하시는 여성분들께 추천하는 루틴입니다. 상체의 비중이 낮고 하체에 집중합니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 5, texts: textPresets.glutes }, { type: 'workout', label: 'Day 2', count: 5, texts: textPresets.w_upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 4', count: 6, texts: textPresets.glutes }, { type: 'workout', label: 'Day 5', count: 5, texts: textPresets.w_upper }, { type: 'rest', days: 2 } ] },
-    'rt_w_hiponly': { title: '힙 only 루틴', chips: ['여성', '힙 only'], desc: '다른 신체 부위 말고, 오로지 힙업만 원하는 여성분들을 위한 루틴입니다. 부담스럽지 않게 주 3회로 구성되어 있습니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 6', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 1 } ] }
-};
-
-// ==========================================
-// 4. 네이티브 뒤로가기(History API) 지원 및 상세 화면 로직
+// 2. 네이티브 뒤로가기(History API) 지원 및 상세 화면 로직
 // ==========================================
 window.openDetail = function(rtId) {
     window.currentViewedRoutineId = rtId; 
-    const data = routineDB[rtId] || routineDB['rt_6_body_limb_lower']; 
+    // routineDB는 app.js에서 전역으로 가져옵니다.
+    const data = window.routineDB[rtId] || window.routineDB['rt_6_body_limb_lower']; 
     
     let html = `
         <div class="rd-header">
@@ -142,7 +110,6 @@ window.openDetail = function(rtId) {
     
     document.getElementById('rd-render-area').innerHTML = html;
     
-    // 화면 전환 및 히스토리 스택 추가
     document.getElementById('view-list').classList.remove('active');
     document.getElementById('view-list').style.display = 'none';
     document.getElementById('view-detail').classList.add('active');
@@ -152,11 +119,9 @@ window.openDetail = function(rtId) {
     if (mainNav) mainNav.style.display = 'none';
     window.scrollTo(0, 0);
 
-    // [신규] 모바일 뒤로가기 처리를 위한 URL 해시 추가
     history.pushState({ view: 'detail' }, '', '#detail');
 };
 
-// [수정됨] 뒤로가기 공통 함수 (버튼, 네이티브 스와이프 모두 대응)
 window.closeDetail = function(fromPopState = false) {
     document.getElementById('view-detail').classList.remove('active');
     document.getElementById('view-detail').style.display = 'none';
@@ -166,26 +131,23 @@ window.closeDetail = function(fromPopState = false) {
     const mainNav = document.getElementById('main-nav');
     if (mainNav) mainNav.style.display = 'flex';
     
-    // 버튼으로 닫을 때만 history.back() 실행 (무한루프 방지)
     if (!fromPopState && location.hash === '#detail') {
         history.back();
     }
 };
 
-// [신규] 기기/브라우저의 뒤로가기 버튼 감지 이벤트
 window.addEventListener('popstate', (e) => {
-    // 해시가 해제되었을 때 (즉 뒤로가기 실행됨)
     if (location.hash !== '#detail') {
         window.closeDetail(true);
     }
 });
 
 // ==========================================
-// 5. 로컬 데이터 연동 함수
+// 3. 로컬 데이터 연동 함수
 // ==========================================
 window.saveRoutineToLocal = function() {
     const rtId = window.currentViewedRoutineId;
-    const data = routineDB[rtId];
+    const data = window.routineDB[rtId];
     if(!data) return;
     
     const freq = data.timeline.filter(t => t.type === 'workout').length;
