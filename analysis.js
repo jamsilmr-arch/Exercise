@@ -1,38 +1,36 @@
 window.activeTab = 'analysis';
 
-// 기존 1RM 계산 로직
 function calculate1RM(weight, reps) {
     if(reps === 1) return weight;
     return Math.round(weight * (1 + (reps / 30)) * 10) / 10;
 }
 
-// 화면 전환 (대시보드 <-> 상세 서브뷰)
+// 화면 전환 및 로컬 파일 에러 방지 처리
 window.switchAnalysisView = function(viewName) {
-    // 모든 뷰 숨김
-    document.getElementById('view-analysis-dash').style.display = 'none';
-    document.getElementById('view-analysis-list').style.display = 'none';
-    document.getElementById('view-analysis-volume').style.display = 'none';
-    document.getElementById('view-analysis-growth').style.display = 'none';
-    document.getElementById('view-analysis-detail').style.display = 'none';
+    // 1. 모든 뷰 숨기기
+    document.querySelectorAll('.view-container').forEach(v => v.style.display = 'none');
 
-    // 요청한 뷰만 표시
-    document.getElementById(`view-analysis-${viewName}`).style.display = 'block';
-    window.scrollTo(0, 0);
+    // 2. 요청한 뷰만 표시
+    const targetView = document.getElementById(`view-analysis-${viewName}`);
+    if(targetView) {
+        targetView.style.display = 'block';
+        window.scrollTo(0, 0);
+    }
 
-    // 하단 네비게이션 제어
+    // 3. 하단 네비게이션 제어 및 URL 히스토리 업데이트 (try-catch로 로컬 에러 방어)
     const mainNav = document.getElementById('main-nav');
     if(viewName === 'dash') {
         if(mainNav) mainNav.style.display = 'flex';
-        history.replaceState({ view: 'dash' }, '', '#dash'); // 홈으로 복귀
+        try { history.replaceState({ view: 'dash' }, '', '#dash'); } catch(e) {}
     } else {
         if(mainNav) mainNav.style.display = 'none';
-        history.pushState({ view: viewName }, '', `#${viewName}`);
+        try { history.pushState({ view: viewName }, '', `#${viewName}`); } catch(e) {}
     }
 };
 
-// 뒤로가기 버튼 연동 (기기 기본 뒤로가기 지원)
+// 뒤로가기 제어
 window.addEventListener('popstate', (e) => {
-    if (location.hash === '' || location.hash === '#dash') {
+    if (!location.hash || location.hash === '#dash') {
         switchAnalysisView('dash');
     } else if (location.hash === '#list') {
         switchAnalysisView('list');
@@ -41,16 +39,13 @@ window.addEventListener('popstate', (e) => {
     } else if (location.hash === '#growth') {
         switchAnalysisView('growth');
     } else if (location.hash === '#detail') {
-        // detail 뷰에서 뒤로가면 list 뷰로
         switchAnalysisView('list');
     }
 });
 
-
 let currentChartType = '1RM';
 let currentExercise = '';
 
-// 기존 종목 상세 보기 로직
 window.openPerfDetail = function(name) {
     currentExercise = name;
     currentChartType = '1RM'; 
@@ -59,7 +54,7 @@ window.openPerfDetail = function(name) {
 };
 
 window.closePerfDetail = function() {
-    history.back(); // popstate 트리거를 통해 list로 돌아감
+    switchAnalysisView('list'); // 명시적으로 리스트로 복귀
 };
 
 window.switchChartType = function(type) {
@@ -69,7 +64,6 @@ window.switchChartType = function(type) {
 
 function renderAnalysisDetail() {
     document.getElementById('ad-title').innerText = currentExercise;
-    const history = []; // 초기값이므로 빈 배열
     
     let html = `
         <div class="ad-top-summary">
@@ -96,3 +90,10 @@ function renderAnalysisDetail() {
     `;
     document.getElementById('ad-render').innerHTML = html;
 }
+
+// 초기 화면 로드 시 대시보드 렌더링
+document.addEventListener("DOMContentLoaded", () => {
+    if (!location.hash || location.hash === '#dash') {
+        switchAnalysisView('dash');
+    }
+});
