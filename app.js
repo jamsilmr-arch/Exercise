@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. 운동 리스트 렌더링 (웜업/탑/본세트 그룹핑 UI 적용)
+// 4. 운동 리스트 렌더링 (자동 증량 및 플레이스홀더 적용)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
@@ -200,6 +200,15 @@ window.renderWorkoutList = function() {
         window.totalGlobalSets += sets;
         window.currentRoutine.push({ id: `ex_${idx}`, name: exName });
         
+        // 가상의 지난주 운동 기록 (실제 서비스에서는 DB 연동)
+        const lastTopWeight = 35;
+        const lastMainWeight = 30;
+        
+        // 점진적 과부하 (컨디션 3 이상이면 +2.5kg 증량, 아니면 유지)
+        const overloadWeight = conditionScore >= 3 ? 2.5 : 0;
+        const targetTopWeight = lastTopWeight + overloadWeight;
+        const targetMainWeight = lastMainWeight + overloadWeight;
+
         html += `
         <div class="we-card" id="we-card-ex_${idx}">
             <div class="we-header" onclick="toggleSets('ex_${idx}')">
@@ -209,7 +218,7 @@ window.renderWorkoutList = function() {
             <div class="we-sets" id="sets-ex_${idx}" style="display:none; padding:20px;">
         `;
         
-        // 1. 웜업 세트 (1~2세트)
+        // 1. 웜업 세트 (빈 바 또는 가벼운 고정 무게, 횟수는 플레이스홀더 가이드)
         html += `
             <div class="we-group-badge">웜업 세트</div>
             <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
@@ -217,31 +226,32 @@ window.renderWorkoutList = function() {
         const warmupCount = sets > 3 ? 2 : 1;
         for(let s=1; s<=warmupCount; s++) {
             let rir = s === 1 ? '6 RIR' : '5 RIR';
+            let guideReps = s === 1 ? '6' : '5';
             html += `
             <div class="we-row" id="row-ex_${idx}-${s}">
                 <span class="we-rir-label">${rir}</span>
-                <input type="number" class="we-val-input" value="20">
-                <input type="number" class="we-val-input" value="10">
+                <input type="number" class="we-val-input" value="20" placeholder="빈 바">
+                <input type="number" class="we-val-input" value="" placeholder="${guideReps}">
                 <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${s})">✓</div>
             </div>`;
         }
 
-        // 2. 탑 세트 (1세트)
+        // 2. 탑 세트 (증량된 무게 적용, 횟수는 빈칸 + 가이드 문구)
         const topSetNum = warmupCount + 1;
         html += `
             <div style="height:20px;"></div>
             <div class="we-group-badge">탑 세트</div>
-            <div class="we-top-history"><span>지난주 탑 세트</span><span>중량 <strong>35kg</strong>&nbsp;&nbsp;횟수 <strong>7회</strong></span></div>
+            <div class="we-top-history"><span>지난주 탑 세트</span><span>중량 <strong>${lastTopWeight}kg</strong>&nbsp;&nbsp;횟수 <strong>7회</strong></span></div>
             <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
             <div class="we-row" id="row-ex_${idx}-${topSetNum}">
                 <span class="we-rir-label">1 RIR</span>
-                <input type="number" class="we-val-input" value="35">
-                <input type="number" class="we-val-input" value="7">
+                <input type="number" class="we-val-input" value="${targetTopWeight}">
+                <input type="number" class="we-val-input" value="" placeholder="7-8">
                 <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${topSetNum})">✓</div>
             </div>
         `;
 
-        // 3. 본 세트 (나머지 세트)
+        // 3. 본 세트 (증량된 무게 적용, 횟수는 빈칸 + 가이드 문구)
         if(sets > topSetNum) {
             html += `
                 <div style="height:20px;"></div>
@@ -252,8 +262,8 @@ window.renderWorkoutList = function() {
                 html += `
                 <div class="we-row" id="row-ex_${idx}-${s}">
                     <span class="we-rir-label">1 RIR</span>
-                    <input type="number" class="we-val-input" value="30">
-                    <input type="number" class="we-val-input" value="10">
+                    <input type="number" class="we-val-input" value="${targetMainWeight}">
+                    <input type="number" class="we-val-input" value="" placeholder="10-12">
                     <div class="we-circle-check" onclick="checkSet(this, 'ex_${idx}', ${s})">✓</div>
                 </div>`;
             }
