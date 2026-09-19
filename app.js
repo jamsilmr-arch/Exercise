@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. 운동 리스트 렌더링 (세트 유형별 타이머 인자 추가)
+// 4. 운동 리스트 렌더링 (종목별 알맞은 본세트 데이터 배정)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
@@ -239,27 +239,41 @@ window.renderWorkoutList = function() {
     const conditionScore = parseInt(localStorage.getItem('workout_intensity_score')) || 3;
     const strengthRatio = parseInt(localStorage.getItem('user_strength_ratio')) || 25; 
     
-    const isolationKeywords = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀'];
+    // [수정/추가됨] 종목 특성별 키워드 정밀 분류
+    const big3Keywords = ['스쿼트', '벤치 프레스', '데드리프트'];
+    const isolationKeywords = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀', '카프'];
 
     todayWorkout.texts.forEach((exName, idx) => {
-        let isIsolation = isolationKeywords.some(keyword => exName.includes(keyword));
+        let warmupCount = 1, hasTopSet = false, mainCount = 3;
+
+        // [수정됨] 종목별 최적화된 세트 수 배정 로직 (기본 워킹 세트를 3세트로 상향)
+        if (big3Keywords.some(keyword => exName.includes(keyword))) {
+            // 3대 운동 (고중량): 웜업 2, 탑세트 1, 본세트 2 (총 워킹세트 3)
+            warmupCount = 2; hasTopSet = true; mainCount = 2;
+        } else if (isolationKeywords.some(keyword => exName.includes(keyword))) {
+            // 고립/단관절 운동: 웜업 1, 탑세트 0, 본세트 3 (총 워킹세트 3)
+            warmupCount = 1; hasTopSet = false; mainCount = 3;
+        } else {
+            // 일반 복합 다관절: 웜업 1, 탑세트 1, 본세트 2 (총 워킹세트 3)
+            warmupCount = 1; hasTopSet = true; mainCount = 2;
+        }
         
-        let warmupCount = 1, hasTopSet = false, mainCount = 2;
-        if (isIsolation) { warmupCount = 1; hasTopSet = false; mainCount = 2; } 
-        else { warmupCount = 2; hasTopSet = true; mainCount = 1; }
+        // 컨디션 저조 시 본세트 1개 차감하여 강도 조절
         if (conditionScore < 3 && mainCount > 1) mainCount -= 1;
 
+        // 스트렝스/근비대 비율에 따른 횟수(Reps) 및 증량폭 설정
         let topReps, mainReps, overloadTop, overloadMain;
+        const isIsolationForReps = isolationKeywords.some(keyword => exName.includes(keyword));
 
         if (strengthRatio >= 75) {
-            topReps = "3-5"; mainReps = isIsolation ? "8-10" : "5-8";
-            overloadTop = 5.0; overloadMain = isIsolation ? 2.0 : 5.0;
+            topReps = "3-5"; mainReps = isIsolationForReps ? "8-10" : "5-8";
+            overloadTop = 5.0; overloadMain = isIsolationForReps ? 2.0 : 5.0;
         } else if (strengthRatio >= 50) {
-            topReps = "5-7"; mainReps = isIsolation ? "10-12" : "8-10";
-            overloadTop = 2.5; overloadMain = isIsolation ? 2.0 : 2.5;
+            topReps = "5-7"; mainReps = isIsolationForReps ? "10-12" : "8-10";
+            overloadTop = 2.5; overloadMain = isIsolationForReps ? 2.0 : 2.5;
         } else {
-            topReps = "8-10"; mainReps = isIsolation ? "12-15" : "10-12";
-            overloadTop = 2.5; overloadMain = isIsolation ? 1.0 : 2.5;
+            topReps = "8-10"; mainReps = isIsolationForReps ? "12-15" : "10-12";
+            overloadTop = 2.5; overloadMain = isIsolationForReps ? 1.0 : 2.5;
         }
 
         if (conditionScore < 3) { overloadTop = 0; overloadMain = 0; }
@@ -279,7 +293,7 @@ window.renderWorkoutList = function() {
             <div class="we-sets" id="sets-ex_${idx}" style="display:none; padding:20px;">
         `;
         
-        // 1. 웜업 세트 ('warmup' 타입 전달)
+        // 1. 웜업 세트
         html += `
             <div class="we-group-badge">웜업 세트</div>
             <div class="we-top-history"><span>지난주 웜업 세트</span>${noRecordHtml}</div>
@@ -299,9 +313,9 @@ window.renderWorkoutList = function() {
             currentSetNum++;
         }
 
-        // 2. 탑 세트 ('top' 타입 전달)
+        // 2. 탑 세트
         if (hasTopSet) {
-            const lastTopWeight = 35;
+            const lastTopWeight = 35; // 초기 가상 데이터
             const targetTopWeight = lastTopWeight + overloadTop;
             html += `
                 <div style="height:20px;"></div>
@@ -318,9 +332,9 @@ window.renderWorkoutList = function() {
             currentSetNum++;
         }
 
-        // 3. 본 세트 ('main' 타입 전달)
+        // 3. 본 세트
         if (mainCount > 0) {
-            const lastMainWeight = 30;
+            const lastMainWeight = 30; // 초기 가상 데이터
             const targetMainWeight = lastMainWeight + overloadMain;
             html += `
                 <div style="height:20px;"></div>
