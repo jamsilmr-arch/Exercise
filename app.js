@@ -182,12 +182,12 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. 운동 리스트 렌더링 (초기 공란 및 웜업/탑세트 배정)
+// 4. 운동 리스트 렌더링 (세트 추가/삭제 기능 연동)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
     const data = window.routineDB[rtId];
-    if(!data) { console.error("선택된 루틴 데이터가 없습니다."); return; }
+    if(!data) return;
 
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     const freq = parseInt(localStorage.getItem('active_routine_freq')) || 6;
@@ -232,6 +232,7 @@ window.renderWorkoutList = function() {
             <div class="we-sets" id="sets-ex_${idx}" style="display:none; padding:20px;">
         `;
         
+        // 1. 웜업 세트
         html += `
             <div class="we-group-badge">웜업 세트</div>
             <div class="we-top-history"><span>지난주 웜업 세트</span>${noRecordHtml}</div>
@@ -242,7 +243,7 @@ window.renderWorkoutList = function() {
             let rir = s === 1 ? '6 RIR' : '5 RIR';
             let guideReps = s === 1 ? '6' : '5';
             html += `
-            <div class="we-row" id="row-ex_${idx}-${currentSetNum}">
+            <div class="we-row warmup-set-row" id="row-ex_${idx}-${currentSetNum}">
                 <span class="we-rir-label">${rir}</span>
                 <input type="number" class="we-val-input" value="" placeholder="빈 바">
                 <input type="number" class="we-val-input" value="" placeholder="${guideReps}">
@@ -251,13 +252,14 @@ window.renderWorkoutList = function() {
             currentSetNum++;
         }
 
+        // 2. 탑 세트
         if (hasTopSet) {
             html += `
                 <div style="height:20px;"></div>
                 <div class="we-group-badge">탑 세트</div>
                 <div class="we-top-history"><span>지난주 탑 세트</span>${noRecordHtml}</div>
                 <div class="we-labels"><span></span><span>중량 (kg)</span><span>횟수</span><span></span></div>
-                <div class="we-row" id="row-ex_${idx}-${currentSetNum}">
+                <div class="we-row top-set-row" id="row-ex_${idx}-${currentSetNum}">
                     <span class="we-rir-label">1 RIR</span>
                     <input type="number" class="we-val-input" value="" placeholder="0">
                     <input type="number" class="we-val-input" value="" placeholder="7-8">
@@ -267,6 +269,7 @@ window.renderWorkoutList = function() {
             currentSetNum++;
         }
 
+        // 3. 본 세트 (클래스명 main-set-row 추가로 제어)
         if (mainCount > 0) {
             html += `
                 <div style="height:20px;"></div>
@@ -276,7 +279,7 @@ window.renderWorkoutList = function() {
             `;
             for(let s = 1; s <= mainCount; s++) {
                 html += `
-                <div class="we-row" id="row-ex_${idx}-${currentSetNum}">
+                <div class="we-row main-set-row" id="row-ex_${idx}-${currentSetNum}">
                     <span class="we-rir-label">1 RIR</span>
                     <input type="number" class="we-val-input" value="" placeholder="0">
                     <input type="number" class="we-val-input" value="" placeholder="10-12">
@@ -288,8 +291,8 @@ window.renderWorkoutList = function() {
 
         html += `
             <div class="we-controls">
-                <button class="we-ctrl-btn">+ 세트 추가</button>
-                <button class="we-ctrl-btn">- 세트 삭제</button>
+                <button class="we-ctrl-btn" onclick="addMainSet('ex_${idx}')">+ 세트 추가</button>
+                <button class="we-ctrl-btn" onclick="deleteMainSet('ex_${idx}')">- 세트 삭제</button>
             </div>
         </div></div>`;
     });
@@ -305,6 +308,60 @@ window.renderWorkoutList = function() {
         if (viewWorkout) viewWorkout.appendChild(renderArea);
     }
     renderArea.innerHTML = html;
+};
+
+// ==========================================
+// 4-1. 본 세트 동적 추가/삭제 함수 [신규]
+// ==========================================
+window.addMainSet = function(exId) {
+    const setsContainer = document.getElementById(`sets-${exId}`);
+    const controls = setsContainer.querySelector('.we-controls');
+    
+    // 마지막 세트 번호 추출하여 다음 번호 계산
+    const allRows = setsContainer.querySelectorAll('.we-row');
+    const lastRow = allRows[allRows.length - 1];
+    let nextSetNum = allRows.length + 1;
+    if(lastRow) {
+        const idParts = lastRow.id.split('-');
+        nextSetNum = parseInt(idParts[idParts.length - 1]) + 1;
+    }
+    
+    // 새로운 본 세트 DOM 요소 생성
+    const newRow = document.createElement('div');
+    newRow.className = 'we-row main-set-row';
+    newRow.id = `row-${exId}-${nextSetNum}`;
+    newRow.innerHTML = `
+        <span class="we-rir-label">1 RIR</span>
+        <input type="number" class="we-val-input" value="" placeholder="0">
+        <input type="number" class="we-val-input" value="" placeholder="10-12">
+        <div class="we-circle-check" onclick="checkSet(this, '${exId}', ${nextSetNum})">✓</div>
+    `;
+    
+    // 버튼 영역 바로 위에 삽입
+    setsContainer.insertBefore(newRow, controls);
+    window.totalGlobalSets += 1;
+};
+
+window.deleteMainSet = function(exId) {
+    const setsContainer = document.getElementById(`sets-${exId}`);
+    const mainSetRows = setsContainer.querySelectorAll('.we-row.main-set-row');
+    
+    if (mainSetRows.length > 0) {
+        // 가장 마지막에 위치한 본 세트를 찾아서 삭제
+        const lastMainSetRow = mainSetRows[mainSetRows.length - 1];
+        const idParts = lastMainSetRow.id.split('-');
+        const setNum = parseInt(idParts[idParts.length - 1]);
+        
+        lastMainSetRow.remove();
+        window.totalGlobalSets -= 1;
+        
+        // 로컬스토리지 완료 데이터에서도 제거
+        let saved = JSON.parse(localStorage.getItem(`workout_${exId}`)) || [];
+        saved = saved.filter(s => s !== setNum);
+        localStorage.setItem(`workout_${exId}`, JSON.stringify(saved));
+    } else {
+        alert("더 이상 삭제할 본 세트가 없습니다.");
+    }
 };
 
 // ==========================================
