@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    <!-- [1] 분석 메인 대시보드 (신규 추가) -->
+    <!-- [1] 분석 메인 대시보드 -->
     <div class="view-container active" id="view-analysis-dash" style="display: block;">
         <header class="top-nav-bar center-logo">
             <div class="logo font-pinyon">JHP</div>
@@ -18,7 +18,6 @@
             <h2 style="color:#fff; font-size:1.4rem; margin-bottom:5px; font-weight:bold;">부위별 누적 세트</h2>
             <p style="color:#666; font-size:0.85rem; margin-bottom:25px;">현재 루틴에서 지금까지 수행한 볼륨이에요</p>
             
-            <!-- 누적 세트 바 차트 (초기값 0) -->
             <div class="chart-box">
                 <div class="chart-bar-wrap"><div class="chart-bar-fill" style="height:0%;"></div><span class="chart-bar-label">가슴</span></div>
                 <div class="chart-bar-wrap"><div class="chart-bar-fill" style="height:0%;"></div><span class="chart-bar-label">등</span></div>
@@ -28,13 +27,11 @@
                 <div class="chart-bar-wrap"><div class="chart-bar-fill" style="height:0%;"></div><span class="chart-bar-label">복근</span></div>
             </div>
 
-            <!-- 안내 박스 -->
             <div class="info-box">
                 <span style="color:var(--primary); font-weight:bold;">ⓘ</span>
                 <span style="color:#aaa; font-size:0.85rem; line-height:1.5;">직접 운동하지 않은 부위라도,<br>같이 힘을 쓴 협응근들을 0.5세트로 챙겨서 계산해드려요!</span>
             </div>
 
-            <!-- 하단 3개 메뉴 카드 -->
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
                 <div class="m-card" style="grid-column: 1 / -1; display:flex; align-items:center; gap:15px;" onclick="switchAnalysisView('list')">
                     <span style="font-size:1.8rem;">📊</span><span style="color:#fff; font-weight:bold; font-size:1.1rem;">운동별 퍼포먼스 변화</span>
@@ -49,10 +46,11 @@
         </main>
     </div>
 
-    <!-- [2] 부위별 볼륨 변화 화면 (신규 추가) -->
+    <!-- [2] 부위별 볼륨 변화 화면 -->
     <div class="view-container" id="view-analysis-volume" style="display: none;">
         <header class="top-nav-bar">
-            <button class="icon-btn" onclick="history.back()">←</button>
+            <!-- 뒤로가기 시 대시보드로 강제 이동 -->
+            <button class="icon-btn" onclick="switchAnalysisView('dash')">←</button>
             <span class="tn-title">부위별 볼륨 변화</span>
             <div style="width:30px;"></div>
         </header>
@@ -63,12 +61,10 @@
                 <span style="background:#333; color:#888; padding:3px 8px; border-radius:4px; font-size:0.8rem;">-</span>
             </div>
 
-            <!-- 라인 차트 영역 (초기 공란) -->
             <div style="height:250px; border-bottom:1px dashed #333; position:relative; margin-bottom:40px; display:flex; justify-content:center; align-items:center; color:#555; font-size:0.9rem;">
                 누적된 운동 데이터가 없습니다.
             </div>
 
-            <!-- 필터 칩 영역 -->
             <div class="chip-scroll">
                 <span class="filter-chip active">가슴</span>
                 <span class="filter-chip">등 중/상부</span>
@@ -80,10 +76,11 @@
         </main>
     </div>
 
-    <!-- [3] 부위별 성장률 화면 (신규 추가) -->
+    <!-- [3] 부위별 성장률 화면 -->
     <div class="view-container" id="view-analysis-growth" style="display: none;">
         <header class="top-nav-bar">
-            <button class="icon-btn" onclick="history.back()">←</button>
+            <!-- 뒤로가기 시 대시보드로 강제 이동 -->
+            <button class="icon-btn" onclick="switchAnalysisView('dash')">←</button>
             <span class="tn-title">부위별 성장률</span>
             <div style="width:30px;"></div>
         </header>
@@ -91,12 +88,10 @@
             <h2 style="color:#fff; font-size:1.2rem; font-weight:bold; margin-bottom:5px;">부위별 퍼포먼스 성장률</h2>
             <p style="color:#666; font-size:0.85rem; margin-bottom:30px;">신체 부위별로 퍼포먼스 증감을 한 눈에 확인해요</p>
 
-            <!-- 플러스 마이너스 차트 (초기 공란) -->
             <div style="height:200px; border-bottom:1px solid #444; margin-bottom:30px; display:flex; justify-content:center; align-items:center; color:#555; font-size:0.9rem;">
                 비교할 과거 데이터가 없습니다.
             </div>
 
-            <!-- 최고/최저 퍼포먼스 카드 -->
             <div class="growth-box" style="border-left: 4px solid var(--primary);">
                 <div class="growth-title">최고 퍼포먼스</div>
                 <div class="growth-row">
@@ -120,7 +115,8 @@
     <!-- [4] 기존 운동 리스트 화면 -->
     <div class="view-container" id="view-analysis-list" style="display: none;">
         <header class="top-nav-bar">
-            <button class="icon-btn" onclick="history.back()">←</button>
+            <!-- 뒤로가기 시 대시보드로 강제 이동 -->
+            <button class="icon-btn" onclick="switchAnalysisView('dash')">←</button>
             <span class="tn-title">운동별 퍼포먼스 변화</span>
             <div style="width:30px;"></div>
         </header>
@@ -152,14 +148,15 @@
     <!-- [5] 상세 분석 차트 화면 (기존) -->
     <div class="view-container" id="view-analysis-detail" style="display: none;">
         <header class="top-nav-bar">
-            <button class="icon-btn" onclick="closePerfDetail()">←</button>
+            <!-- 뒤로가기 시 리스트로 강제 이동 -->
+            <button class="icon-btn" onclick="switchAnalysisView('list')">←</button>
             <span class="tn-title" id="ad-title">상세 분석</span>
             <div style="width:30px;"></div>
         </header>
         <main class="content-area" style="padding-top:20px;" id="ad-render"></main>
     </div>
 
-    <!-- 하단 네비게이션바 (대시보드에서만 노출됨) -->
+    <!-- 하단 네비게이션바 -->
     <nav class="bottom-nav" id="main-nav">
         <div class="nav-item" onclick="location.href='home.html'"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
         <div class="nav-item" onclick="location.href='routine.html'"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
