@@ -532,3 +532,49 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
 /* // [수정됨] 이미지 썸네일을 텍스트 박스 형태로 변경 끝 */
     box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.7) !important; /* 위로 쏘는 짙은 그림자 */
 }
+/* ==========================================================================
+   11. 설정 화면 (Settings View)
+   ========================================================================== */
+.profile-section { padding: 40px 20px 30px; width: 100%; max-width: 600px; margin: 0 auto; text-align: center; }
+.profile-name { font-size: 1.6rem; font-weight: 800; margin-bottom: 5px; color: #fff; }
+.profile-email { font-size: 0.85rem; color: var(--text-sub); }
+
+.settings-list { padding: 0 20px 100px; display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 600px; margin: 0 auto; }
+.st-card { background: var(--card-bg); border-radius: 12px; display: flex; flex-direction: column; border: 1px solid var(--border-color); overflow: hidden; }
+.st-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; }
+.st-item:last-child { border-bottom: none; }
+.st-item:active { background: #222; }
+.st-left { font-size: 1rem; font-weight: bold; display: flex; flex-direction: column; gap: 8px; color: #fff;}
+.st-desc { font-size: 0.8rem; color: #888; font-weight: normal; }
+.st-right { display: flex; align-items: center; gap: 10px; color: #888; font-size: 0.95rem; font-weight: bold;}
+.st-arrow { color: #555; font-size: 1.2rem; }
+
+/* 토글 스위치 디자인 및 애니메이션 */
+.st-toggle { 
+    width: 50px; 
+    height: 28px; 
+    background: transparent; 
+    border-radius: 14px; 
+    position: relative; 
+    cursor: pointer; 
+    border: 1px solid #555; 
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.st-toggle::after { 
+    content: ''; 
+    position: absolute; 
+    left: 2px; 
+    top: 2px; 
+    width: 22px; 
+    height: 22px; 
+    background: #fff; 
+    border-radius: 50%; 
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+.st-toggle.active {
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+.st-toggle.active::after {
+    transform: translateX(22px); 
+}
