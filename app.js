@@ -509,3 +509,157 @@ window.renderCoachStep = function() {
     document.getElementById('coach-dots-area').innerHTML = dotsHtml;
     document.getElementById('btn-coach-next').innerText = window.coachStepIdx === coachData.length - 1 ? '확인' : '다음';
 };
+// ==========================================
+// 9. RIR 및 웜업 가이드 모달 로직
+// ==========================================
+
+const guideData = {
+    rir: [
+        {
+            title: "1. RIR의 정의",
+            content: `
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> RIR은 실패 지점까지 몇 회가 남았는지를 나타내는 지표입니다.</p>
+                <div style="background:#222; padding:15px; border-radius:8px; font-size:0.9rem; color:#aaa; line-height:1.6;">
+                    <div style="display:flex; margin-bottom:5px;"><span style="width:50px;">공식:</span> <span style="color:#fff;">RIR = 남은 횟수</span></div>
+                    <div style="display:flex;"><span style="width:50px;">예시:</span> 
+                        <div>물리적 한계가 10회일 때<br>
+                        9회를 수행하면 → <span style="color:#00d2a0;">RIR 1</span><br>
+                        8회를 수행하면 → <span style="color:#00d2a0;">RIR 2</span><br>
+                        7회를 수행하면 → <span style="color:#00d2a0;">RIR 3</span></div>
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: "2. 객관적 판단의 중요성",
+            content: `
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 많은 분들이 엄살이나 귀찮음 때문에 자신의 <span style="color:#00d2a0; font-weight:bold;">진정한 한계</span>를 과소평가하여 RIR을 잘못 설정하곤 합니다.</p>
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;">본인은 RIR 2(2회 남음)라고 생각했지만, 실제로는 4회 이상 더 수행할 수 있는 경우가 많습니다.</p>
+                <p style="color:#ddd; line-height:1.5;">따라서 주관적인 '힘듦'보다는 <span style="color:#00d2a0; font-weight:bold;">수행 속도</span> (Bar Speed)의 변화를 기준으로 객관적으로 판단해야 합니다.</p>
+            `
+        },
+        {
+            title: "3. 단계별 RIR 판단 기준",
+            content: `
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 수행 속도, 즉 마지막 횟수를 수행할 때 걸리는 시간이 느려지는 구간으로 RIR을 가늠하세요.</p>
+                <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px; line-height:1.5;">예) 벤치 프레스 10RM을 수행할 때 첫 1-6회는 빠르지만, 마지막 7-10회는 많이 느려집니다. 이걸 '수행 속도가 느려졌다'라고 정의합니다.</p>
+                <div style="background:#222; padding:15px; border-radius:8px; font-size:0.85rem; color:#ccc; line-height:1.6;">
+                    <div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 3 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">느려지기 시작</span><br><span style="color:#888;">→ "힘들게 들어 올렸다"</span></div>
+                    <div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 2 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">눈에 띄게 느려짐</span><br><span style="color:#888;">→ "꽤 힘들게 들어 올렸다"</span></div>
+                    <div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 1 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">현저히 느려짐 (1~4초 소요)</span><br><span style="color:#888;">→ "간신히 들어 올렸다"</span></div>
+                    <div><strong style="color:#fff;">RIR 0 :</strong> 마지막 횟수가 5~8초 이상 걸리거나, 얼굴이 빨개지며 온몸을 쥐어짜면서 간신히 들어 올린 <span style="color:var(--primary);">물리적 한계점</span><br><span style="color:#888; font-size:0.8rem;">누가 총을 겨누고 시켜도 추가 횟수 수행이 불가능하며, 고중량 하체 복합 운동 시 어지러움을 느낌</span><br><span style="color:#888;">→ "정말 간신히 들어 올렸다"</span></div>
+                </div>
+            `
+        },
+        {
+            title: "4. RIR 정확도 높이기",
+            content: `
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 초보자는 RIR을 정확히 예측하기 어렵습니다.</p>
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;">가끔은 의도적으로 실패 지점(RIR 0)까지 수행하여 내 진짜 한계가 어디인지 '영점 조절'을 해보세요.</p>
+                <p style="color:#ddd; line-height:1.5;">이 경험이 쌓이면 RIR 예측 능력이 정교해집니다.</p>
+            `
+        }
+    ],
+    warmup: [
+        {
+            title: "1. 웜업이란?",
+            content: `
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 웜업은 본 세트의 수행 능력을 높이기 위해 저중량으로 미리 연습하는 과정입니다.</p>
+                <div style="background:#222; padding:15px; border-radius:8px; font-size:0.9rem; color:#aaa; line-height:1.8;">
+                    • 근육과 관절에 혈류 공급<br>
+                    • 근신경계 활성화<br>
+                    • 퍼포먼스 향상 & 근성장 자극 극대화
+                </div>
+            `
+        },
+        {
+            title: "2. RIR 기준",
+            content: `
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 앱에서 추천하는 6회, 5회를 엄격하게 지킬 필요는 없습니다.</p>
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;">정확한 횟수보다 중요한 것은 '낮은 강도' 입니다.</p>
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;">낮은 강도란 동작 수행 속도가 느려지지 않는 상태를 의미합니다. 즉, 속도가 줄어들지 않고 빠르게 수행할 수 있는 구간에서 세트를 마치세요.</p>
+                <div style="background:#222; padding:15px; border-radius:8px; font-size:0.85rem; color:#ccc; line-height:1.6; display:flex;">
+                    <span style="width:40px; color:#fff;">예시:</span>
+                    <div>바벨 벤치 프레스 10RM 수행 시,<br>1~6회까지는 빠르지만 7회부터는 속도가 느려집니다.<br>웜업 세트는 속도가 느려지기 전인 4~6회 정도에서 멈추면 됩니다.</div>
+                </div>
+            `
+        },
+        {
+            title: "3. 생략 가능",
+            content: `
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 이미 다른 운동으로 몸이 충분히 풀려 있거나 해당 동작이 완전히 익숙하다면,</p>
+                <p style="color:#ddd; margin-bottom:15px; line-height:1.5;">웜업 세트의 일부 또는 전부를 생략해도 괜찮습니다.</p>
+                <p style="color:#ddd; line-height:1.5;">모든 웜업 세트를 꼭 수행해야 한다는 강박을 가지지 않아도 됩니다.</p>
+            `
+        }
+    ]
+};
+
+window.currentGuideType = '';
+window.currentGuideIdx = 0;
+
+// html에 하드코딩된 onclick="openModal('rir')" 에러 방지 및 연결
+window.openModal = function(type) {
+    if(type === 'rir' || type === 'warmup') {
+        window.currentGuideType = type;
+        window.currentGuideIdx = 0;
+        
+        const badge = document.getElementById('modal-badge-title');
+        if(badge) badge.innerText = type === 'rir' ? 'RIR 가이드' : '웜업 가이드';
+        
+        renderGuideStep();
+        
+        hideAllModals();
+        document.getElementById('common-modal-overlay').classList.add('active');
+        document.getElementById('modal-guide').classList.add('active');
+    }
+};
+
+window.renderGuideStep = function() {
+    const dataList = guideData[window.currentGuideType];
+    if(!dataList) return;
+    
+    const stepData = dataList[window.currentGuideIdx];
+    
+    let html = `
+        <div style="color:#fff; font-size:0.85rem; margin-bottom:10px;">
+            ${window.currentGuideType === 'rir' ? 'RIR(Reps In Reserve) 가이드' : ''}
+        </div>
+        <h2 style="color:#fff; font-size:1.3rem; margin-bottom:20px; font-weight:bold;">${stepData.title}</h2>
+        <div>${stepData.content}</div>
+    `;
+    
+    document.getElementById('modal-content-area').innerHTML = html;
+    
+    const btnPrev = document.getElementById('modal-btn-prev');
+    const btnNext = document.getElementById('modal-btn-next');
+    
+    if(window.currentGuideIdx === 0) {
+        btnPrev.style.visibility = 'hidden';
+    } else {
+        btnPrev.style.visibility = 'visible';
+    }
+    
+    if(window.currentGuideIdx === dataList.length - 1) {
+        btnNext.innerText = '확인';
+    } else {
+        btnNext.innerText = '다음';
+    }
+    
+    // 버튼 이벤트 중복 바인딩 방지를 위해 onclick으로 덮어씌움
+    btnPrev.onclick = function() {
+        if(window.currentGuideIdx > 0) {
+            window.currentGuideIdx--;
+            renderGuideStep();
+        }
+    };
+    
+    btnNext.onclick = function() {
+        if(window.currentGuideIdx < dataList.length - 1) {
+            window.currentGuideIdx++;
+            renderGuideStep();
+        } else {
+            closeModal();
+        }
+    };
+};
