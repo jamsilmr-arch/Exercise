@@ -967,3 +967,107 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
     font-size: 0.9rem;
     font-weight: normal;
 }
+/* ==========================================================================
+   13. 분석 대시보드 (블랙/레드 테마)
+   ========================================================================== */
+.chart-box {
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+}
+
+.chart-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+}
+
+.chart-bar-fill {
+    width: 80%;
+    background: var(--primary, #E50914); /* 넷플릭스 레드 */
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s ease;
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.3); /* 은은한 레드 글로우 */
+}
+
+.chart-bar-label {
+    color: #666;
+    font-size: 0.65rem;
+    margin-top: 8px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.info-box {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.m-card {
+    background: #121212;
+    border: 1px solid #333;
+    padding: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.m-card:active { background: #1a1a1a; }
+
+.chip-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+}
+.chip-scroll::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+    background: #222;
+    color: #888;
+    border: 1px solid #444;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.filter-chip.active {
+    background: var(--primary, #E50914);
+    color: #fff;
+    border-color: var(--primary, #E50914);
+}
+
+.growth-box {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+.growth-title { font-size: 0.85rem; color: #888; margin-bottom: 15px; }
+.growth-row { display: flex; align-items: center; gap: 15px; }
+.g-badge {
+    background: #333;
+    color: #ccc;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+.g-name { color: var(--primary, #E50914); font-weight: bold; font-size: 1rem; }
+.g-desc { color: #888; font-size: 0.85rem; margin-top: 10px; }
