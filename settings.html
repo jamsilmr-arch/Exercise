@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JHP - 설정</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase는 app.js에서 호출하므로 여기선 생략해도 무방하나 혹시 몰라 유지 -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -13,11 +12,10 @@
 <body>
 
     <!-- 설정 메인 화면 -->
-    <div class="view-container active" style="display:block !important;">
-       <!-- 설정이나 분석 HTML의 헤더를 이걸로 교체 -->
-<header class="top-nav-bar center-logo">
-    <div class="logo font-pinyon">JHP</div>
-</header>
+    <div class="view-container active" id="view-settings" style="display:block;">
+        <header class="top-nav-bar center-logo">
+            <div class="logo font-pinyon">JHP</div>
+        </header>
         
         <div class="profile-section">
             <div class="profile-name" id="set-profile-name">사용자 님</div>
@@ -26,18 +24,16 @@
         
         <div class="settings-list">
             <div class="st-card">
-                <!-- '나의 정보' 클릭 시 공통 바텀시트 호출 -->
                 <div class="st-item" onclick="openBottomSheet('info')">
                     <div class="st-left">나의 정보</div><div class="st-right"><span class="st-arrow">></span></div>
                 </div>
-                <!-- '유산소' 클릭 시 공통 마법사 바텀시트 호출 -->
-                <div class="st-item" onclick="startCardioWizard()">
+                <div class="st-item" onclick="if(typeof startCardioWizard === 'function') startCardioWizard();">
                     <div class="st-left">유산소</div><div class="st-right">설정하기 <span class="st-arrow">></span></div>
                 </div>
             </div>
             
             <div class="st-card">
-                <div class="st-item" style="cursor:default; border-bottom: none;" onclick="document.getElementById('toggle-rest').classList.toggle('active');">
+                <div class="st-item" style="cursor:default;" onclick="document.getElementById('toggle-rest').classList.toggle('active');">
                     <div class="st-left">휴식 완료 알림<span class="st-desc">세트 사이 휴식이 끝나면 알려드려요</span></div>
                     <div class="st-right"><div class="st-toggle active" id="toggle-rest"></div></div>
                 </div>
@@ -45,19 +41,8 @@
         </div>
     </div>
 
-    <!-- 핵심: 스크립트 실행 부 -->
+    <!-- 공통 로직이 담긴 app.js 호출 -->
     <script src="app.js"></script>
-    <script>
-        // 공통 UI(네비게이션, 모달 등) 주입 실행
-        initCommonUI('settings');
-        
-        // 유저 정보 세팅 로직
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                document.getElementById('set-profile-name').innerText = user.displayName ? `${user.displayName} 님` : '회원 님';
-                document.getElementById('set-profile-email').innerText = user.email || '';
-            }
-        });
-    </script>
+    <script src="settings.js"></script>
 </body>
 </html>
