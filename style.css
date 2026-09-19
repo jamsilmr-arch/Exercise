@@ -961,3 +961,9 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
     cursor: pointer;
 }
 .we-ctrl-btn:active { background: #333; }
+/* --- 입력칸 가이드 문구(플레이스홀더) 디자인 추가 --- */
+.we-val-input::placeholder {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
