@@ -89,18 +89,26 @@
         </div>
     </div>
 
-    <!-- [3] Day 2 실제 훈련 리스트 화면 -->
-    <div id="view-workout" class="view-container">
-        <header class="workout-top-nav">
-            <button class="icon-btn" onclick="switchView('view-home')">←</button>
-            <span class="workout-title" id="workout-top-title">Day 2</span>
+    <!-- [2] 운동 진행 화면 -->
+    <div class="view-container" id="view-workout" style="display:none;">
+        <header class="top-nav-bar">
+            <!-- 뒤로가기 버튼 -->
+            <button class="icon-btn" onclick="switchView('view-summary')">←</button>
+            
+            <!-- 중앙 타이틀 -->
+            <span class="tn-title" style="flex:1; text-align:center;">Day 1</span>
+            
+            <!-- 우측 여백 (좌측 버튼과 균형을 맞춰 제목을 정중앙으로 밀어냄) -->
             <div style="width:30px;"></div>
         </header>
-        <div class="guide-tabs">
-            <div class="guide-tab" onclick="openModal('rir')">RIR 가이드</div>
-            <div class="guide-tab" onclick="openModal('warmup')">웜업 가이드</div>
-        </div>
-        <main class="ex-list" id="workout-exercise-list"></main>
+        
+        <main class="content-area" style="padding-top:20px;">
+            <div class="guide-buttons" style="display:flex; gap:10px; margin:0 20px 20px;">
+                <button class="guide-btn" onclick="openModal('rir')">RIR 가이드</button>
+                <button class="guide-btn" onclick="openModal('warmup')">웜업 가이드</button>
+            </div>
+            <div id="workout-render-area"></div>
+        </main>
     </div>
 
     <!-- [4] 오늘 운동 요약 화면 (반영 완료) -->
