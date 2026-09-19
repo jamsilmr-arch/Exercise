@@ -30,34 +30,45 @@
         </header>
 
         <main class="content-area">
-            <!-- Day 2 안내 카드 -->
+            <!-- Day 안내 카드 -->
             <div class="today-workout-card">
                 <div class="tw-top"><span class="tw-badge">오늘 운동</span><span class="tw-title" id="home-today-day">Day 2</span></div>
                 <div class="tw-stats">
                     <div class="tw-stat-box"><span class="tw-stat-icon">💪</span><span class="tw-stat-text" id="home-today-count">7개 운동</span></div>
                     <div class="tw-stat-box"><span class="tw-stat-icon">🏋️</span><span class="tw-stat-text" id="home-today-sets">35세트</span></div>
                 </div>
-                <button id="btn-go-condition" class="primary-btn">오늘 운동 시작</button>
+                <!-- 운동 시작 버튼 (view-condition 또는 view-workout으로 넘어가도록 세팅) -->
+                <button id="btn-go-condition" class="primary-btn" onclick="switchView('view-workout')">오늘 운동 시작</button>
             </div>
             
+            <!-- 유산소 배너 -->
             <div class="cardio-banner" id="cardio-banner-card">
                 <div class="cb-close" onclick="document.getElementById('cardio-banner-card').style.display='none';">✕</div>
                 <div class="cb-header"><span>💗</span> 유산소도 함께 해볼까요?</div>
                 <div class="cb-desc">몇 가지만 답하면 지금 루틴에 맞춰 종목과 시간을 정해드려요.</div>
                 <div class="cb-btns">
-                    <button class="primary-btn" style="padding:12px;" onclick="startCardioWizard()">유산소 설정하기</button>
+                    <button class="primary-btn" style="padding:12px;" onclick="if(typeof startCardioWizard === 'function') startCardioWizard()">유산소 설정하기</button>
                     <button class="secondary-btn" style="padding:12px;" onclick="document.getElementById('cardio-banner-card').style.display='none';">유산소 안할래요</button>
                 </div>
             </div>
 
+            <!-- 데이터 분석 바 -->
             <div class="data-progress-section">
                 <div class="dp-title">맞춤 코칭을 위한 데이터 분석 중.</div>
                 <div class="dp-bar-bg"><div class="dp-bar-fill" style="width:14%"></div><span class="dp-text">14%</span></div>
             </div>
 
+            <!-- 주차 블록 -->
             <div class="week-blocks-section">
                 <div class="wb-title">1주차 <span style="font-size:0.75rem;">5주 운동 · 1주 디로딩</span></div>
-                <div class="wb-scroll-area" id="home-week-blocks"></div>
+                <div class="wb-scroll-area" id="home-week-blocks">
+                    <div class="wb-item active"><span class="wb-num">1</span><span>Day</span></div>
+                    <div class="wb-item"><span class="wb-num">2</span><span>Day</span></div>
+                    <div class="wb-item"><span class="wb-num">3</span><span>Day</span></div>
+                    <div class="wb-item"><span class="wb-num">4</span><span>Day</span></div>
+                    <div class="wb-item"><span class="wb-num">5</span><span>Day</span></div>
+                    <div class="wb-item rest">휴식</div>
+                </div>
             </div>
 
             <!-- 블록 진행 상황 (분석 대시보드로 이동) -->
@@ -71,7 +82,7 @@
         </main>
     </div>
 
-    <!-- [2] 오늘 컨디션 체크 화면 -->
+    <!-- [2] 오늘 컨디션 체크 화면 (필요 시 연동) -->
     <div id="view-condition" class="view-container flex-center">
         <header class="top-nav-bar" style="width:100%;">
             <button class="icon-btn" onclick="switchView('view-home')">←</button>
@@ -89,18 +100,16 @@
                 <span>지금 근육통이 있나요?</span>
                 <div style="display:flex; align-items:center; gap:8px; color:#888;"><div class="toggle-circle"></div> 네, 있어요</div>
             </div>
-            <button id="btn-start-workout-list" class="primary-btn">운동 시작</button>
+            <button id="btn-start-workout-list" class="primary-btn" onclick="switchView('view-workout')">운동 시작</button>
         </div>
     </div>
 
-  <!-- [2] 운동 진행 화면 -->
+    <!-- [3] 운동 진행 화면 -->
     <div class="view-container" id="view-workout" style="display:none;">
         <header class="top-nav-bar">
-            <!-- [수정됨] 뒤로가기 버튼 전용 종료 함수 연결 -->
-            <button class="icon-btn" onclick="forceExitWorkout()">←</button>
-            
+            <!-- 뒤로가기 버튼 전용 종료 함수 연결 -->
+            <button class="icon-btn" onclick="if(typeof forceExitWorkout === 'function') forceExitWorkout(); else switchView('view-home');">←</button>
             <span class="tn-title" style="flex:1; text-align:center;">Day 1</span>
-            
             <div style="width:30px;"></div>
         </header>
         
@@ -112,55 +121,28 @@
             <div id="workout-render-area"></div>
         </main>
     </div>
-        
-        <main class="content-area" style="padding-top:20px;">
-            <div class="guide-buttons" style="display:flex; gap:10px; margin:0 20px 20px;">
-                <button class="guide-btn" onclick="openModal('rir')">RIR 가이드</button>
-                <button class="guide-btn" onclick="openModal('warmup')">웜업 가이드</button>
-            </div>
-            <div id="workout-render-area"></div>
-        </main>
-    </div>
 
-   <!-- [3] 운동 요약 화면 -->
+    <!-- [4] 오늘 운동 요약 화면 (동적 데이터 전용) -->
     <div class="view-container" id="view-summary" style="display:none;">
         <header class="top-nav-bar center-logo">
             <div class="logo font-pinyon">JHP</div>
         </header>
         
-        <!-- 하단 네비게이션 바에 가리지 않도록 padding-bottom을 100px로 넉넉하게 줌 -->
         <main class="content-area" style="padding:20px; padding-bottom:100px;">
             <div style="text-align:center; font-weight:bold; color:#fff; margin-bottom:30px;">오늘 운동 요약</div>
             
-            <!-- 이곳에 자바스크립트가 실제 날짜와 운동 데이터를 자동으로 그려줍니다 -->
+            <!-- 자바스크립트가 실제 날짜와 운동 데이터를 자동으로 그려줍니다 -->
             <div id="summary-render-area">
                 <div style="color:#666; text-align:center; padding:50px 0;">아직 완료된 운동이 없습니다.</div>
             </div>
 
-            <!-- 하단 고정 버튼 (안 잘리게 여유 공간 확보) -->
+            <!-- 하단 고정 버튼 -->
             <button class="primary-btn" onclick="location.href='routine.html'" style="width:100%; margin-top:20px;">다음 루틴 준비하기</button>
         </main>
     </div>
-<!-- [신규] 오늘 운동 요약 화면 -->
-    <div id="view-summary" class="view-container">
-        <header class="summary-header"><span class="summary-title">오늘 운동 요약</span></header>
-        <div class="sum-top-info"><span class="sum-date">9월 8일</span><span class="sum-stats">8개 운동 · 24세트</span></div>
-        <div class="sum-feedback-badge">무리없이 해냈고, 강도가 딱 알맞았어요!</div>
-        
-        <main class="sum-list">
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">오버헤드 프레스</span><span class="sum-i-setcount">4세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span class="val">60</span><span class="val">20</span><span class="val">30</span><span class="val">50</span></div><div class="sum-col"><span>횟수 (회)</span><span class="val">9</span><span class="val">25</span><span class="val">20</span><span class="val">11</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">바벨 프리처 컬</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span class="val">25</span><span class="val">25</span><span class="val">25</span></div><div class="sum-col"><span>횟수 (회)</span><span class="val">6</span><span class="val">9</span><span class="val">9</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">원암 덤벨/케이블 익스텐션 (왼쪽)</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span class="val">8</span><span class="val">6</span><span class="val">8</span></div><div class="sum-col"><span>횟수 (회)</span><span class="val">11</span><span class="val">15</span><span class="val">12</span></div></div><div class="sum-i-thumb" style="display:flex; justify-content:center; align-items:center; color:#555; font-size:1.5rem;">🔗</div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">원암 덤벨/케이블 익스텐션 (오른쪽)</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span class="val">8</span><span class="val">6</span><span class="val">8</span></div><div class="sum-col"><span>횟수 (회)</span><span class="val">11</span><span class="val">15</span><span class="val">12</span></div></div><div class="sum-i-thumb" style="display:flex; justify-content:center; align-items:center; color:#555; font-size:1.5rem;">🔗</div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">바벨 바이셉 컬</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span class="val">15</span><span class="val">15</span><span class="val">15</span></div><div class="sum-col"><span>횟수 (회)</span><span class="val">6</span><span class="val">7</span><span class="val">10</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">리버스 펙덱</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span class="val">25</span><span class="val">20</span><span class="val">22.5</span></div><div class="sum-col"><span>횟수 (회)</span><span class="val">10</span><span class="val">14</span><span class="val">13</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">케이블 트라이셉 푸시다운</span><span class="sum-i-setcount">2세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span class="val">17.5</span><span class="val">20</span></div><div class="sum-col"><span>횟수 (회)</span><span class="val">19</span><span class="val">10</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/6/63/Pushdown_animation.gif"></div></div>
-            <div class="sum-item"><div class="sum-i-top"><span class="sum-i-name">덤벨 레터럴 레이즈</span><span class="sum-i-setcount">3세트</span></div><div class="sum-i-data"><div class="sum-col"><span>중량 (kg)</span><span class="val">6</span><span class="val">6</span><span class="val">6</span></div><div class="sum-col"><span>횟수 (회)</span><span class="val">11</span><span class="val">11</span><span class="val">9</span></div></div><div class="sum-i-thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif"></div></div>
-        </main>
-        <div class="sum-footer"><button class="primary-btn" onclick="startOverloadCoach()">다음</button></div>
-    </div>
+
     <!-- [5] 퍼포먼스 피드백 결과 화면 -->
-    <div id="view-feedback" class="view-container">
+    <div id="view-feedback" class="view-container" style="display:none;">
         <header class="feedback-header">
             <div class="fb-top">퍼포먼스 피드백</div>
             <h1 class="fb-title">2주차부터 피드백을 드릴게요!</h1>
@@ -171,12 +153,39 @@
             <div class="fb-item"><span class="fb-item-name">이두</span><span class="fb-badge">???</span></div>
             <div class="fb-item"><span class="fb-item-name">삼두</span><span class="fb-badge">???</span></div>
         </main>
-        <div class="fb-footer">
+        <div class="fb-footer" style="padding: 20px;">
             <button class="primary-btn" onclick="switchView('view-home')">확인</button>
         </div>
     </div>
 
+    <!-- 스크립트 연결 -->
     <script src="app.js"></script>
     <script src="home.js"></script>
+
+    <!-- 인라인 화면 전환 스크립트 (안정성 강화) -->
+    <script>
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.view-container').forEach(v => {
+                v.classList.remove('active');
+                v.style.display = 'none';
+            });
+            const target = document.getElementById(viewId);
+            if(target) {
+                target.classList.add('active');
+                target.style.display = 'block';
+                window.scrollTo(0,0);
+            }
+            
+            const nav = document.getElementById('main-nav');
+            if(nav) {
+                if(viewId === 'view-home') nav.style.display = 'flex';
+                else nav.style.display = 'none';
+            }
+            
+            if(viewId === 'view-workout' && typeof window.renderWorkoutList === 'function') {
+                window.renderWorkoutList();
+            }
+        }
+    </script>
 </body>
 </html>
