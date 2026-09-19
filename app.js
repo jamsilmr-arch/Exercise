@@ -10,12 +10,11 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// 전역 상태 변수
 window.currentRoutine = [];
 window.totalGlobalSets = 0;
 
 // ==========================================
-// 2. 운동 DB (좌/우 구분 통합)
+// 2. 운동 DB (좌/우 통합 및 교차 분할 루틴)
 // ==========================================
 const textPresets = {
     full_a: ['스쿼트', '벤치 프레스', '풀업', '바벨 로우', '오버헤드 프레스', '사이드 레터럴 레이즈', '바벨 컬', '삼두 푸시다운'], 
@@ -62,8 +61,6 @@ window.routineDB = {
     'rt_w_hiponly': { title: '힙 only 루틴', chips: ['여성', '힙 only'], desc: '다른 신체 부위 말고, 오로지 힙업만 원하는 여성분들을 위한 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.glutes_b }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 6', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 } ] }
 };
 
-// ----------------------------------------------------
-// (이 줄 아래로 3. DOM 로드 시 공통 UI 주입 부분은 변경 없이 기존 코드 그대로 유지)
 // ==========================================
 // 3. DOM 로드 시 공통 UI 주입
 // ==========================================
@@ -148,11 +145,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="cw-footer" style="position:absolute;"><div class="cw-footer-inner"><button class="secondary-btn" id="btn-cw-prev">이전</button><button class="primary-btn" id="btn-cw-next">다음</button></div></div>
             </div>
 
-            <div class="full-bottom-sheet" id="bs-memo" style="height: 85vh; background: #000;">
-                <div class="bs-header" style="border-bottom: none; padding-bottom:0;"><span style="width:24px;"></span><span class="bs-title"></span><span class="modal-close" onclick="closeModal()">✕</span></div>
-                <div class="bs-content" id="bs-memo-content" style="padding-top:10px; overflow-y:auto; padding-bottom:40px;"></div>
-            </div>
-
             <div class="guide-modal" id="modal-guide">
                 <div class="modal-header"><span class="modal-badge" id="modal-badge-title">가이드</span><span class="modal-close" onclick="closeModal()">✕</span></div>
                 <div class="modal-content" id="modal-content-area"></div>
@@ -190,12 +182,12 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 4. 운동 리스트 렌더링 (데이터 없는 초기 공란 상태)
+// 4. 운동 리스트 렌더링 (초기 공란 및 웜업/탑세트 배정)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
-    const data = routineDB[rtId];
-    if(!data) return;
+    const data = window.routineDB[rtId];
+    if(!data) { console.error("선택된 루틴 데이터가 없습니다."); return; }
 
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     const freq = parseInt(localStorage.getItem('active_routine_freq')) || 6;
@@ -215,31 +207,20 @@ window.renderWorkoutList = function() {
     const conditionScore = parseInt(localStorage.getItem('workout_intensity_score')) || 3;
     const exercisesToRender = todayWorkout.texts.slice(0, todayWorkout.count);
 
-    // 단관절/고립 운동 판별 키워드
     const isolationKeywords = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀'];
 
     exercisesToRender.forEach((exName, idx) => {
         let isIsolation = isolationKeywords.some(keyword => exName.includes(keyword));
         
-        let warmupCount = 1;
-        let hasTopSet = false;
-        let mainCount = 2;
-
-        if (isIsolation) {
-            warmupCount = 1; hasTopSet = false; mainCount = 2;
-        } else {
-            warmupCount = 2; hasTopSet = true; mainCount = 1;
-        }
-
-        if (conditionScore < 3 && mainCount > 1) {
-            mainCount -= 1;
-        }
+        let warmupCount = 1, hasTopSet = false, mainCount = 2;
+        if (isIsolation) { warmupCount = 1; hasTopSet = false; mainCount = 2; } 
+        else { warmupCount = 2; hasTopSet = true; mainCount = 1; }
+        if (conditionScore < 3 && mainCount > 1) mainCount -= 1;
 
         const totalSets = warmupCount + (hasTopSet ? 1 : 0) + mainCount;
         window.totalGlobalSets += totalSets;
         window.currentRoutine.push({ id: `ex_${idx}`, name: exName });
         
-        // 이전 기록이 없을 때 렌더링될 문구
         const noRecordHtml = `<span style="color:#666; font-size:0.85rem;">기록 없음</span>`;
 
         html += `
@@ -251,7 +232,6 @@ window.renderWorkoutList = function() {
             <div class="we-sets" id="sets-ex_${idx}" style="display:none; padding:20px;">
         `;
         
-        // 1. 웜업 세트 (중량/횟수 공란)
         html += `
             <div class="we-group-badge">웜업 세트</div>
             <div class="we-top-history"><span>지난주 웜업 세트</span>${noRecordHtml}</div>
@@ -271,7 +251,6 @@ window.renderWorkoutList = function() {
             currentSetNum++;
         }
 
-        // 2. 탑 세트 (중량/횟수 공란)
         if (hasTopSet) {
             html += `
                 <div style="height:20px;"></div>
@@ -288,7 +267,6 @@ window.renderWorkoutList = function() {
             currentSetNum++;
         }
 
-        // 3. 본 세트 (중량/횟수 공란)
         if (mainCount > 0) {
             html += `
                 <div style="height:20px;"></div>
@@ -308,7 +286,6 @@ window.renderWorkoutList = function() {
             }
         }
 
-        // 세트 추가/삭제 버튼
         html += `
             <div class="we-controls">
                 <button class="we-ctrl-btn">+ 세트 추가</button>
@@ -330,7 +307,9 @@ window.renderWorkoutList = function() {
     renderArea.innerHTML = html;
 };
 
-// 기존 함수들 유지 (toggleSets, checkSet 등)
+// ==========================================
+// 5. 공통 팝업 및 기능
+// ==========================================
 window.toggleSets = function(exId) {
     const setsDiv = document.getElementById(`sets-${exId}`);
     const arrow = document.getElementById(`arrow-${exId}`);
@@ -360,9 +339,6 @@ window.checkSet = function(btn, exId, setNum) {
     }
 };
 
-// ==========================================
-// 5. 공통 팝업 및 이벤트 제어 로직
-// ==========================================
 function attachCommonEvents() {
     const modalOverlay = document.getElementById('common-modal-overlay');
     modalOverlay.addEventListener('click', (e) => {
@@ -385,7 +361,6 @@ function attachCommonEvents() {
     if(btnSubmitFeedback) {
         btnSubmitFeedback.addEventListener('click', () => {
             closeModal();
-            // 운동 완료 시 완료 일수 증가 처리
             let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
             localStorage.setItem('completed_analysis_days', completedDays + 1);
             if (typeof switchView === 'function') switchView('view-summary'); 
@@ -423,9 +398,6 @@ window.closeModal = function() {
     hideAllModals();
 };
 
-// ==========================================
-// 6. 유산소 마법사 로직
-// ==========================================
 const cardioSteps = [
     { title: '어떤 유산소 기구를<br>쓸 수 있나요?', sub: '여러 개 고를 수 있어요.', type: 'multi', options: ['트레드밀', '실내 사이클', '일립티컬', '로잉머신', '없음'] },
     { title: '불편한 부위가<br>있나요?', sub: '여러 개 고를 수 있어요.', type: 'multi', options: ['무릎·발목', '허리', '어깨·팔꿈치', '없음'] },
@@ -494,9 +466,6 @@ window.changeCardioTime = function(amount) {
     document.getElementById('cw-time-val').innerHTML = `${window.currentCardioMins}<span>분</span>`;
 };
 
-// ==========================================
-// 7. 공통 타이머 로직
-// ==========================================
 window.globalTimerInterval = null;
 window.startGlobalTimer = function(seconds, exName) {
     clearInterval(window.globalTimerInterval);
@@ -546,18 +515,9 @@ window.selectFeedback = function(btn) {
     document.getElementById('btn-submit-feedback').disabled = false;
 };
 
-// ==========================================
-// 8. 과부하 코치 로직
-// ==========================================
 const coachData = [
-    { sub: '', title: '세 번째 운동을 완료했어요!', content: '<p class="coach-desc" style="color:#fff;">벌써 세 번째 운동을 완료하셨네요. 조금씩 운동 기록이 쌓이고 있어요.<br><br>지금처럼 각 세트에서 실제로 수행한 중량과 횟수를 그대로 기록해주세요.<br><br><span style="color:var(--primary); font-weight:bold;">다음 운동도 함께 이어가볼게요!</span></p>' },
-    { sub: '완료 현황', title: '마치지 못한 운동과 세트가 있어요', content: '<div class="coach-box"><div class="cb-row"><span class="cb-name" style="color:#fff;">루마니안 데드리프트</span><span style="color:#888;">1~3번째 세트 미완료</span></div><div class="cb-row"><span class="cb-name" style="color:#fff;">시시 스쿼트(맨몸)</span><span style="color:#888;">운동 전체 미완료</span></div><div class="cb-row"><span class="cb-name" style="color:#fff;">시티드 햄스트링 컬</span><span style="color:#888;">1번째 세트 미완료</span></div><div class="cb-row"><span style="color:#888;">...</span></div></div><p class="coach-desc" style="margin-top:20px;">컨디션이 좋지 않거나 시간이 부족했다면 억지로 완료할 필요는 없어요.<br><br>다음 운동에서 다시 차근차근 이어가보세요!<br><br>2주차부터는 알고리즘이 박준혁님의 피로도에 따라 루틴을 조절해드리니 걱정하지 않으셔도 됩니다:)</p>' },
-    { sub: '세트 퍼포먼스 분석', title: '강도를 조금 더 높여봐요', content: '<div class="coach-box"><span class="cb-name">스미스 머신 스쿼트</span><div class="cb-row"><span>2번째 세트</span><span class="cb-val">10회</span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val">11회</span></div></div><p class="coach-desc" style="margin-top:20px;">보통 세트가 진행될수록 피로로 횟수가 줄어드는데, 뒤 세트에서 오히려 더 많이 수행했어요.<br><br>앞선 세트의 강도가 낮았을 수 있어요. 다음엔 <span style="color:var(--primary); font-weight:bold;">권장 RIR에 맞춰</span> 조금 더 높은 강도로 수행해보세요!</p>' },
-    { sub: '권장 횟수 분석', title: '중량이 조금 무거웠어요', content: '<div class="coach-box"><span class="cb-name">루마니안 데드리프트</span><div class="cb-row" style="margin-bottom:12px;"><span>수행</span><span class="cb-val" style="color:#aaa;"><span style="color:var(--primary); font-weight:bold;">30kg × 6회</span></span></div><div class="cb-row" style="margin-bottom:12px;"><span>권장</span><span class="cb-val" style="color:#aaa;">8~12회</span></div><div class="cb-row"><span>차이</span><span class="cb-val" style="color:#aaa;">-2회</span></div></div><p class="coach-desc" style="margin-top:20px;">권장 범위보다 <span style="color:var(--primary); font-weight:bold;">적게</span> 수행하셨어요. 아직 익숙하지 않은 운동이라면 적정 중량을 가늠하기 어려울 수 있어요.<br><br>괜찮아요! 이번 수행 결과를 바탕으로 다음주부터는 더 적절한 중량을 안내해드릴게요.</p>' },
-    { sub: '권장 횟수 분석', title: '권장 범위를 조금 벗어났어요', content: '<div class="coach-box"><span class="cb-name">시티드 햄스트링 컬</span><div class="cb-row" style="margin-bottom:8px;"><span>2번째 세트</span><span class="cb-val" style="color:#aaa;"><span style="color:var(--primary); font-weight:bold;">26kg × 15회</span> <span style="color:#666;">· 권장 8~12회</span></span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val" style="color:#aaa;"><span style="color:var(--primary); font-weight:bold;">33kg × 7회</span> <span style="color:#666;">· 권장 8~12회</span></span></div></div><p class="coach-desc" style="margin-top:20px;">적게 수행한 세트는 중량이 무거웠을 수 있고, 많이 수행한 세트는 가벼웠을 수 있어요.<br><br>익숙하지 않은 운동은 적정 중량을 가늠하기 어려우니 걱정하지 않으셔도 됩니다. 다음엔 더 적절한 중량을 안내해드릴게요.</p>' },
-    { sub: '권장 횟수 분석', title: '중량이 조금 무거웠어요', content: '<div class="coach-box"><span class="cb-name">덤벨 불가리안 스플릿 스쿼트 (상체 숙이고 둔근 포커스)</span><div class="cb-row" style="margin-bottom:8px;"><span>2번째 세트</span><span class="cb-val" style="color:#aaa;"><span style="color:var(--primary); font-weight:bold;">1kg × 7회</span> <span style="color:#666;">· 권장 8~12회</span></span></div><div class="cb-row"><span>3번째 세트</span><span class="cb-val" style="color:#aaa;"><span style="color:var(--primary); font-weight:bold;">1kg × 6회</span> <span style="color:#666;">· 권장 8~12회</span></span></div></div><p class="coach-desc" style="margin-top:20px;">위 세트가 <span style="color:var(--primary); font-weight:bold;">권장 횟수 범위에 도달하지 못했어요.</span> 적정 중량을 아직 가늠하지 못해 조금 무겁게 설정했을 수 있어요.<br><br>괜찮아요! 이번 수행 결과를 바탕으로 다음주부터는 더 적절한 중량을 안내해드릴게요. 😊</p>' }
+    { sub: '', title: '세 번째 운동을 완료했어요!', content: '<p class="coach-desc" style="color:#fff;">벌써 세 번째 운동을 완료하셨네요. 조금씩 운동 기록이 쌓이고 있어요.<br><br>지금처럼 각 세트에서 실제로 수행한 중량과 횟수를 그대로 기록해주세요.<br><br><span style="color:var(--primary); font-weight:bold;">다음 운동도 함께 이어가볼게요!</span></p>' }
 ];
-
 window.coachStepIdx = 0;
 
 window.startOverloadCoach = function() {
@@ -580,9 +540,6 @@ window.renderCoachStep = function() {
     document.getElementById('coach-dots-area').innerHTML = dotsHtml;
     document.getElementById('btn-coach-next').innerText = window.coachStepIdx === coachData.length - 1 ? '확인' : '다음';
 };
-// ==========================================
-// 9. RIR 및 웜업 가이드 모달 로직
-// ==========================================
 
 const guideData = {
     rir: [
@@ -669,8 +626,7 @@ const guideData = {
 window.currentGuideType = '';
 window.currentGuideIdx = 0;
 
-// html에 하드코딩된 onclick="openModal('rir')" 에러 방지 및 연결
-window.openModal = function(type) {
+window.openGuideModal = function(type) {
     if(type === 'rir' || type === 'warmup') {
         window.currentGuideType = type;
         window.currentGuideIdx = 0;
@@ -705,32 +661,17 @@ window.renderGuideStep = function() {
     const btnPrev = document.getElementById('modal-btn-prev');
     const btnNext = document.getElementById('modal-btn-next');
     
-    if(window.currentGuideIdx === 0) {
-        btnPrev.style.visibility = 'hidden';
-    } else {
-        btnPrev.style.visibility = 'visible';
-    }
+    if(window.currentGuideIdx === 0) { btnPrev.style.visibility = 'hidden'; } else { btnPrev.style.visibility = 'visible'; }
+    if(window.currentGuideIdx === dataList.length - 1) { btnNext.innerText = '확인'; } else { btnNext.innerText = '다음'; }
     
-    if(window.currentGuideIdx === dataList.length - 1) {
-        btnNext.innerText = '확인';
-    } else {
-        btnNext.innerText = '다음';
-    }
-    
-    // 버튼 이벤트 중복 바인딩 방지를 위해 onclick으로 덮어씌움
     btnPrev.onclick = function() {
-        if(window.currentGuideIdx > 0) {
-            window.currentGuideIdx--;
-            renderGuideStep();
-        }
+        if(window.currentGuideIdx > 0) { window.currentGuideIdx--; renderGuideStep(); }
     };
     
     btnNext.onclick = function() {
-        if(window.currentGuideIdx < dataList.length - 1) {
-            window.currentGuideIdx++;
-            renderGuideStep();
-        } else {
-            closeModal();
-        }
+        if(window.currentGuideIdx < dataList.length - 1) { window.currentGuideIdx++; renderGuideStep(); } 
+        else { closeModal(); }
     };
 };
+// 구버전 onclick="openModal('rir')" 호환용
+window.openModal = window.openGuideModal;
