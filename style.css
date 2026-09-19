@@ -840,3 +840,124 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
 .we-check.active::after {
     color: #fff;
 }
+/* ==========================================================================
+   12. 운동 세트 디자인 (그룹화 구조 + 다크/레드 테마)
+   ========================================================================== */
+
+/* 뱃지 라벨 (웜업/탑/본세트) */
+.we-group-badge {
+    display: inline-block;
+    background: var(--primary, #E50914);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 20px; /* 둥근 캡슐 형태 */
+    margin-bottom: 15px;
+}
+
+/* 탑세트 히스토리 텍스트 */
+.we-top-history {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333;
+}
+.we-top-history strong { color: #fff; }
+
+/* 열 라벨 (중량, 횟수) */
+.we-labels {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #666;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    padding-right: 50px; /* 체크박스 공간 띄움 */
+}
+.we-labels > span:first-child { width: 20%; }
+.we-labels > span:nth-child(2) { width: 35%; text-align: center; }
+.we-labels > span:nth-child(3) { width: 35%; text-align: center; }
+.we-labels > span:last-child { width: 10%; }
+
+/* 입력 로우 */
+.we-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    transition: opacity 0.3s ease;
+}
+
+.we-rir-label {
+    width: 20%;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* 네모난 입력 인풋 */
+.we-val-input {
+    width: 32%;
+    background: #222;
+    border: 1px solid transparent; /* 기본 보더 숨김 */
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    padding: 12px 0;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.we-val-input:focus {
+    border-color: var(--primary, #E50914);
+    background: #1a1a1a;
+}
+
+/* 동그란 체크박스 */
+.we-circle-check {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #555;
+    color: transparent; /* 평소엔 체크 안 보임 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.we-circle-check.active {
+    background: var(--primary, #E50914);
+    border-color: var(--primary, #E50914);
+    color: #fff;
+}
+
+/* 하단 세트 추가/삭제 버튼 */
+.we-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+    border-top: 1px solid #333;
+    padding-top: 20px;
+}
+
+.we-ctrl-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid #555;
+    color: #ddd;
+    padding: 12px 0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.we-ctrl-btn:active { background: #333; }
