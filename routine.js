@@ -78,7 +78,7 @@ const routineDB = {
 };
 
 // ==========================================
-// 4. 루틴 상세 오픈, 저장 및 탭 이동(자동스크롤) 로직
+// 4. 네이티브 뒤로가기(History API) 지원 및 상세 화면 로직
 // ==========================================
 window.openDetail = function(rtId) {
     window.currentViewedRoutineId = rtId; 
@@ -142,6 +142,7 @@ window.openDetail = function(rtId) {
     
     document.getElementById('rd-render-area').innerHTML = html;
     
+    // 화면 전환 및 히스토리 스택 추가
     document.getElementById('view-list').classList.remove('active');
     document.getElementById('view-list').style.display = 'none';
     document.getElementById('view-detail').classList.add('active');
@@ -150,9 +151,13 @@ window.openDetail = function(rtId) {
     const mainNav = document.getElementById('main-nav');
     if (mainNav) mainNav.style.display = 'none';
     window.scrollTo(0, 0);
+
+    // [신규] 모바일 뒤로가기 처리를 위한 URL 해시 추가
+    history.pushState({ view: 'detail' }, '', '#detail');
 };
 
-window.closeDetail = function() {
+// [수정됨] 뒤로가기 공통 함수 (버튼, 네이티브 스와이프 모두 대응)
+window.closeDetail = function(fromPopState = false) {
     document.getElementById('view-detail').classList.remove('active');
     document.getElementById('view-detail').style.display = 'none';
     document.getElementById('view-list').classList.add('active');
@@ -160,8 +165,24 @@ window.closeDetail = function() {
     
     const mainNav = document.getElementById('main-nav');
     if (mainNav) mainNav.style.display = 'flex';
+    
+    // 버튼으로 닫을 때만 history.back() 실행 (무한루프 방지)
+    if (!fromPopState && location.hash === '#detail') {
+        history.back();
+    }
 };
 
+// [신규] 기기/브라우저의 뒤로가기 버튼 감지 이벤트
+window.addEventListener('popstate', (e) => {
+    // 해시가 해제되었을 때 (즉 뒤로가기 실행됨)
+    if (location.hash !== '#detail') {
+        window.closeDetail(true);
+    }
+});
+
+// ==========================================
+// 5. 로컬 데이터 연동 함수
+// ==========================================
 window.saveRoutineToLocal = function() {
     const rtId = window.currentViewedRoutineId;
     const data = routineDB[rtId];
@@ -180,7 +201,7 @@ window.saveRoutineToLocal = function() {
 window.saveRoutineOnly = function() {
     saveRoutineToLocal();
     loadActiveRoutineUI(); 
-    closeDetail();
+    window.closeDetail();
     alert('내 루틴으로 저장되었습니다.');
 };
 
@@ -189,15 +210,10 @@ window.useRoutineNow = function() {
     location.href = 'home.html';
 };
 
-// ==========================================
-// 5. [신규] 탭 클릭 시 부드러운 스크롤 이동 로직
-// ==========================================
 window.scrollToSection = function(sectionId, btn) {
-    // 모든 탭 활성화 해제 후 클릭한 탭만 빨간색 활성화
     document.querySelectorAll('.rt-filter').forEach(el => el.classList.remove('active'));
     btn.classList.add('active');
 
-    // 목표 섹션으로 부드럽게 스크롤 (상단 JHP 로고 헤더 공간 80px 제외)
     const target = document.getElementById(sectionId);
     if (target) {
         const headerOffset = 80;
