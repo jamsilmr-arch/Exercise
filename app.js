@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
     attachCommonEvents();
 });
 
-ㅍ// ==========================================
+// ==========================================
 // 4. 운동 리스트 렌더링 (데이터 없는 초기 공란 상태)
 // ==========================================
 window.renderWorkoutList = function() {
