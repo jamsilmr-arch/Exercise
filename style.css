@@ -1071,3 +1071,22 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
 }
 .g-name { color: var(--primary, #E50914); font-weight: bold; font-size: 1rem; }
 .g-desc { color: #888; font-size: 0.85rem; margin-top: 10px; }
+/* ==========================================================================
+   14. 운동 화면 가이드 버튼
+   ========================================================================== */
+.guide-btn {
+    background: #1a1a1a;
+    color: #ccc;
+    border: 1px solid #444;
+    padding: 8px 16px;
+    border-radius: 20px; /* 둥근 캡슐 모양 */
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.guide-btn:active {
+    background: var(--primary, #E50914);
+    color: #fff;
+    border-color: var(--primary, #E50914);
+}
