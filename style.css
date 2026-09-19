@@ -751,3 +751,92 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
 .we-check.active::after {
     opacity: 1;
 }
+/* ==========================================================================
+   12. 운동 세트 디자인 (다크/레드 넷플릭스 테마 강화)
+   ========================================================================== */
+.we-set-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    transition: opacity 0.3s ease;
+    gap: 8px; /* 요소 간격 추가 */
+}
+
+/* 열 너비 비율 정확하게 고정 */
+.we-set-row > select.we-set-type { width: 22%; }
+.we-set-row > input:nth-child(2) { width: 28%; }
+.we-set-row > input:nth-child(3) { width: 28%; }
+.we-set-row > div:last-child { width: 22%; display: flex; justify-content: flex-end; }
+
+/* 세트 타입 드롭다운 (웜업/본세트/탑세트) */
+.we-set-type {
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 10px 5px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    outline: none;
+    cursor: pointer;
+    text-align: center;
+    appearance: none; /* 브라우저 기본 화살표 제거 */
+    transition: border-color 0.2s;
+}
+
+.we-set-type:focus {
+    border-color: var(--primary, #E50914);
+}
+
+/* 입력칸 공통 디자인 */
+.we-input {
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.we-input:focus {
+    border-color: var(--primary, #E50914);
+    box-shadow: 0 0 5px rgba(229, 9, 20, 0.5); /* 붉은색 네온 효과 */
+}
+
+/* 완료 체크박스 디자인 */
+.we-check {
+    width: 100%;
+    height: 42px; /* 인풋칸과 높이 통일 */
+    border-radius: 6px;
+    background: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #444;
+}
+
+.we-check::after {
+    content: '완료'; /* v 체크 대신 글자로 변경해 시인성 확보 */
+    color: #888;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+/* 완료 눌렀을 때 강렬한 레드 테마 적용 */
+.we-check.active {
+    background: var(--primary, #E50914);
+    border-color: var(--primary, #E50914);
+    box-shadow: 0 4px 10px rgba(229, 9, 20, 0.4);
+}
+
+.we-check.active::after {
+    color: #fff;
+}
