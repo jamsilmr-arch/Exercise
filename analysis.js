@@ -1,6 +1,5 @@
 window.activeTab = 'analysis';
 
-// 1RM 계산 공식 (Epley Formula)
 function calculate1RM(weight, reps) {
     if(reps === 1) return weight;
     return Math.round(weight * (1 + (reps / 30)) * 10) / 10;
@@ -11,7 +10,7 @@ let currentExercise = '';
 
 window.openPerfDetail = function(name) {
     currentExercise = name;
-    currentChartType = '1RM'; // 기본 탭은 1RM
+    currentChartType = '1RM'; 
     renderAnalysisDetail();
     
     document.getElementById('view-analysis-list').classList.remove('active');
@@ -22,9 +21,13 @@ window.openPerfDetail = function(name) {
     const mainNav = document.getElementById('main-nav');
     if (mainNav) mainNav.style.display = 'none';
     window.scrollTo(0, 0);
+
+    // [신규] 모바일 뒤로가기 처리를 위한 URL 해시 추가
+    history.pushState({ view: 'perfDetail' }, '', '#perfDetail');
 };
 
-window.closePerfDetail = function() {
+// [수정됨] 뒤로가기 공통 함수
+window.closePerfDetail = function(fromPopState = false) {
     document.getElementById('view-analysis-detail').classList.remove('active');
     document.getElementById('view-analysis-detail').style.display = 'none';
     document.getElementById('view-analysis-list').classList.add('active');
@@ -32,7 +35,18 @@ window.closePerfDetail = function() {
     
     const mainNav = document.getElementById('main-nav');
     if (mainNav) mainNav.style.display = 'flex';
+
+    if (!fromPopState && location.hash === '#perfDetail') {
+        history.back();
+    }
 };
+
+// [신규] 기기/브라우저의 뒤로가기 버튼 감지 이벤트
+window.addEventListener('popstate', (e) => {
+    if (location.hash !== '#perfDetail') {
+        window.closePerfDetail(true);
+    }
+});
 
 window.switchChartType = function(type) {
     currentChartType = type;
@@ -42,14 +56,11 @@ window.switchChartType = function(type) {
 function renderAnalysisDetail() {
     document.getElementById('ad-title').innerText = currentExercise;
     
-    // [수정됨] 고정 더미 데이터 삭제. 
-    // 나중에 localStorage나 DB 연동 시 이 배열 안에 데이터를 푸시하면 자동으로 차트가 그려집니다.
     const history = []; 
 
     let max1RM = 0;
     let maxVol = 0;
     
-    // 데이터 분석 계산
     const chartData = history.map(h => {
         const est1RM = calculate1RM(h.weight, h.reps);
         const volume = h.weight * h.reps * h.sets;
@@ -76,7 +87,6 @@ function renderAnalysisDetail() {
         </div>
     `;
 
-    // [신규] 입력된 데이터가 없을 때의 텅 빈 화면(Empty State) 처리
     if (chartData.length === 0) {
         html += `
             <div class="ad-chart-container" style="display:flex; justify-content:center; align-items:center; color:#666; font-size:0.9rem; text-align:center;">
@@ -90,7 +100,7 @@ function renderAnalysisDetail() {
             </div>
         `;
         document.getElementById('ad-render').innerHTML = html;
-        return; // 차트 그리기 로직 건너뜀
+        return; 
     }
 
     const yMax = currentChartType === '1RM' ? max1RM * 1.2 : maxVol * 1.2;
@@ -122,7 +132,6 @@ function renderAnalysisDetail() {
     chartHtml += `</div></div>`;
     html += chartHtml;
 
-    // 하단 히스토리 내역
     html += `<div class="ad-history-title">최근 운동 기록</div><div class="ad-history-list">`;
     [...chartData].reverse().forEach(d => {
         html += `
@@ -136,7 +145,6 @@ function renderAnalysisDetail() {
 
     document.getElementById('ad-render').innerHTML = html;
 
-    // 1RM 선 긋기 애니메이션
     if (currentChartType === '1RM' && chartData.length > 1) {
         setTimeout(() => {
             const box = document.getElementById('chart-line-box');
