@@ -15,52 +15,55 @@ window.currentRoutine = [];
 window.totalGlobalSets = 0;
 
 // ==========================================
-// 2. 운동 DB (운동 생리학적 최적 순서 및 분석 탭 명칭 동기화 적용)
+// 2. 운동 DB (A/B 교차 분할 루틴 최적화 적용)
 // ==========================================
 const textPresets = {
-    // 전신: 하체 -> 가슴 -> 등 -> 어깨 -> 팔
-    full: ['스쿼트', '벤치 프레스', '풀업', '바벨 로우', '오버헤드 프레스', '사이드 레터럴 레이즈', '바벨 컬', '삼두 푸시다운'], 
+    full_a: ['스쿼트', '벤치 프레스', '풀업', '바벨 로우', '오버헤드 프레스', '사이드 레터럴 레이즈', '바벨 컬', '삼두 푸시다운'], 
+    full_b: ['레그 프레스', '인클라인 스미스 머신 벤치 프레스', '랫 풀다운 중간 그립', '시티드 로우', '머신 숄더 프레스', '케이블 레터럴 레이즈(높은 케이블) (왼쪽)', '덤벨 바이셉 컬', '케이블 트라이셉 푸시다운'],
+    full_c: ['머신 핵 스쿼트', '해머 스트렝스 체스트 프레스 머신 (Plate-loaded, Lever)', '원암 랫 풀다운', '케이블 로우 (중간-넓은 오버 그립)', '덤벨 레터럴 레이즈', '리어 델트 플라이', '해머 컬', '오버헤드 트라이셉 익스텐션'],
     
-    // 상체: 가슴/등 복합 교차 -> 어깨 복합 -> 등 고립 -> 어깨 고립 -> 팔
-    upper: ['벤치 프레스', '풀업', '인클라인 프레스', '바벨 로우', '오버헤드 프레스', '랫풀다운', '사이드 레터럴 레이즈', '바벨 컬'], 
+    upper_a: ['벤치 프레스', '풀업', '인클라인 프레스', '바벨 로우', '오버헤드 프레스', '사이드 레터럴 레이즈', '바벨 컬', '삼두 푸시다운'], 
+    upper_b: ['인클라인 스미스 머신 벤치 프레스', '랫 풀다운 중간 그립', '해머 스트렝스 체스트 프레스 머신 (Plate-loaded, Lever)', '시티드 로우', '머신 숄더 프레스', '케이블 레터럴 레이즈(높은 케이블) (왼쪽)', '덤벨 바이셉 컬', '케이블 트라이셉 푸시다운'],
     
-    // 하체: 대퇴사두/둔근 복합 -> 햄스트링 복합 -> 대퇴사두 고립 -> 햄스트링 고립 -> 둔근/내전근 고립 -> 종아리
-    lower: ['스쿼트', '레그 프레스', '루마니안 데드리프트', '레그 익스텐션', '레그 컬', '힙 쓰러스트', '이너 타이', '카프 레이즈'], 
+    lower_a: ['스쿼트', '루마니안 데드리프트', '레그 프레스', '레그 익스텐션', '레그 컬', '힙 쓰러스트', '이너 타이', '카프 레이즈'], 
+    lower_b: ['머신 핵 스쿼트', '바벨 데드리프트', '스미스 머신 스쿼트', '시티드 햄스트링 컬', '덤벨 불가리안 스플릿 스쿼트 (상체 숙이고 둔근 포커스) (왼쪽)', '힙 어브덕션', '케이블 킥백'],
     
-    // 밀기: 가슴 복합 -> 어깨 복합 -> 가슴/삼두 복합(딥스) -> 가슴 고립 -> 어깨 고립 -> 삼두 고립
-    push: ['벤치 프레스', '인클라인 프레스', '오버헤드 프레스', '딥스', '펙덱 플라이', '사이드 레터럴 레이즈', '프론트 레이즈', '삼두 푸시다운'], 
+    push_a: ['벤치 프레스', '인클라인 프레스', '오버헤드 프레스', '딥스', '펙덱 플라이', '사이드 레터럴 레이즈', '프론트 레이즈', '삼두 푸시다운'], 
+    push_b: ['해머 스트렝스 체스트 프레스 머신 (Plate-loaded, Lever)', '인클라인 스미스 머신 벤치 프레스', '머신 숄더 프레스', '덤벨 체스트 플라이', '케이블 레터럴 레이즈(높은 케이블) (왼쪽)', '케이블 트라이셉 푸시다운', '오버헤드 트라이셉 익스텐션'],
     
-    // 당기기: 등 수직 당기기 -> 등 수평 당기기 -> 어깨 후면 -> 이두
-    pull: ['풀업', '바벨 로우', '랫풀다운', '시티드 로우', '페이스 풀', '리어 델트', '바벨 컬', '해머 컬'], 
+    pull_a: ['풀업', '바벨 로우', '랫풀다운', '시티드 로우', '페이스 풀', '리어 델트 플라이', '바벨 컬', '해머 컬'], 
+    pull_b: ['랫 풀다운 중간 그립', '체스트 서포티드 티바 로우', '원암 랫 풀다운', '케이블 로우 (중간-넓은 오버 그립)', '케이블 리버스 플라이', '바벨 프리처 컬', '덤벨 바이셉 컬'],
     
-    // 몸통(가슴/등): 가슴/등 복합 교차 -> 가슴/등 고립 교차
-    core: ['벤치 프레스', '풀업', '인클라인 프레스', '바벨 로우', '랫풀다운', '시티드 로우', '펙덱 플라이', '풀오버'], 
+    core_a: ['벤치 프레스', '풀업', '인클라인 프레스', '바벨 로우', '랫풀다운', '시티드 로우', '펙덱 플라이', '풀오버'], 
+    core_b: ['인클라인 스미스 머신 벤치 프레스', '랫 풀다운 중간 그립', '해머 스트렝스 체스트 프레스 머신 (Plate-loaded, Lever)', '체스트 서포티드 티바 로우', '케이블 로우 (중간-넓은 오버 그립)', '덤벨 체스트 플라이'],
     
-    // 말단(어깨/팔): 어깨 복합 -> 어깨 고립(전/측/후면) -> 이두 -> 삼두
-    limb: ['오버헤드 프레스', '프론트 레이즈', '사이드 레터럴 레이즈', '리어 델트', '바벨 컬', '해머 컬', '삼두 푸시다운', '트라이셉 익스텐션'],
+    limb_a: ['오버헤드 프레스', '프론트 레이즈', '사이드 레터럴 레이즈', '리어 델트 플라이', '바벨 컬', '해머 컬', '삼두 푸시다운', '오버헤드 트라이셉 익스텐션'],
+    limb_b: ['머신 숄더 프레스', '덤벨 레터럴 레이즈', '케이블 리버스 플라이', '덤벨 바이셉 컬', '바벨 프리처 컬', '원암 케이블 푸시다운 (왼쪽)', '케이블 트라이셉 푸시다운'],
     
-    // 힙/둔근(여성): 하체/둔근 복합 -> 둔근 타겟 복합 -> 둔근 고립 -> 내전근
-    glutes: ['스쿼트', '루마니안 데드리프트', '런지', '힙 쓰러스트', '레그 프레스', '힙 어브덕션', '킥백', '이너 타이'],
+    glutes_a: ['스쿼트', '루마니안 데드리프트', '런지', '힙 쓰러스트', '레그 프레스', '힙 어브덕션', '킥백', '이너 타이'],
+    glutes_b: ['덤벨 불가리안 스플릿 스쿼트 (상체 숙이고 둔근 포커스) (왼쪽)', '바벨 데드리프트', '머신 핵 스쿼트', '시티드 햄스트링 컬', '힙 어브덕션', '케이블 킥백'],
     
-    // 여성 상체: 등 수직/수평 -> 가슴 -> 어깨 복합 -> 어깨 후/측면 -> 이두/삼두
-    w_upper: ['랫풀다운', '시티드 로우', '푸시업', '오버헤드 프레스', '사이드 레터럴 레이즈', '페이스 풀', '바벨 컬', '트라이셉 익스텐션']
+    w_upper_a: ['랫풀다운', '시티드 로우', '푸시업', '오버헤드 프레스', '사이드 레터럴 레이즈', '페이스 풀', '바벨 컬', '오버헤드 트라이셉 익스텐션'],
+    w_upper_b: ['랫 풀다운 중간 그립', '케이블 로우 (중간-넓은 오버 그립)', '인클라인 스미스 머신 벤치 프레스', '머신 숄더 프레스', '덤벨 레터럴 레이즈', '덤벨 바이셉 컬', '케이블 트라이셉 푸시다운']
 };
 
-const routineDB = {
-    'rt_2_full': { title: '주 2회 무분할 루틴', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.full }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full }, { type: 'rest', days: 3 } ] },
-    'rt_3_hybrid': { title: '주 3회 (상체-하체-전신) 루틴', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 6, texts: textPresets.lower }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full }, { type: 'rest', days: 1 } ] },
-    'rt_3_full': { title: '주 3회 무분할 (전신-전신-전신)', timeline: [ { type: 'workout', label: 'Day 1', count: 8, texts: textPresets.full }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 8, texts: textPresets.full }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full }, { type: 'rest', days: 1 } ] },
-    'rt_4_hybrid': { title: '주 4회 (밀기-당기기-하체-전신)', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.push }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.lower }, { type: 'workout', label: 'Day 4', count: 7, texts: textPresets.full }, { type: 'rest', days: 2 } ] },
-    'rt_4_split': { title: '주 4회 (상체-하체-상체-하체)', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper }, { type: 'workout', label: 'Day 2', count: 5, texts: textPresets.lower }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 7, texts: textPresets.upper }, { type: 'workout', label: 'Day 2a', count: 5, texts: textPresets.lower }, { type: 'rest', days: 2 } ] },
-    'rt_5_push_pull': { title: '주 5회 (밀-당-하-밀-당)', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.push }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull }, { type: 'workout', label: 'Day 3', count: 6, texts: textPresets.lower }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 5, texts: textPresets.push }, { type: 'workout', label: 'Day 2a', count: 6, texts: textPresets.pull }, { type: 'rest', days: 1 } ] },
-    'rt_5_hybrid': { title: '주 5회 (상-하-상-하-상)', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper }, { type: 'workout', label: 'Day 2', count: 5, texts: textPresets.lower }, { type: 'workout', label: 'Day 1a', count: 7, texts: textPresets.upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 2a', count: 4, texts: textPresets.lower }, { type: 'workout', label: 'Day 1b', count: 7, texts: textPresets.upper }, { type: 'rest', days: 1 } ] },
-    'rt_6_push_pull': { title: '주 6회 (밀기-당기기-하체)', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.push }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull }, { type: 'workout', label: 'Day 3', count: 4, texts: textPresets.lower }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 5, texts: textPresets.push }, { type: 'workout', label: 'Day 2a', count: 5, texts: textPresets.pull }, { type: 'workout', label: 'Day 3a', count: 5, texts: textPresets.lower } ] },
-    'rt_6_body_limb_lower': { title: '주 6회 (몸통-말단-하체)', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.core }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.limb }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.lower }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 6, texts: textPresets.core }, { type: 'workout', label: 'Day 2a', count: 7, texts: textPresets.limb }, { type: 'workout', label: 'Day 3a', count: 5, texts: textPresets.lower } ] },
-    'rt_w_fitness': { title: '여성 헬스 루틴', timeline: [ { type: 'workout', label: 'Day 1', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 2', count: 4, texts: textPresets.w_upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 2 } ] },
-    'rt_w_hipup': { title: '힙업 루틴', timeline: [ { type: 'workout', label: 'Day 1', count: 5, texts: textPresets.glutes }, { type: 'workout', label: 'Day 2', count: 5, texts: textPresets.w_upper }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 4', count: 6, texts: textPresets.glutes }, { type: 'workout', label: 'Day 5', count: 5, texts: textPresets.w_upper }, { type: 'rest', days: 2 } ] },
-    'rt_w_hiponly': { title: '힙 only 루틴', timeline: [ { type: 'workout', label: 'Day 1', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 6', count: 4, texts: textPresets.glutes }, { type: 'rest', days: 1 } ] }
+window.routineDB = {
+    'rt_2_full': { title: '주 2회 무분할 루틴', chips: ['남성'], desc: '운동 가능 일수가 적은 분들에게 안성맞춤입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.full_a }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full_b }, { type: 'rest', days: 3 } ] },
+    'rt_3_hybrid': { title: '주 3회 (상체-하체-전신) 루틴', chips: ['상체-하체-전신', '남성'], desc: '2분할과 무분할을 섞은 하이브리드입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 6, texts: textPresets.lower_a }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full_a }, { type: 'rest', days: 1 } ] },
+    'rt_3_full': { title: '주 3회 무분할 (전신-전신-전신)', chips: ['전신-전신-전신', '남성'], desc: '전신을 주 3회 운동하기 때문에 운동 주기가 아주 높습니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 8, texts: textPresets.full_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 8, texts: textPresets.full_b }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.full_c }, { type: 'rest', days: 1 } ] },
+    'rt_4_hybrid': { title: '주 4회 (밀기-당기기-하체-전신)', chips: ['밀기-당기기-하체-전신', '남성'], desc: '전형적인 무분할과 3분할을 결합한 하이브리드입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.push_a }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.lower_a }, { type: 'workout', label: 'Day 4', count: 7, texts: textPresets.full_a }, { type: 'rest', days: 2 } ] },
+    'rt_4_split': { title: '주 4회 (상체-하체-상체-하체)', chips: ['상체-하체-상체-하체', '남성'], desc: '가장 기본적이고 효율적인 2분할 방식입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper_a }, { type: 'workout', label: 'Day 2', count: 6, texts: textPresets.lower_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 7, texts: textPresets.upper_b }, { type: 'workout', label: 'Day 2a', count: 6, texts: textPresets.lower_b }, { type: 'rest', days: 2 } ] },
+    'rt_5_push_pull': { title: '주 5회 (밀-당-하-밀-당)', chips: ['밀기-당기기-하체-밀기-당기기', '남성'], desc: '하체 운동을 주 1회만 함으로써 상체에 더 집중할 수 있는 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.push_a }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull_a }, { type: 'workout', label: 'Day 3', count: 6, texts: textPresets.lower_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 6, texts: textPresets.push_b }, { type: 'workout', label: 'Day 2a', count: 7, texts: textPresets.pull_b }, { type: 'rest', days: 1 } ] },
+    'rt_5_hybrid': { title: '주 5회 (상-하-상-하-상)', chips: ['상체-하체-상체-하체-상체', '남성'], desc: '상체에 3일, 하체에 2일 투자하여 상체 운동을 더 여유롭게 분배했습니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.upper_a }, { type: 'workout', label: 'Day 2', count: 6, texts: textPresets.lower_a }, { type: 'workout', label: 'Day 1a', count: 7, texts: textPresets.upper_b }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 2a', count: 6, texts: textPresets.lower_b }, { type: 'workout', label: 'Day 1b', count: 7, texts: textPresets.upper_a }, { type: 'rest', days: 1 } ] },
+    'rt_6_push_pull': { title: '주 6회 (밀기-당기기-하체)', chips: ['밀기-당기기-하체', '남성'], desc: '단순하고 수행하기 쉽기 때문에 흔하고 인기가 많은 3분할 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 7, texts: textPresets.push_a }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.pull_a }, { type: 'workout', label: 'Day 3', count: 6, texts: textPresets.lower_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 7, texts: textPresets.push_b }, { type: 'workout', label: 'Day 2a', count: 7, texts: textPresets.pull_b }, { type: 'workout', label: 'Day 3a', count: 6, texts: textPresets.lower_b } ] },
+    'rt_6_body_limb_lower': { title: '주 6회 (몸통-말단-하체)', chips: ['몸통-말단-하체', '남성'], desc: '세션 후반부의 피로 누적을 줄이고 안정적인 퍼포먼스를 유지하는 3분할 변형입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.core_a }, { type: 'workout', label: 'Day 2', count: 7, texts: textPresets.limb_a }, { type: 'workout', label: 'Day 3', count: 6, texts: textPresets.lower_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 6, texts: textPresets.core_b }, { type: 'workout', label: 'Day 2a', count: 7, texts: textPresets.limb_b }, { type: 'workout', label: 'Day 3a', count: 6, texts: textPresets.lower_b } ] },
+    'rt_w_fitness': { title: '여성 헬스 루틴', chips: ['여성'], desc: '힙업과 탄력 있는 실루엣을 위해 둔근에 가장 집중합니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 2', count: 5, texts: textPresets.w_upper_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 1a', count: 5, texts: textPresets.glutes_b }, { type: 'rest', days: 2 } ] },
+    'rt_w_hipup': { title: '힙업 루틴', chips: ['여성'], desc: '전신을 운동하지만 힙업에 많은 비중을 두는 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 6, texts: textPresets.glutes_a }, { type: 'workout', label: 'Day 2', count: 6, texts: textPresets.w_upper_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 4', count: 6, texts: textPresets.glutes_b }, { type: 'workout', label: 'Day 5', count: 6, texts: textPresets.w_upper_b }, { type: 'rest', days: 2 } ] },
+    'rt_w_hiponly': { title: '힙 only 루틴', chips: ['여성', '힙 only'], desc: '다른 신체 부위 말고, 오로지 힙업만 원하는 여성분들을 위한 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.glutes_b }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 6', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 } ] }
 };
 
+// ----------------------------------------------------
+// (이 줄 아래로 3. DOM 로드 시 공통 UI 주입 부분은 변경 없이 기존 코드 그대로 유지)
 // ==========================================
 // 3. DOM 로드 시 공통 UI 주입
 // ==========================================
