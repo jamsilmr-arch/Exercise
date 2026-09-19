@@ -1,33 +1,48 @@
 // ==========================================
-// 1. Firebase 전역 초기화
+// 1. Firebase 전역 초기화 (에러 방어 로직 추가)
 // ==========================================
-const firebaseConfig = {
-    apiKey: "AIzaSyAPF1e1n5jS6YALzl0bJDGmDvOH1jhSU_g",
-    authDomain: "exercise-abddb.firebaseapp.com",
-    projectId: "exercise-abddb"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+try {
+    const firebaseConfig = {
+        apiKey: "AIzaSyAPF1e1n5jS6YALzl0bJDGmDvOH1jhSU_g",
+        authDomain: "exercise-abddb.firebaseapp.com",
+        projectId: "exercise-abddb"
+    };
+    
+    // firebase 객체가 정상적으로 로드되었는지 확인 후 실행
+    if (typeof firebase !== 'undefined') {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        window.auth = firebase.auth();
+        window.db = firebase.firestore();
+    } else {
+        console.warn("Firebase 스크립트가 로드되지 않았습니다. 로컬 기능만 활성화됩니다.");
+        window.auth = null;
+        window.db = null;
+    }
+} catch (e) {
+    console.error("Firebase 초기화 중 에러 발생 (무시하고 진행):", e);
+    window.auth = null;
+    window.db = null;
+}
 
 window.currentRoutine = [];
 window.totalGlobalSets = 0;
 
 // ==========================================
-// [추가됨] 유저 스트렝스/근비대 비율 동기화 로직
+// [추가됨] 유저 스트렝스/근비대 비율 동기화 로직 (에러 방어)
 // ==========================================
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        try {
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            if (userDoc.exists && userDoc.data().wizardData) {
-                // 스트렝스 비율을 로컬 스토리지에 저장하여 렌더링 시 빠르게 참조
-                const strRatio = parseInt(userDoc.data().wizardData?.goal_strength?.value) || 25;
-                localStorage.setItem('user_strength_ratio', strRatio);
-            }
-        } catch(e) { console.error("비율 데이터 동기화 실패:", e); }
-    }
-});
+if (window.auth) {
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists && userDoc.data().wizardData) {
+                    const strRatio = parseInt(userDoc.data().wizardData?.goal_strength?.value) || 25;
+                    localStorage.setItem('user_strength_ratio', strRatio);
+                }
+            } catch(e) { console.error("비율 데이터 동기화 실패:", e); }
+        }
+    });
+}
 // ==========================================
 
 // ==========================================
