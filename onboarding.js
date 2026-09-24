@@ -1,4 +1,6 @@
-// --- Firebase SDK 초기화 ---
+// ==========================================
+// 1. Firebase SDK 초기화 및 글로벌 설정
+// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyAPF1e1n5jS6YALzl0bJDGmDvOH1jhSU_g",
     authDomain: "exercise-abddb.firebaseapp.com",
@@ -35,6 +37,9 @@ document.querySelectorAll('.view-container').forEach(view => {
     view.classList.remove('active');
 });
 
+// ==========================================
+// 2. 인증 및 진입 분기 처리
+// ==========================================
 auth.onAuthStateChanged(async (user) => {
     if (isEditMode) {
         switchView('view-settings');
@@ -89,6 +94,9 @@ function startWizard() {
     renderWizardStep();
 }
 
+// ==========================================
+// 3. 설문(위자드) 데이터 및 렌더링
+// ==========================================
 const wizardSteps = [
     { type: 'input', title: '체중을 알려주세요', desc: '정확한 중량 추천을 위해 필요해요', value: '', placeholder: '70', unit: 'kg', hint: '체중은 알고리즘이 권장 중량을 계산할 때 사용돼요.' },
     { type: 'input', title: '나이를 알려주세요', desc: '회복 속도와 훈련 강도 설계에 참고해요', value: '', placeholder: '20', unit: '세', hint: '연령에 따른 중추신경계 회복 속도를 반영해요.' },
@@ -184,23 +192,19 @@ document.getElementById('btn-next-step').addEventListener('click', () => {
     else { showLoadingScreen(); }
 });
 
-// --- [수정됨] 뒤로가기 클릭 시 홈으로 빠져나가는 로직 반영 ---
 document.getElementById('btn-prev-step').addEventListener('click', () => {
     if (currentWizardStep > 0) { 
         currentWizardStep--; 
         renderWizardStep(); 
     } else {
-        // 첫 번째 화면에서 '이전'을 눌렀을 때
-        if (isEditMode) {
-            // 수정 모드로 들어왔다면 변경 없이 홈 화면으로 탈출
-            window.location.replace('home.html');
-        } else {
-            // 처음 로그인 중이라면 시작 화면으로
-            switchView('view-login');
-        }
+        if (isEditMode) window.location.replace('home.html');
+        else switchView('view-login');
     }
 });
 
+// ==========================================
+// 4. 결과 설명 렌더링
+// ==========================================
 function showLoadingScreen() {
     document.querySelector('#view-loading .loading-title').innerHTML = '맞춤형 루틴을<br>생성하고 있어요';
     document.querySelector('#view-loading .loading-desc').innerHTML = '잠시만 기다려주세요.<br>곧 최적의 루틴 구조를 보여드릴게요.';
@@ -214,7 +218,7 @@ const explainData = [
     { icon: '🔄', title: '횟수', desc: "같은 무게에서 목표 횟수에 도달하면 다음 회차에 무게를 올리는 '더블 프로그레션' 방식으로 횟수와 무게를 함께 늘려가요.\n\n입력하신 체중과 운동 경험을 기반으로 해 <span style='color:#E50914; font-weight:bold;'>가장 적절한 점진적 성장 속도</span>로 코칭해드릴게요." },
     { icon: '⏱️', title: '운동 강도', desc: "사용자님의 특징에 따라 <span style='color:#E50914; font-weight:bold;'>운동 강도 (RPE/RIR)</span>도 적절히 설정했어요.\n\n앱을 사용할 경우 알고리즘이 퍼포먼스 변화와 피로도에 따라 운동 강도를 자동 수정해줍니다." },
     { icon: '📅', title: '운동 주기', desc: `<div class="mock-graph"><svg class="mock-graph-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><defs><linearGradient id="gradPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(229, 9, 20, 0.4)" /><stop offset="100%" stop-color="rgba(229, 9, 20, 0)" /></linearGradient></defs><polygon points="5,30 15,25 75,5 75,30" fill="url(#gradPurple)"/><path d="M 15,25 Q 45,15 75,5" fill="none" stroke="#E50914" stroke-width="1.5" stroke-linecap="round"/><path d="M 75,5 L 95,20" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="2,2" stroke-linecap="round"/><circle cx="75" cy="5" r="2" fill="#E50914"/><circle cx="95" cy="20" r="2" fill="#fff"/></svg><div class="mock-graph-labels"><div class="mgl"><div class="mgl-circ">1</div><span class="mgl-txt">1주</span></div><div class="mgl"><div class="mgl-circ">2</div><span class="mgl-txt">2주</span></div><div class="mgl"><div class="mgl-circ">3</div><span class="mgl-txt">3주</span></div><div class="mgl"><div class="mgl-circ">4</div><span class="mgl-txt">4주</span></div><div class="mgl"><div class="mgl-circ active">5</div><span class="mgl-txt" style="color:#E50914; font-weight:bold;">5주</span></div><div class="mgl"><div class="mgl-circ green">☾</div><span class="mgl-txt green">디로딩</span></div></div></div>최적의 피로 회복과 장기적인 성장을 위해 '5주 운동 + 1주 디로딩'으로 배정했습니다. 체계적인 피로 관리를 통해 정체기 없는 성장을 경험할 수 있습니다.` },
-    { icon: '⚖️', title: '근비대 : 스트렝스 비율', desc: "근비대는 볼륨과 자극에 집중, 스트렝스는 중량 증가에 더 집중해요.\n\n사용자님의 목표에 맞춰 <span style='color:#E50914; font-weight:bold;'>근비대 75 · 스트렝스 25</span> 비중으로 프로그램을 설계했어요." }
+    { icon: '⚖️', title: '근비대 : 스트렝스 비율', desc: "근비대는 볼륨과 자극에 집중, 스트렝스는 중량 증가에 더 집중해요.\n\n사용자님의 목표에 맞춰 <span style='color:#E50914; font-weight:bold;'>목표 비율</span>로 프로그램을 설계했어요." }
 ];
 
 let currentExplainStep = 0;
@@ -249,39 +253,19 @@ document.getElementById('explain-tap-text').onclick = function() {
     } 
 };
 
-// --- [수정됨] 동작을 확실히 알아볼 수 있는 운동 애니메이션(GIF) 적용 ---
-// 해당 근육 부위가 빨간색으로 강조되며 움직이는 직관적인 애니메이션 파일입니다.
-function getExerciseImage(target) {
-    let imgUrl = "";
-    let exerciseName = "";
-
-    if (target.includes('가슴')) {
-        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif"; 
-        exerciseName = "벤치 프레스 & 플라이";
-    } else if (target.includes('어깨')) {
-        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1a/Seated_dumbbell_shoulder_press_animation.gif";
-        exerciseName = "숄더 프레스 & 레이즈";
-    } else if (target.includes('삼두')) {
-        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/6/63/Pushdown_animation.gif";
-        exerciseName = "트라이셉스 익스텐션";
-    } else if (target.includes('팔') || target.includes('이두')) {
-        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/8/80/Biceps_curl_animation.gif";
-        exerciseName = "암 컬 & 익스텐션";
-    } else if (target.includes('하체') || target.includes('대퇴')) {
-        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/8/82/Squat_animation.gif";
-        exerciseName = "스쿼트 & 런지";
-    } else if (target.includes('햄스트링') || target.includes('엉덩이')) {
-        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/0/04/Deadlift_animation.gif";
-        exerciseName = "데드리프트 & 컬";
-    } else if (target.includes('등') || target.includes('광배')) {
-        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/e/e6/Pull_up_animation.gif";
-        exerciseName = "랫풀다운 & 로우";
-    } else {
-        imgUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d4/Bench_press_animation.gif";
-        exerciseName = "프리웨이트 컴파운드";
-    }
-    
-    return { url: imgUrl, name: exerciseName };
+// ==========================================
+// 5. 추천 루틴 및 최종 데이터베이스 동기화 저장
+// ==========================================
+// [수정됨] 낡은 GIF 대신 다크/레드 톤의 텍스트 박스 UI로 렌더링 방식 교체
+function getExerciseText(target) {
+    if (target.includes('가슴')) return "벤치 프레스\n플라이";
+    if (target.includes('어깨')) return "숄더 프레스\n레이즈";
+    if (target.includes('삼두')) return "트라이셉스\n익스텐션";
+    if (target.includes('팔') || target.includes('이두')) return "암 컬\n익스텐션";
+    if (target.includes('하체') || target.includes('대퇴')) return "스쿼트\n런지";
+    if (target.includes('햄스트링') || target.includes('엉덩이')) return "데드리프트\n컬";
+    if (target.includes('등') || target.includes('광배')) return "랫풀다운\n로우";
+    return "프리웨이트\n컴파운드";
 }
 
 function generateRecommendedRoutine() {
@@ -312,31 +296,30 @@ function generateRecommendedRoutine() {
 
     visibleDays.forEach(day => {
         let thumbHtml = day.targets.map(target => {
-            const exerciseInfo = getExerciseImage(target);
+            const exerciseText = getExerciseText(target);
             return `
-                <div class="rtl-thumb">
-                    <img src="${exerciseInfo.url}" alt="${exerciseInfo.name}">
-                    <div class="target-label">${exerciseInfo.name}</div>
+                <div class="rtl-thumb" style="background:#1e1e1e; border:1px solid #333; display:flex; justify-content:center; align-items:center; text-align:center; padding:5px; border-radius:8px; aspect-ratio:1/1;">
+                    <div class="target-label" style="font-size:0.75rem; color:#ddd; font-weight:bold; line-height:1.3; white-space:pre-line;">${exerciseText}</div>
                 </div>
             `;
         }).join('');
 
         if (day.hasCardio) {
             thumbHtml += `
-                <div class="rtl-thumb cardio">
-                    <svg viewBox="0 0 60 60"><path d="M12 45 L48 45" stroke="#a29bfe" stroke-width="3" stroke-dasharray="3,3"/><circle cx="34" cy="18" r="4" fill="#888"/><path d="M30 24 L38 36 L34 48 M26 32 L20 42" stroke="#a29bfe" stroke-width="3" fill="none"/></svg>
-                    <div class="target-label">유산소 (트레드밀)</div>
+                <div class="rtl-thumb cardio" style="background:#1a1a1a; border:1px solid var(--primary); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:5px; border-radius:8px; aspect-ratio:1/1;">
+                    <span style="font-size:1.2rem; margin-bottom:5px;">🏃</span>
+                    <div class="target-label" style="font-size:0.7rem; color:var(--primary); font-weight:bold;">유산소</div>
                 </div>
             `;
         }
 
         html += `
-            <div class="rtl-item">
-                <div class="rtl-day-title-wrapper">
-                    <div class="rtl-circle"></div>
-                    <div class="rtl-day-title">${day.label} <span class="rtl-day-sub">| 총 ${day.count}개 운동</span> ${day.hasCardio ? '<span class="badge-cardio">+ 유산소</span>' : ''}</div>
+            <div class="rtl-item" style="margin-bottom:20px;">
+                <div class="rtl-day-title-wrapper" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <div class="rtl-circle" style="width:12px; height:12px; background:var(--primary); border-radius:50%;"></div>
+                    <div class="rtl-day-title" style="font-weight:bold;">${day.label} <span class="rtl-day-sub" style="color:#888; font-weight:normal; font-size:0.85rem;">| 총 ${day.count}개 운동</span> ${day.hasCardio ? '<span class="badge-cardio" style="background:var(--primary-light); color:var(--primary); font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:5px;">+ 유산소</span>' : ''}</div>
                 </div>
-                <div class="rtl-thumbnails">${thumbHtml}</div>
+                <div class="rtl-thumbnails" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">${thumbHtml}</div>
             </div>
         `;
     });
@@ -356,11 +339,29 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
     if (currentUser) {
         const userWizardData = {};
         wizardSteps.forEach((step, index) => {
-            userWizardData[`question_${index}`] = {
+            // [수정됨] app.js가 정확하게 인식할 수 있도록 Key Name을 명시적으로 매핑하여 저장
+            let keyName = `question_${index}`;
+            let finalValue = step.values && step.values.length > 0 ? step.values : (step.value || '');
+            
+            if (step.title.includes('근비대 vs 스트렝스')) {
+                keyName = 'goal_strength';
+                const ratioMap = [0, 25, 50, 75, 100]; // 슬라이더 인덱스를 실제 퍼센트로 변환
+                finalValue = ratioMap[parseInt(step.value) || 0];
+            } else if (step.title.includes('체중')) {
+                keyName = 'weight';
+            } else if (step.title.includes('성별')) {
+                keyName = 'gender';
+            } else if (step.title.includes('주당 운동 횟수')) {
+                keyName = 'frequency';
+                localStorage.setItem('active_routine_freq', finalValue); // 즉시 로컬 동기화
+            }
+
+            userWizardData[keyName] = {
                 title: step.title.replace(/\n/g, ' '),
-                value: step.values && step.values.length > 0 ? step.values : (step.value || '')
+                value: finalValue
             };
         });
+        
         try {
             await db.collection('users').doc(currentUser.uid).set({
                 onboardingCompleted: true,
