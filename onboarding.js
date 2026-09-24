@@ -256,72 +256,82 @@ document.getElementById('explain-tap-text').onclick = function() {
 // ==========================================
 // 5. 추천 루틴 및 최종 데이터베이스 동기화 저장
 // ==========================================
-// [수정됨] 낡은 GIF 대신 다크/레드 톤의 텍스트 박스 UI로 렌더링 방식 교체
-function getExerciseText(target) {
-    if (target.includes('가슴')) return "벤치 프레스\n플라이";
-    if (target.includes('어깨')) return "숄더 프레스\n레이즈";
-    if (target.includes('삼두')) return "트라이셉스\n익스텐션";
-    if (target.includes('팔') || target.includes('이두')) return "암 컬\n익스텐션";
-    if (target.includes('하체') || target.includes('대퇴')) return "스쿼트\n런지";
-    if (target.includes('햄스트링') || target.includes('엉덩이')) return "데드리프트\n컬";
-    if (target.includes('등') || target.includes('광배')) return "랫풀다운\n로우";
-    return "프리웨이트\n컴파운드";
-}
 
 function generateRecommendedRoutine() {
     const gender = wizardSteps[2].value || '남성';
-    const frequency = wizardSteps[6].value || 5; 
-    const isCardio = wizardSteps[11].value === '네, 하고 싶어요' || true;
+    const frequency = parseInt(wizardSteps[6].value) || 5; 
+    const isCardio = wizardSteps[11].value === '네, 하고 싶어요';
 
-    let splitName = '몸통-말단-하체';
-    if(frequency === 3) splitName = '밀기-당기기-하체';
-    else if(frequency === 4) splitName = '상하체 2분할';
+    // [수정됨] 가짜 데이터가 아닌, routine.js와 동일한 로직으로 실제 루틴 ID 매핑
+    let targetRtId = 'rt_6_body_limb_lower';
+    if (gender === '여성') {
+        targetRtId = frequency <= 3 ? 'rt_w_fitness' : 'rt_w_hipup';
+    } else {
+        if (frequency <= 2) targetRtId = 'rt_2_full';
+        else if (frequency === 3) targetRtId = 'rt_3_hybrid';
+        else if (frequency === 4) targetRtId = 'rt_4_split';
+        else if (frequency === 5) targetRtId = 'rt_5_push_pull';
+        else targetRtId = 'rt_6_body_limb_lower';
+    }
 
-    document.getElementById('rec-subtitle').innerText = `주 ${frequency}회 (${splitName}) 루틴`;
-    document.getElementById('rec-chip-split').innerText = splitName;
+    // app.js에 정의된 전역 routineDB에서 실제 데이터를 긁어옴
+    const actualRoutine = window.routineDB[targetRtId];
+    if (!actualRoutine) return;
+
+    document.getElementById('rec-subtitle').innerText = actualRoutine.title;
+    document.getElementById('rec-chip-split').innerText = actualRoutine.chips[0] || '맞춤형';
     document.getElementById('rec-chip-gender').innerText = gender;
 
     const timelineArea = document.getElementById('rec-timeline-render');
     let html = '';
 
-    const dayData = [
-        { label: 'Day 1', count: 6, hasCardio: true,  targets: ['가슴', '등', '어깨', '삼두'] },
-        { label: 'Day 2', count: 7, hasCardio: false, targets: ['팔', '이두', '삼두', '전완'] },
-        { label: 'Day 3', count: 5, hasCardio: true,  targets: ['하체', '햄스트링', '대퇴사두'] },
-        { label: 'Day 4', count: 6, hasCardio: false, targets: ['가슴', '어깨', '삼두'] },
-        { label: 'Day 5', count: 7, hasCardio: true,  targets: ['등', '팔', '이두', '전완'] }
-    ];
+    // 실제 루틴 타임라인 데이터를 순회하며 정확한 운동 종목 출력
+    actualRoutine.timeline.forEach((item, dayIndex) => {
+        if(item.type === 'workout') {
+            let thumbHtml = '';
+            const displayTexts = item.texts.slice(0, 4);
 
-    const visibleDays = dayData.slice(0, frequency);
+            displayTexts.forEach((txt, tIndex) => {
+                // 박스 뚫림 방지: 띄어쓰기를 줄바꿈으로 변환
+                const formattedTxt = txt.replace(/ /g, '\n');
+                
+                if (tIndex === 3 && item.count > 4) {
+                    thumbHtml += `
+                        <div class="rtl-thumb" style="background:#1e1e1e; border:1px solid #333; display:flex; justify-content:center; align-items:center; text-align:center; padding:5px; border-radius:8px; aspect-ratio:1/1; position:relative;">
+                            <div class="target-label" style="font-size:0.75rem; color:#ddd; font-weight:bold; line-height:1.3; white-space:pre-line;">${formattedTxt}</div>
+                            <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; color:#fff; font-size:1.1rem; font-weight:bold; border-radius:8px;">
+                                +${item.count - 4}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    thumbHtml += `
+                        <div class="rtl-thumb" style="background:#1e1e1e; border:1px solid #333; display:flex; justify-content:center; align-items:center; text-align:center; padding:5px; border-radius:8px; aspect-ratio:1/1;">
+                            <div class="target-label" style="font-size:0.75rem; color:#ddd; font-weight:bold; line-height:1.3; white-space:pre-line;">${formattedTxt}</div>
+                        </div>
+                    `;
+                }
+            });
 
-    visibleDays.forEach(day => {
-        let thumbHtml = day.targets.map(target => {
-            const exerciseText = getExerciseText(target);
-            return `
-                <div class="rtl-thumb" style="background:#1e1e1e; border:1px solid #333; display:flex; justify-content:center; align-items:center; text-align:center; padding:5px; border-radius:8px; aspect-ratio:1/1;">
-                    <div class="target-label" style="font-size:0.75rem; color:#ddd; font-weight:bold; line-height:1.3; white-space:pre-line;">${exerciseText}</div>
-                </div>
-            `;
-        }).join('');
+            if (isCardio) {
+                thumbHtml += `
+                    <div class="rtl-thumb cardio" style="background:#1a1a1a; border:1px solid var(--primary); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:5px; border-radius:8px; aspect-ratio:1/1;">
+                        <span style="font-size:1.2rem; margin-bottom:5px;">🏃</span>
+                        <div class="target-label" style="font-size:0.7rem; color:var(--primary); font-weight:bold;">유산소</div>
+                    </div>
+                `;
+            }
 
-        if (day.hasCardio) {
-            thumbHtml += `
-                <div class="rtl-thumb cardio" style="background:#1a1a1a; border:1px solid var(--primary); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:5px; border-radius:8px; aspect-ratio:1/1;">
-                    <span style="font-size:1.2rem; margin-bottom:5px;">🏃</span>
-                    <div class="target-label" style="font-size:0.7rem; color:var(--primary); font-weight:bold;">유산소</div>
+            html += `
+                <div class="rtl-item" style="margin-bottom:20px;">
+                    <div class="rtl-day-title-wrapper" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                        <div class="rtl-circle" style="width:12px; height:12px; background:var(--primary); border-radius:50%;"></div>
+                        <div class="rtl-day-title" style="font-weight:bold;">${item.label} <span class="rtl-day-sub" style="color:#888; font-weight:normal; font-size:0.85rem;">| 총 ${item.count}개 운동</span> ${isCardio ? '<span class="badge-cardio" style="background:var(--primary-light); color:var(--primary); font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:5px;">+ 유산소</span>' : ''}</div>
+                    </div>
+                    <div class="rtl-thumbnails" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">${thumbHtml}</div>
                 </div>
             `;
         }
-
-        html += `
-            <div class="rtl-item" style="margin-bottom:20px;">
-                <div class="rtl-day-title-wrapper" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                    <div class="rtl-circle" style="width:12px; height:12px; background:var(--primary); border-radius:50%;"></div>
-                    <div class="rtl-day-title" style="font-weight:bold;">${day.label} <span class="rtl-day-sub" style="color:#888; font-weight:normal; font-size:0.85rem;">| 총 ${day.count}개 운동</span> ${day.hasCardio ? '<span class="badge-cardio" style="background:var(--primary-light); color:var(--primary); font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:5px;">+ 유산소</span>' : ''}</div>
-                </div>
-                <div class="rtl-thumbnails" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">${thumbHtml}</div>
-            </div>
-        `;
     });
 
     timelineArea.innerHTML = html;
@@ -339,13 +349,12 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
     if (currentUser) {
         const userWizardData = {};
         wizardSteps.forEach((step, index) => {
-            // [수정됨] app.js가 정확하게 인식할 수 있도록 Key Name을 명시적으로 매핑하여 저장
             let keyName = `question_${index}`;
             let finalValue = step.values && step.values.length > 0 ? step.values : (step.value || '');
             
             if (step.title.includes('근비대 vs 스트렝스')) {
                 keyName = 'goal_strength';
-                const ratioMap = [0, 25, 50, 75, 100]; // 슬라이더 인덱스를 실제 퍼센트로 변환
+                const ratioMap = [0, 25, 50, 75, 100]; 
                 finalValue = ratioMap[parseInt(step.value) || 0];
             } else if (step.title.includes('체중')) {
                 keyName = 'weight';
@@ -353,7 +362,7 @@ document.getElementById('btn-go-home').addEventListener('click', async () => {
                 keyName = 'gender';
             } else if (step.title.includes('주당 운동 횟수')) {
                 keyName = 'frequency';
-                localStorage.setItem('active_routine_freq', finalValue); // 즉시 로컬 동기화
+                localStorage.setItem('active_routine_freq', finalValue); 
             }
 
             userWizardData[keyName] = {
