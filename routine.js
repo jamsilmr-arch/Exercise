@@ -24,18 +24,41 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 auth.onAuthStateChanged(async (user) => {
+    // 로컬 스토리지에 세팅된 루틴이 없을 때만 온보딩 DB를 조회하여 초기 할당
     if (!localStorage.getItem('active_routine_id')) {
         if (user) {
             try {
                 const userDoc = await db.collection('users').doc(user.uid).get();
                 if (userDoc.exists && userDoc.data().wizardData) {
                     const wizardData = userDoc.data().wizardData;
-                    const frequency = parseInt(wizardData?.question_6?.value) || 6;
-                    let splitName = '몸통-말단-하체';
-                    if (frequency === 3) splitName = '상체-하체-전신';
-                    else if (frequency === 4) splitName = '상체-하체-상체-하체';
-                    const currentTitleElem = document.getElementById('rl-current-title');
-                    if(currentTitleElem) currentTitleElem.innerText = `주 ${frequency}회 (${splitName}) 루틴`;
+                    
+                    // [핵심 수정] 온보딩에서 개편한 저장 키('frequency', 'gender')를 정확히 바라보도록 수정
+                    const frequency = parseInt(wizardData?.frequency?.value) || parseInt(wizardData?.question_6?.value) || 6;
+                    const gender = wizardData?.gender?.value || wizardData?.question_2?.value || '남성';
+                    
+                    // 성별 및 주당 횟수에 따른 최적 루틴 자동 매핑 로직
+                    let targetRtId = 'rt_6_body_limb_lower';
+                    if (gender === '여성') {
+                        targetRtId = frequency <= 3 ? 'rt_w_fitness' : 'rt_w_hipup';
+                    } else {
+                        if (frequency <= 2) targetRtId = 'rt_2_full';
+                        else if (frequency === 3) targetRtId = 'rt_3_hybrid';
+                        else if (frequency === 4) targetRtId = 'rt_4_split';
+                        else if (frequency === 5) targetRtId = 'rt_5_push_pull';
+                        else targetRtId = 'rt_6_body_limb_lower';
+                    }
+
+                    // 전역 routineDB에서 해당 루틴 정보 로드
+                    const targetData = window.routineDB[targetRtId];
+                    if (targetData) {
+                        // 로컬 스토리지에 빈 껍데기가 아닌 실제 루틴 정보를 완벽히 세팅
+                        localStorage.setItem('active_routine_id', targetRtId);
+                        localStorage.setItem('active_routine_title', targetData.title);
+                        localStorage.setItem('active_routine_chips', JSON.stringify(targetData.chips));
+                        localStorage.setItem('active_routine_freq', frequency);
+                        
+                        loadActiveRoutineUI(); // UI 렌더링 즉시 업데이트
+                    }
                 }
             } catch(e) { console.error("데이터 로드 실패:", e); }
         }
@@ -70,16 +93,19 @@ window.openDetail = function(rtId) {
             const displayTexts = item.texts.slice(0, 4);
             
             displayTexts.forEach((txt, index) => {
+                // 텍스트가 박스를 뚫고 나가지 않도록 띄어쓰기를 줄바꿈으로 변경
+                const formattedTxt = txt.replace(/ /g, '\n');
+                
                 if (index === 3 && item.count > 4) {
                     html += `
                         <div class="rd-thumb" style="cursor:pointer;" onclick="document.getElementById('thumb-col-${dayIndex}').style.display='none'; document.getElementById('thumb-exp-${dayIndex}').style.display='grid';">
-                            <span class="rd-thumb-text">${txt}</span>
+                            <span class="rd-thumb-text">${formattedTxt}</span>
                             <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; color:#fff; font-size:1.1rem; font-weight:bold;">
                                 +${item.count - 4}
                             </div>
                         </div>`;
                 } else {
-                    html += `<div class="rd-thumb"><span class="rd-thumb-text">${txt}</span></div>`;
+                    html += `<div class="rd-thumb"><span class="rd-thumb-text">${formattedTxt}</span></div>`;
                 }
             });
             html += `</div>`;
@@ -88,7 +114,8 @@ window.openDetail = function(rtId) {
                 html += `<div class="rd-thumbnails" id="thumb-exp-${dayIndex}" style="display:none;">`;
                 const expandedTexts = item.texts.slice(0, item.count);
                 expandedTexts.forEach((txt) => {
-                    html += `<div class="rd-thumb"><span class="rd-thumb-text">${txt}</span></div>`;
+                    const expandedFormattedTxt = txt.replace(/ /g, '\n');
+                    html += `<div class="rd-thumb"><span class="rd-thumb-text">${expandedFormattedTxt}</span></div>`;
                 });
                 html += `</div>`;
             }
