@@ -358,10 +358,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
     attachCommonEvents();
 
-    renderWeekDayButtons(1);
-    renderCurrentDayWorkout(1);
-    const completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
-    updateBlockProgressCard(completedDays);
+    // ==========================================================================
+// [수정됨] 누락된 주간 데이 버튼 렌더링 함수 (ReferenceError 방지)
+// ==========================================================================
+function renderWeekDayButtons() {
+    const container = document.getElementById('week-day-selector') || document.querySelector('.wb-scroll-area');
+    if (!container) return;
+
+    const days = [
+        { day: '월', num: '1', type: 'workout' },
+        { day: '화', num: '2', type: 'workout' },
+        { day: '수', num: '3', type: 'rest' },
+        { day: '목', num: '4', type: 'workout' },
+        { day: '금', num: '5', type: 'workout' },
+        { day: '토', num: '6', type: 'rest' },
+        { day: '일', num: '7', type: 'rest' }
+    ];
+
+    const todayIndex = 0; // 기본 선택 (월요일)
+
+    container.innerHTML = days.map((d, idx) => `
+        <div class="day-box ${d.type === 'rest' ? 'rest' : ''} ${idx === todayIndex ? 'active' : ''}" 
+             onclick="selectWeekDay(${idx}, this)">
+            <span class="day-num">${d.num}</span>
+            <span class="day-label">${d.type === 'rest' ? '휴식' : d.day}</span>
+        </div>
+    `).join('');
+}
+
+// 주간 날짜 클릭 핸들러 (선택 시 active 클래스 전환)
+function selectWeekDay(index, element) {
+    const allBoxes = document.querySelectorAll('.day-box, .wb-item');
+    allBoxes.forEach(box => box.classList.remove('active'));
+    if (element) {
+        element.classList.add('active');
+    }
+}
 });
 
 // // [수정됨] 운동 상세 세션 렌더링 함수 (renderWorkoutList) 안전성 강화 시작
