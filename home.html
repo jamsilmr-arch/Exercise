@@ -71,16 +71,67 @@
                 </div>
             </div>
 
-            <!-- 블록 진행 상황 (분석 대시보드로 이동) -->
-            <div class="menu-card" onclick="location.href='analysis.html'">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:1.2rem;">🗂</span>
-                    <span>블록 진행 상황</span>
-                </div>
-                <span style="color:#666; font-size:1.2rem;">></span>
+            <!-- [수정됨] 블록 진행 상황 카드 UI 전면 개편 -->
+<div class="block-progress-card" onclick="openBlockDetailModal()">
+    <!-- 카드 헤더 영역 -->
+    <div class="bpc-header">
+        <div class="bpc-title-wrap">
+            <div class="bpc-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                </svg>
             </div>
-        </main>
+            <span class="bpc-title">블록 진행 상황</span>
+        </div>
+        <!-- [추가됨] 현재 진행 주차 칩 배지 -->
+        <span class="bpc-badge" id="bpc-week-badge">3주차 진행 중</span>
     </div>
+
+    <!-- [추가됨] 메인 진행 정보 및 프로그레스 바 -->
+    <div class="bpc-body">
+        <div class="bpc-info-row">
+            <span class="bpc-cycle-text" id="bpc-cycle-info">1블록 · 5주 훈련 + 1주 디로딩</span>
+            <span class="bpc-percent-text" id="bpc-percent">50%</span>
+        </div>
+        
+        <!-- 프로그레스 바 트랙 -->
+        <div class="bpc-progress-track">
+            <div class="bpc-progress-fill" id="bpc-progress-fill" style="width: 50%;"></div>
+        </div>
+        
+        <!-- 주차별 틱 마커 (5주 운동 + 1주 디로딩 시각화) -->
+        <div class="bpc-ticks">
+            <span class="tick active">1주</span>
+            <span class="tick active">2주</span>
+            <span class="tick active">3주</span>
+            <span class="tick">4주</span>
+            <span class="tick">5주</span>
+            <span class="tick deload">☾ 디로딩</span>
+        </div>
+    </div>
+
+    <!-- [추가됨] 하단 세부 리포트 & 바로가기 화살표 -->
+    <div class="bpc-footer">
+        <div class="bpc-stat-item">
+            <span class="lbl">완료한 세션</span>
+            <span class="val" id="bpc-completed-sessions">12회</span>
+        </div>
+        <div class="bpc-divider"></div>
+        <div class="bpc-stat-item">
+            <span class="lbl">다음 디로딩까지</span>
+            <span class="val highlight" id="bpc-remaining-days">D-14</span>
+        </div>
+        <div class="bpc-arrow">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </div>
+    </div>
+</div>
+<!-- [수정됨] 카드 영역 끝 -->
 
     <!-- [2] 오늘 컨디션 체크 화면 (필요 시 연동) -->
     <div id="view-condition" class="view-container flex-center">
