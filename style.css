@@ -585,3 +585,57 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
     color: #ffffff;
     transform: translateX(3px);
 }
+/* ==========================================
+ * [추가됨] 유산소 설정(Cardio Wizard) 모달 UI 레이아웃 교정
+ * ========================================== */
+
+/* 풀 바텀 시트 메인 컨테이너 고정 */
+.full-bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    width: 100%;
+    max-width: 480px;
+    height: 85vh;
+    background: #181818;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.8);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.full-bottom-sheet.active {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 내부 콘텐츠 스크롤 영역 (하단 버튼과 겹침 방지) */
+#cw-render-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 90px 20px;
+}
+
+/* 하단 버튼 바 고정 (좌측 상단 튀어나감 방지 핵심) */
+.cw-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: #181818;
+    border-top: 1px solid #2a2a2a;
+    padding: 16px 20px;
+    z-index: 10;
+}
+
+.cw-footer-inner {
+    display: flex;
+    gap: 12px;
+    max-width: 480px;
+    margin: 0 auto;
+}
