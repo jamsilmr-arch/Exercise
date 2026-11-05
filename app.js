@@ -394,6 +394,20 @@ function selectWeekDay(index, element) {
         element.classList.add('active');
     }
 }
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 주간 데이 버튼 안전 렌더링
+    if (typeof renderWeekDayButtons === 'function') {
+        try {
+            renderWeekDayButtons();
+        } catch (e) {
+            console.warn('renderWeekDayButtons 실행 실패:', e);
+        }
+    }
+
+    // 2. 초기 탭 활성화 (홈 화면으로 시작)
+    if (typeof switchTab === 'function') {
+        switchTab('home');
+    }
 });
 
 // // [수정됨] 운동 상세 세션 렌더링 함수 (renderWorkoutList) 안전성 강화 시작
