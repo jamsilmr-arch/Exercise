@@ -125,38 +125,79 @@ window.routineDB = {
     'rt_w_hiponly': { title: '힙 only 루틴', chips: ['여성', '힙 only'], desc: '다른 신체 부위 말고, 오로지 힙업만 원하는 여성분들을 위한 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.glutes_b }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 6', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 } ] }
 };
 
-// ==========================================
-// 3. 1주일(7일) 기준 일자 셀렉터 & 홈 렌더링
-// ==========================================
-function renderWeekDayButtons(activeDayIndex = 1) {
-    currentSelectedDayIndex = activeDayIndex;
-    const freq = parseInt(localStorage.getItem('active_routine_freq')) || 5;
-    const container = document.getElementById('week-day-selector');
+// ==========================================================================
+// [수정됨] 주간 7일(7칸) 스케줄 셀렉터 렌더링 함수
+// ==========================================================================
+
+/**
+ * 주간 7일 스케줄 셀렉터를 렌더링합니다.
+ * 루틴 데이터가 7일 미만(예: 5일 운동 + 1일 휴식 = 6일)일 경우, 
+ * 일주일(7일) 채우기를 위해 부족한 일차를 '휴식'으로 자동 생성하여 7칸을 보장합니다.
+ * 
+ * @param {Array} scheduleData - 루틴 일차별 데이터 배열
+ * @param {number} selectedDayIndex - 현재 선택된 일차 인덱스 (0~6)
+ */
+function renderWeekSelector(scheduleData = [], selectedDayIndex = 0) {
+    const container = document.getElementById('week-day-selector') || document.querySelector('.wb-scroll-area');
     if (!container) return;
 
-    let html = '';
-    const TOTAL_WEEK_DAYS = 7;
+    container.innerHTML = '';
 
-    for (let i = 1; i <= TOTAL_WEEK_DAYS; i++) {
-        const isWorkoutDay = i <= freq;
-        const isActive = i === activeDayIndex;
+    // [수정됨] 일주일 기준 7일 정의
+    const TOTAL_DAYS_IN_WEEK = 7;
+    const fullSchedule = [];
 
-        if (isWorkoutDay) {
-            html += `
-                <div class="day-box ${isActive ? 'active' : ''}" onclick="selectDay(${i})">
-                    <div class="day-num">${i}</div>
-                    <div class="day-label">Day</div>
-                </div>
-            `;
+    // [수정됨] 7일 분량의 데이터 배열 생성 (부족한 일차는 '휴식'으로 자동 채움)
+    for (let i = 0; i < TOTAL_DAYS_IN_WEEK; i++) {
+        if (scheduleData && scheduleData[i]) {
+            fullSchedule.push(scheduleData[i]);
         } else {
-            html += `
-                <div class="day-box rest ${isActive ? 'active' : ''}" onclick="selectDay(${i})">
-                    <div class="day-rest-text">휴식</div>
-                </div>
-            `;
+            // [추가됨] 7번째 일차 등 부족한 슬롯을 휴식(Rest)으로 추가
+            fullSchedule.push({
+                dayNum: i + 1,
+                isRest: true,
+                title: '휴식',
+                type: 'rest'
+            });
         }
     }
-    container.innerHTML = html;
+
+    // [수정됨] 7개 칸 UI 생성 및 DOM 추가
+    fullSchedule.forEach((item, index) => {
+        const dayBox = document.createElement('div');
+        const isActive = index === selectedDayIndex;
+        const isRest = item.isRest || item.title === '휴식' || item.type === 'rest';
+
+        dayBox.className = `day-box ${isRest ? 'rest' : ''} ${isActive ? 'active' : ''}`;
+        dayBox.setAttribute('data-day-index', index);
+
+        // [수정됨] 휴식일과 운동일 구분에 따른 내부 HTML 구성
+        if (isRest) {
+            dayBox.innerHTML = `
+                <div class="day-num">${index + 1}</div>
+                <div class="day-rest-text">휴식</div>
+            `;
+        } else {
+            dayBox.innerHTML = `
+                <div class="day-num">${item.dayNum || (index + 1)}</div>
+                <div class="day-label">Day</div>
+            `;
+        }
+
+        // [추가됨] 일차 클릭 시 해당 날짜 루틴/휴식 화면 전환 이벤트
+        dayBox.addEventListener('click', () => {
+            // 기존 선택 해제 및 신규 선택 활성화
+            const allBoxes = container.querySelectorAll('.day-box');
+            allBoxes.forEach(b => b.classList.remove('active'));
+            dayBox.classList.add('active');
+
+            if (typeof onSelectWeekDay === 'function') {
+                onSelectWeekDay(index, item);
+            }
+        });
+
+        container.appendChild(dayBox);
+    });
 }
 
 window.selectDay = function(dayIndex) {
