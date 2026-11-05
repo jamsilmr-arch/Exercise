@@ -43,25 +43,21 @@ if (window.auth) {
     });
 }
 
-// // [수정됨] 뷰 전환(switchView) 및 오늘 운동 시작(startWorkout) 이벤트 함수 등록 시작
 // ==========================================
 // 1-1. 뷰 전환 및 화면 제어 전역 함수
 // ==========================================
 window.switchView = function(viewId) {
-    // 모든 뷰 컨테이너 숨김 처리
     document.querySelectorAll('.view-container').forEach(v => {
         v.classList.remove('active');
         v.style.display = 'none';
     });
 
-    // 대상 뷰 활성화
     const targetView = document.getElementById(viewId);
     if (targetView) {
         targetView.classList.add('active');
         targetView.style.display = 'block';
     }
 
-    // 운동 화면(view-workout) 진입 시 운동 리스트 자동 생성 및 바텀 탭바 숨김
     const mainNav = document.getElementById('main-nav');
     if (viewId === 'view-workout') {
         if (mainNav) mainNav.style.display = 'none';
@@ -75,18 +71,11 @@ window.switchView = function(viewId) {
     window.scrollTo(0, 0);
 };
 
-// [추가됨] '오늘 운동 시작하기' 버튼 클릭 핸들러 (html 내 onclick 바인딩 대응)
-window.startWorkout = function() {
-    window.switchView('view-workout');
-};
-
-window.startTodayWorkout = function() {
-    window.switchView('view-workout');
-};
-// // [수정됨] 뷰 전환 및 오늘 운동 시작 이벤트 함수 등록 끝
+window.startWorkout = function() { window.switchView('view-workout'); };
+window.startTodayWorkout = function() { window.switchView('view-workout'); };
 
 // ==========================================
-// 2. 운동 DB (좌/우 통합 및 교차 분할 루틴)
+// 2. 운동 DB
 // ==========================================
 const textPresets = {
     full_a: ['스쿼트', '벤치 프레스', '풀업', '바벨 로우', '오버헤드 프레스', '사이드 레터럴 레이즈', '바벨 컬', '삼두 푸시다운'], 
@@ -125,83 +114,44 @@ window.routineDB = {
     'rt_w_hiponly': { title: '힙 only 루틴', chips: ['여성', '힙 only'], desc: '다른 신체 부위 말고, 오로지 힙업만 원하는 여성분들을 위한 루틴입니다.', timeline: [ { type: 'workout', label: 'Day 1', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 }, { type: 'workout', label: 'Day 3', count: 5, texts: textPresets.glutes_b }, { type: 'rest', days: 2 }, { type: 'workout', label: 'Day 6', count: 5, texts: textPresets.glutes_a }, { type: 'rest', days: 1 } ] }
 };
 
-// ==========================================================================
-// [수정됨] 주간 7일(7칸) 스케줄 셀렉터 렌더링 함수
-// ==========================================================================
-
-/**
- * 주간 7일 스케줄 셀렉터를 렌더링합니다.
- * 루틴 데이터가 7일 미만(예: 5일 운동 + 1일 휴식 = 6일)일 경우, 
- * 일주일(7일) 채우기를 위해 부족한 일차를 '휴식'으로 자동 생성하여 7칸을 보장합니다.
- * 
- * @param {Array} scheduleData - 루틴 일차별 데이터 배열
- * @param {number} selectedDayIndex - 현재 선택된 일차 인덱스 (0~6)
- */
-function renderWeekSelector(scheduleData = [], selectedDayIndex = 0) {
+// ==========================================
+// 3. 주간 날짜 셀렉터 및 선택 전역 함수
+// ==========================================
+window.renderWeekDayButtons = function() {
     const container = document.getElementById('week-day-selector') || document.querySelector('.wb-scroll-area');
     if (!container) return;
 
-    container.innerHTML = '';
+    const days = [
+        { day: '월', num: '1', type: 'workout' },
+        { day: '화', num: '2', type: 'workout' },
+        { day: '수', num: '3', type: 'rest' },
+        { day: '목', num: '4', type: 'workout' },
+        { day: '금', num: '5', type: 'workout' },
+        { day: '토', num: '6', type: 'rest' },
+        { day: '일', num: '7', type: 'rest' }
+    ];
 
-    // [수정됨] 일주일 기준 7일 정의
-    const TOTAL_DAYS_IN_WEEK = 7;
-    const fullSchedule = [];
+    const todayIndex = 0; // 기본 선택 (월요일)
 
-    // [수정됨] 7일 분량의 데이터 배열 생성 (부족한 일차는 '휴식'으로 자동 채움)
-    for (let i = 0; i < TOTAL_DAYS_IN_WEEK; i++) {
-        if (scheduleData && scheduleData[i]) {
-            fullSchedule.push(scheduleData[i]);
-        } else {
-            // [추가됨] 7번째 일차 등 부족한 슬롯을 휴식(Rest)으로 추가
-            fullSchedule.push({
-                dayNum: i + 1,
-                isRest: true,
-                title: '휴식',
-                type: 'rest'
-            });
-        }
+    container.innerHTML = days.map((d, idx) => `
+        <div class="day-box ${d.type === 'rest' ? 'rest' : ''} ${idx === todayIndex ? 'active' : ''}" 
+             onclick="selectWeekDay(${idx}, this)">
+            <span class="day-num">${d.num}</span>
+            <span class="day-label">${d.type === 'rest' ? '휴식' : d.day}</span>
+        </div>
+    `).join('');
+};
+
+window.selectWeekDay = function(index, element) {
+    const allBoxes = document.querySelectorAll('.day-box, .wb-item');
+    allBoxes.forEach(box => box.classList.remove('active'));
+    if (element) {
+        element.classList.add('active');
     }
-
-    // [수정됨] 7개 칸 UI 생성 및 DOM 추가
-    fullSchedule.forEach((item, index) => {
-        const dayBox = document.createElement('div');
-        const isActive = index === selectedDayIndex;
-        const isRest = item.isRest || item.title === '휴식' || item.type === 'rest';
-
-        dayBox.className = `day-box ${isRest ? 'rest' : ''} ${isActive ? 'active' : ''}`;
-        dayBox.setAttribute('data-day-index', index);
-
-        // [수정됨] 휴식일과 운동일 구분에 따른 내부 HTML 구성
-        if (isRest) {
-            dayBox.innerHTML = `
-                <div class="day-num">${index + 1}</div>
-                <div class="day-rest-text">휴식</div>
-            `;
-        } else {
-            dayBox.innerHTML = `
-                <div class="day-num">${item.dayNum || (index + 1)}</div>
-                <div class="day-label">Day</div>
-            `;
-        }
-
-        // [추가됨] 일차 클릭 시 해당 날짜 루틴/휴식 화면 전환 이벤트
-        dayBox.addEventListener('click', () => {
-            // 기존 선택 해제 및 신규 선택 활성화
-            const allBoxes = container.querySelectorAll('.day-box');
-            allBoxes.forEach(b => b.classList.remove('active'));
-            dayBox.classList.add('active');
-
-            if (typeof onSelectWeekDay === 'function') {
-                onSelectWeekDay(index, item);
-            }
-        });
-
-        container.appendChild(dayBox);
-    });
-}
+};
 
 window.selectDay = function(dayIndex) {
-    renderWeekDayButtons(dayIndex);
+    if (typeof window.renderWeekDayButtons === 'function') window.renderWeekDayButtons();
     renderCurrentDayWorkout(dayIndex);
 };
 
@@ -358,59 +308,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     attachCommonEvents();
 
-    // ==========================================================================
-// [수정됨] 누락된 주간 데이 버튼 렌더링 함수 (ReferenceError 방지)
-// ==========================================================================
-function renderWeekDayButtons() {
-    const container = document.getElementById('week-day-selector') || document.querySelector('.wb-scroll-area');
-    if (!container) return;
-
-    const days = [
-        { day: '월', num: '1', type: 'workout' },
-        { day: '화', num: '2', type: 'workout' },
-        { day: '수', num: '3', type: 'rest' },
-        { day: '목', num: '4', type: 'workout' },
-        { day: '금', num: '5', type: 'workout' },
-        { day: '토', num: '6', type: 'rest' },
-        { day: '일', num: '7', type: 'rest' }
-    ];
-
-    const todayIndex = 0; // 기본 선택 (월요일)
-
-    container.innerHTML = days.map((d, idx) => `
-        <div class="day-box ${d.type === 'rest' ? 'rest' : ''} ${idx === todayIndex ? 'active' : ''}" 
-             onclick="selectWeekDay(${idx}, this)">
-            <span class="day-num">${d.num}</span>
-            <span class="day-label">${d.type === 'rest' ? '휴식' : d.day}</span>
-        </div>
-    `).join('');
-}
-
-// 주간 날짜 클릭 핸들러 (선택 시 active 클래스 전환)
-function selectWeekDay(index, element) {
-    const allBoxes = document.querySelectorAll('.day-box, .wb-item');
-    allBoxes.forEach(box => box.classList.remove('active'));
-    if (element) {
-        element.classList.add('active');
-    }
-}
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. 주간 데이 버튼 안전 렌더링
-    if (typeof renderWeekDayButtons === 'function') {
-        try {
-            renderWeekDayButtons();
-        } catch (e) {
-            console.warn('renderWeekDayButtons 실행 실패:', e);
-        }
+    if (typeof window.renderWeekDayButtons === 'function') {
+        try { window.renderWeekDayButtons(); } catch(e) { console.warn(e); }
     }
 
-    // 2. 초기 탭 활성화 (홈 화면으로 시작)
-    if (typeof switchTab === 'function') {
-        switchTab('home');
+    if (typeof window.switchView === 'function') {
+        window.switchView('view-home');
     }
 });
 
-// // [수정됨] 운동 상세 세션 렌더링 함수 (renderWorkoutList) 안전성 강화 시작
 // ==========================================
 // 5. 운동 상세 세션 렌더링 (view-workout 전용)
 // ==========================================
@@ -520,7 +426,6 @@ window.renderWorkoutList = function() {
     }
     if (renderArea) renderArea.innerHTML = html;
 };
-// // [수정됨] 운동 상세 세션 렌더링 함수 끝
 
 // ==========================================
 // 6. 본 세트 제어 및 이벤트 (Add/Delete/Check)
