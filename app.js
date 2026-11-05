@@ -22,7 +22,7 @@ try {
 
 window.currentRoutine = [];
 window.totalGlobalSets = 0;
-let currentSelectedDayIndex = 1; // [추가됨] 현재 선택된 7일 일자 인덱스
+let currentSelectedDayIndex = 1;
 
 // 전역 키워드 상수
 const ISOLATION_KEYWORDS = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀', '카프'];
@@ -42,6 +42,48 @@ if (window.auth) {
         }
     });
 }
+
+// // [수정됨] 뷰 전환(switchView) 및 오늘 운동 시작(startWorkout) 이벤트 함수 등록 시작
+// ==========================================
+// 1-1. 뷰 전환 및 화면 제어 전역 함수
+// ==========================================
+window.switchView = function(viewId) {
+    // 모든 뷰 컨테이너 숨김 처리
+    document.querySelectorAll('.view-container').forEach(v => {
+        v.classList.remove('active');
+        v.style.display = 'none';
+    });
+
+    // 대상 뷰 활성화
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+        targetView.classList.add('active');
+        targetView.style.display = 'block';
+    }
+
+    // 운동 화면(view-workout) 진입 시 운동 리스트 자동 생성 및 바텀 탭바 숨김
+    const mainNav = document.getElementById('main-nav');
+    if (viewId === 'view-workout') {
+        if (mainNav) mainNav.style.display = 'none';
+        if (typeof window.renderWorkoutList === 'function') {
+            window.renderWorkoutList();
+        }
+    } else {
+        if (mainNav) mainNav.style.display = 'flex';
+    }
+
+    window.scrollTo(0, 0);
+};
+
+// [추가됨] '오늘 운동 시작하기' 버튼 클릭 핸들러 (html 내 onclick 바인딩 대응)
+window.startWorkout = function() {
+    window.switchView('view-workout');
+};
+
+window.startTodayWorkout = function() {
+    window.switchView('view-workout');
+};
+// // [수정됨] 뷰 전환 및 오늘 운동 시작 이벤트 함수 등록 끝
 
 // ==========================================
 // 2. 운동 DB (좌/우 통합 및 교차 분할 루틴)
@@ -84,7 +126,7 @@ window.routineDB = {
 };
 
 // ==========================================
-// 3. [추가됨] 1주일(7일) 기준 일자 셀렉터 & 홈 렌더링
+// 3. 1주일(7일) 기준 일자 셀렉터 & 홈 렌더링
 // ==========================================
 function renderWeekDayButtons(activeDayIndex = 1) {
     currentSelectedDayIndex = activeDayIndex;
@@ -93,7 +135,7 @@ function renderWeekDayButtons(activeDayIndex = 1) {
     if (!container) return;
 
     let html = '';
-    const TOTAL_WEEK_DAYS = 7; // 무조건 7일 칸 생성
+    const TOTAL_WEEK_DAYS = 7;
 
     for (let i = 1; i <= TOTAL_WEEK_DAYS; i++) {
         const isWorkoutDay = i <= freq;
@@ -122,7 +164,6 @@ window.selectDay = function(dayIndex) {
     renderCurrentDayWorkout(dayIndex);
 };
 
-// [추가됨] 선택된 날짜(1~7일)의 운동 목록 또는 휴식 카드 렌더링
 function renderCurrentDayWorkout(dayIndex) {
     const freq = parseInt(localStorage.getItem('active_routine_freq')) || 5;
     const activeRtId = localStorage.getItem('active_routine_id') || 'rt_5_push_pull';
@@ -163,7 +204,6 @@ function renderCurrentDayWorkout(dayIndex) {
     listContainer.innerHTML = html;
 }
 
-// [추가됨] 블록 진행 상황 카드 동적 데이터 업데이트 함수
 function updateBlockProgressCard(completedDays = 0, totalWeeks = 6) {
     const currentWeek = Math.min(Math.floor(completedDays / 4) + 1, totalWeeks);
     const percent = Math.min(Math.round((completedDays / (totalWeeks * 4)) * 100), 100);
@@ -183,7 +223,7 @@ function updateBlockProgressCard(completedDays = 0, totalWeeks = 6) {
 }
 
 // ==========================================
-// 4. DOM 로드 시 공통 UI 주입 및 7일 바 초기화
+// 4. DOM 로드 시 공통 UI 주입 및 초기화
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     const path = window.location.pathname;
@@ -194,10 +234,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const navHtml = `
         <nav class="bottom-nav" id="main-nav">
-            <div class="nav-item ${activeTab === 'home' ? 'active' : ''}" onclick="location.href='home.html'"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
-            <div class="nav-item ${activeTab === 'routine' ? 'active' : ''}" onclick="location.href='routine.html'"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
-            <div class="nav-item ${activeTab === 'analysis' ? 'active' : ''}" onclick="location.href='analysis.html'"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
-            <div class="nav-item ${activeTab === 'settings' ? 'active' : ''}" onclick="location.href='settings.html'"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
+            <div class="nav-item ${activeTab === 'home' ? 'active' : ''}" onclick="window.switchView('view-home')"><span class="nav-icon">🏠</span><span class="nav-text">홈</span></div>
+            <div class="nav-item ${activeTab === 'routine' ? 'active' : ''}" onclick="window.switchView('view-routine')"><span class="nav-icon">📋</span><span class="nav-text">루틴</span></div>
+            <div class="nav-item ${activeTab === 'analysis' ? 'active' : ''}" onclick="window.switchView('view-analysis')"><span class="nav-icon">📊</span><span class="nav-text">분석</span></div>
+            <div class="nav-item ${activeTab === 'settings' ? 'active' : ''}" onclick="window.switchView('view-settings')"><span class="nav-icon">⚙️</span><span class="nav-text">설정</span></div>
         </nav>
     `;
 
@@ -277,27 +317,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     attachCommonEvents();
 
-    // [수정됨] DOM 로드 시 7일 주간 셀렉터 및 운동 목록, 블록 카드 초기 렌더링
     renderWeekDayButtons(1);
     renderCurrentDayWorkout(1);
     const completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
     updateBlockProgressCard(completedDays);
 });
 
+// // [수정됨] 운동 상세 세션 렌더링 함수 (renderWorkoutList) 안전성 강화 시작
 // ==========================================
 // 5. 운동 상세 세션 렌더링 (view-workout 전용)
 // ==========================================
 window.renderWorkoutList = function() {
-    const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
-    const data = window.routineDB[rtId];
+    const rtId = localStorage.getItem('active_routine_id') || 'rt_5_push_pull';
+    const data = window.routineDB[rtId] || window.routineDB['rt_5_push_pull'];
     if(!data) return;
 
     let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
-    const freq = parseInt(localStorage.getItem('active_routine_freq')) || 6;
+    const freq = parseInt(localStorage.getItem('active_routine_freq')) || 5;
     let currentDayIndex = completedDays % freq; 
 
     const workoutDays = data.timeline.filter(t => t.type === 'workout');
-    const todayWorkout = workoutDays[currentDayIndex];
+    const todayWorkout = workoutDays[currentDayIndex] || workoutDays[0];
     if(!todayWorkout) return;
 
     const topBarTitle = document.querySelector('#view-workout .tn-title');
@@ -391,8 +431,9 @@ window.renderWorkoutList = function() {
         const viewWorkout = document.getElementById('view-workout');
         if (viewWorkout) viewWorkout.appendChild(renderArea);
     }
-    renderArea.innerHTML = html;
+    if (renderArea) renderArea.innerHTML = html;
 };
+// // [수정됨] 운동 상세 세션 렌더링 함수 끝
 
 // ==========================================
 // 6. 본 세트 제어 및 이벤트 (Add/Delete/Check)
@@ -494,7 +535,7 @@ function attachCommonEvents() {
             let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
             const newCompleted = completedDays + 1;
             localStorage.setItem('completed_analysis_days', newCompleted);
-            updateBlockProgressCard(newCompleted); // 블록 진행상황 카드도 함께 갱신
+            updateBlockProgressCard(newCompleted);
             if(typeof window.generateWorkoutSummary === 'function') window.generateWorkoutSummary();
             if(typeof switchView === 'function') switchView('view-summary'); 
         });
@@ -624,7 +665,7 @@ window.renderCoachStep = function() {
 };
 
 const guideData = {
-    rir: [{title: "1. RIR의 정의", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> RIR은 실패 지점까지 몇 회가 남았는지를 나타내는 지표입니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.9rem; color:#aaa; line-height:1.6;"><div style="display:flex; margin-bottom:5px;"><span style="width:50px;">공식:</span> <span style="color:#fff;">RIR = 남은 횟수</span></div><div style="display:flex;"><span style="width:50px;">예시:</span><div>물리적 한계가 10회일 때<br>9회를 수행하면 → <span style="color:#00d2a0;">RIR 1</span><br>8회를 수행하면 → <span style="color:#00d2a0;">RIR 2</span><br>7회를 수행하면 → <span style="color:#00d2a0;">RIR 3</span></div></div></div>`},{title: "2. 객관적 판단의 중요성", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 많은 분들이 엄살이나 귀찮음 때문에 자신의 <span style="color:#00d2a0; font-weight:bold;">진정한 한계</span>를 과소평가하여 RIR을 잘못 설정하곤 합니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">본인은 RIR 2(2회 남음)라고 생각했지만, 실제로는 4회 이상 더 수행할 수 있는 경우가 많습니다.</p><p style="color:#ddd; line-height:1.5;">따라서 주관적인 '힘듦'보다는 <span style="color:#00d2a0; font-weight:bold;">수행 속도</span> (Bar Speed)의 변화를 기준으로 객관적으로 판단해야 합니다.</p>`},{title: "3. 단계별 RIR 판단 기준", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 수행 속도, 즉 마지막 횟수를 수행할 때 걸리는 시간이 느려지는 구간으로 RIR을 가냄하세요.</p><p style="color:#aaa; font-size:0.9rem; margin-bottom:15px; line-height:1.5;">예) 벤치 프레스 10RM을 수행할 때 첫 1-6회는 빠르지만, 마지막 7-10회는 많이 느려집니다. 이걸 '수행 속도가 느려졌다'라고 정의합니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.85rem; color:#ccc; line-height:1.6;"><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 3 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">느려지기 시작</span><br><span style="color:#888;">→ "힘들게 들어 올렸다"</span></div><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 2 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">눈에 띄게 느려짐</span><br><span style="color:#888;">→ "꽤 힘들게 들어 올렸다"</span></div><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 1 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">현저히 느려짐 (1~4초 소요)</span><br><span style="color:#888;">→ "간신히 들어 올렸다"</span></div><div><strong style="color:#fff;">RIR 0 :</strong> 마지막 횟수가 5~8초 이상 걸리거나, 얼굴이 빨개지며 온몸을 쥐어짜면서 간신히 들어 올린 <span style="color:var(--primary);">물리적 한계점</span><br><span style="color:#888; font-size:0.8rem;">누가 총을 겨누고 시켜도 추가 횟수 수행이 불가능하며, 고중량 하체 복합 운동 시 어지러움을 느낌</span><br><span style="color:#888;">→ "정말 간신히 들어 올렸다"</span></div></div>`},{title: "4. RIR 정확도 높이기", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 초보자는 RIR을 정확히 예측하기 어렵습니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">가끔은 의도적으로 실패 지점(RIR 0)까지 수행하여 내 진짜 한계가 어디인지 '영점 조절'을 해보세요.</p><p style="color:#ddd; line-height:1.5;">이 경험이 쌓이면 RIR 예측 능력이 정교해집니다.</p>`}],
+    rir: [{title: "1. RIR의 정의", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> RIR은 실패 지점까지 몇 회가 남았는지를 나타내는 지표입니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.9rem; color:#aaa; line-height:1.6;"><div style="display:flex; margin-bottom:5px;"><span style="width:50px;">공식:</span> <span style="color:#fff;">RIR = 남은 횟수</span></div><div style="display:flex;"><span style="width:50px;">예시:</span><div>물리적 한계가 10회일 때<br>9회를 수행하면 → <span style="color:#00d2a0;">RIR 1</span><br>8회를 수행하면 → <span style="color:#00d2a0;">RIR 2</span><br>7회를 수행하면 → <span style="color:#00d2a0;">RIR 3</span></div></div></div>`},{title: "2. 객관적 판단의 중요성", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 많은 분들이 엄살이나 귀찮음 때문에 자신의 <span style="color:#00d2a0; font-weight:bold;">진정한 한계</span>를 과소평가하여 RIR을 잘못 설정하곤 합니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">본인은 RIR 2(2회 남음)라고 생각했지만, 실제로는 4회 이상 더 수행할 수 있는 경우가 많습니다.</p><p style="color:#ddd; line-height:1.5;">따라서 주관적인 '힘듦'보다는 <span style="color:#00d2a0; font-weight:bold;">수행 속도</span> (Bar Speed)의 변화를 기준으로 객관적으로 판단해야 합니다.</p>`},{title: "3. 단계별 RIR 판단 기준", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 수행 속도, 즉 마지막 횟수를 수행할 때 걸리는 시간이 느려지는 구간으로 RIR을 가늠하세요.</p><p style="color:#aaa; font-size:0.9rem; margin-bottom:15px; line-height:1.5;">예) 벤치 프레스 10RM을 수행할 때 첫 1-6회는 빠르지만, 마지막 7-10회는 많이 느려집니다. 이걸 '수행 속도가 느려졌다'라고 정의합니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.85rem; color:#ccc; line-height:1.6;"><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 3 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">느려지기 시작</span><br><span style="color:#888;">→ "힘들게 들어 올렸다"</span></div><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 2 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">눈에 띄게 느려짐</span><br><span style="color:#888;">→ "꽤 힘들게 들어 올렸다"</span></div><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 1 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">현저히 느려짐 (1~4초 소요)</span><br><span style="color:#888;">→ "간신히 들어 올렸다"</span></div><div><strong style="color:#fff;">RIR 0 :</strong> 마지막 횟수가 5~8초 이상 걸리거나, 얼굴이 빨개지며 온몸을 쥐어짜면서 간신히 들어 올린 <span style="color:var(--primary);">물리적 한계점</span><br><span style="color:#888; font-size:0.8rem;">누가 총을 겨누고 시켜도 추가 횟수 수행이 불가능하며, 고중량 하체 복합 운동 시 어지러움을 느낌</span><br><span style="color:#888;">→ "정말 간신히 들어 올렸다"</span></div></div>`},{title: "4. RIR 정확도 높이기", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 초보자는 RIR을 정확히 예측하기 어렵습니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">가끔은 의도적으로 실패 지점(RIR 0)까지 수행하여 내 진짜 한계가 어디인지 '영점 조절'을 해보세요.</p><p style="color:#ddd; line-height:1.5;">이 경험이 쌓이면 RIR 예측 능력이 정교해집니다.</p>`}],
     warmup: [{title: "1. 웜업이란?", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 웜업은 본 세트의 수행 능력을 높이기 위해 저중량으로 미리 연습하는 과정입니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.9rem; color:#aaa; line-height:1.8;">• 근육과 관절에 혈류 공급<br>• 근신경계 활성화<br>• 퍼포먼스 향상 & 근성장 자극 극대화</div>`},{title: "2. RIR 기준", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 앱에서 추천하는 6회, 5회를 엄격하게 지킬 필요는 없습니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">정확한 횟수보다 중요한 것은 '낮은 강도' 입니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">낮은 강도란 동작 수행 속도가 느려지지 않는 상태를 의미합니다. 즉, 속도가 줄어들지 않고 빠르게 수행할 수 있는 구간에서 세트를 마치세요.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.85rem; color:#ccc; line-height:1.6; display:flex;"><span style="width:40px; color:#fff;">예시:</span><div>바벨 벤치 프레스 10RM 수행 시,<br>1~6회까지는 빠르지만 7회부터는 속도가 느려집니다.<br>웜업 세트는 속도가 느려지기 전인 4~6회 정도에서 멈추면 됩니다.</div></div>`},{title: "3. 생략 가능", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 이미 다른 운동으로 몸이 충분히 풀려 있거나 해당 동작이 완전히 익숙하다면,</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">웜업 세트의 일부 또는 전부를 생략해도 괜찮습니다.</p><p style="color:#ddd; line-height:1.5;">모든 웜업 세트를 꼭 수행해야 한다는 강박을 가지지 않아도 됩니다.</p>`}]
 };
 window.currentGuideType = ''; window.currentGuideIdx = 0;
@@ -657,11 +698,7 @@ window.forceExitWorkout = function() {
         const timerUi = document.getElementById('global-timer-ui');
         if(timerUi) timerUi.style.display = 'none'; 
         hideAllModals();
-        document.querySelectorAll('.view-container').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; });
-        const homeView = document.getElementById('view-home');
-        if (homeView) { homeView.classList.add('active'); homeView.style.display = 'block'; } else if (typeof switchView === 'function') switchView('view-home');
-        const mainNav = document.getElementById('main-nav'); if (mainNav) mainNav.style.display = 'flex';
-        window.scrollTo(0, 0);
+        window.switchView('view-home');
     }
 };
 
