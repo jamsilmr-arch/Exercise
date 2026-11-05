@@ -411,3 +411,177 @@ input[type=range].cond-slider::-webkit-slider-thumb { -webkit-appearance: none; 
 .st-toggle::after { content: ''; position: absolute; left: 2px; top: 2px; width: 22px; height: 22px; background: #fff; border-radius: 50%; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); }
 .st-toggle.active { background: var(--primary-light); border-color: var(--primary); }
 .st-toggle.active::after { transform: translateX(22px); }
+/* ==========================================
+ * [추가됨] 블록 진행 상황 카드 프리미엄 다크 UI 스타일
+ * ========================================== */
+
+.block-progress-card {
+    background: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 16px 0;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.block-progress-card:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(229, 9, 20, 0.15);
+}
+
+.block-progress-card:active {
+    transform: translateY(0);
+}
+
+/* 카드 헤더 */
+.bpc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.bpc-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bpc-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(229, 9, 20, 0.12);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #E50914;
+}
+
+.bpc-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+}
+
+.bpc-badge {
+    background: rgba(229, 9, 20, 0.15);
+    color: #ff4d4d;
+    border: 1px solid rgba(229, 9, 20, 0.3);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+/* 카드 바디 (프로그레스 바) */
+.bpc-body {
+    margin-bottom: 16px;
+}
+
+.bpc-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.bpc-cycle-text {
+    font-size: 0.8rem;
+    color: #999999;
+}
+
+.bpc-percent-text {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #E50914;
+}
+
+.bpc-progress-track {
+    width: 100%;
+    height: 8px;
+    background: #2a2a2a;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.bpc-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #E50914 0%, #ff5252 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+/* 주차별 틱 라벨 */
+.bpc-ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #555555;
+    font-weight: 600;
+}
+
+.bpc-ticks .tick.active {
+    color: #dddddd;
+}
+
+.bpc-ticks .tick.deload {
+    color: #a29bfe;
+}
+
+/* 카드 푸터 */
+.bpc-footer {
+    display: flex;
+    align-items: center;
+    background: #141414;
+    padding: 12px 14px;
+    border-radius: 10px;
+}
+
+.bpc-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.bpc-stat-item .lbl {
+    font-size: 0.7rem;
+    color: #777777;
+}
+
+.bpc-stat-item .val {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #eeeeee;
+}
+
+.bpc-stat-item .val.highlight {
+    color: #E50914;
+}
+
+.bpc-divider {
+    width: 1px;
+    height: 20px;
+    background: #2a2a2a;
+    margin: 0 12px;
+}
+
+.bpc-arrow {
+    color: #666666;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.block-progress-card:hover .bpc-arrow {
+    color: #ffffff;
+    transform: translateX(3px);
+}
