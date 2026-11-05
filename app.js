@@ -22,8 +22,9 @@ try {
 
 window.currentRoutine = [];
 window.totalGlobalSets = 0;
+let currentSelectedDayIndex = 1; // [추가됨] 현재 선택된 7일 일자 인덱스
 
-// [최적화] 전역 상수화로 중복 선언 방지
+// 전역 키워드 상수
 const ISOLATION_KEYWORDS = ['컬', '익스텐션', '레이즈', '플라이', '푸시다운', '킥백', '어브덕션', '이너 타이', '풀오버', '페이스 풀', '카프'];
 const BIG3_KEYWORDS = ['스쿼트', '벤치 프레스', '데드리프트'];
 const LARGE_MUSCLE_KEYWORDS = ['스쿼트', '벤치 프레스', '풀업', '로우', '랫풀다운', '레그 프레스', '데드리프트', '딥스', '힙 쓰러스트', '런지', '레그 익스텐션', '레그 컬'];
@@ -83,7 +84,106 @@ window.routineDB = {
 };
 
 // ==========================================
-// 3. DOM 로드 시 공통 UI 주입
+// 3. [추가됨] 1주일(7일) 기준 일자 셀렉터 & 홈 렌더링
+// ==========================================
+function renderWeekDayButtons(activeDayIndex = 1) {
+    currentSelectedDayIndex = activeDayIndex;
+    const freq = parseInt(localStorage.getItem('active_routine_freq')) || 5;
+    const container = document.getElementById('week-day-selector');
+    if (!container) return;
+
+    let html = '';
+    const TOTAL_WEEK_DAYS = 7; // 무조건 7일 칸 생성
+
+    for (let i = 1; i <= TOTAL_WEEK_DAYS; i++) {
+        const isWorkoutDay = i <= freq;
+        const isActive = i === activeDayIndex;
+
+        if (isWorkoutDay) {
+            html += `
+                <div class="day-box ${isActive ? 'active' : ''}" onclick="selectDay(${i})">
+                    <div class="day-num">${i}</div>
+                    <div class="day-label">Day</div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="day-box rest ${isActive ? 'active' : ''}" onclick="selectDay(${i})">
+                    <div class="day-rest-text">휴식</div>
+                </div>
+            `;
+        }
+    }
+    container.innerHTML = html;
+}
+
+window.selectDay = function(dayIndex) {
+    renderWeekDayButtons(dayIndex);
+    renderCurrentDayWorkout(dayIndex);
+};
+
+// [추가됨] 선택된 날짜(1~7일)의 운동 목록 또는 휴식 카드 렌더링
+function renderCurrentDayWorkout(dayIndex) {
+    const freq = parseInt(localStorage.getItem('active_routine_freq')) || 5;
+    const activeRtId = localStorage.getItem('active_routine_id') || 'rt_5_push_pull';
+    const routineData = window.routineDB[activeRtId] || window.routineDB['rt_5_push_pull'];
+    const listContainer = document.getElementById('today-workout-list');
+
+    if (!listContainer) return;
+
+    if (dayIndex > freq) {
+        listContainer.innerHTML = `
+            <div class="rest-day-card" style="background:#1e1e1e; padding:30px; border-radius:14px; text-align:center; color:#888; border:1px solid #2a2a2a; margin-top:15px;">
+                <div style="font-size:2rem; margin-bottom:10px;">☾</div>
+                <div style="font-size:1.1rem; font-weight:bold; color:#fff; margin-bottom:5px;">오늘은 정기 휴식일입니다</div>
+                <div style="font-size:0.85rem;">중추신경계 회복과 근육 성장을 위해 충분한 수면과 수분을 섭취하세요.</div>
+            </div>
+        `;
+        return;
+    }
+
+    const dayTimeline = routineData.timeline[dayIndex - 1] || routineData.timeline[0];
+    let html = '';
+
+    if (dayTimeline && dayTimeline.texts) {
+        dayTimeline.texts.forEach((exName, idx) => {
+            html += `
+                <div class="workout-item-card" style="background:#1e1e1e; border:1px solid #2a2a2a; padding:16px; border-radius:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:0.75rem; color:#E50914; font-weight:bold; margin-bottom:4px;">EXERCISE ${idx + 1}</div>
+                        <div style="font-size:1rem; font-weight:bold; color:#fff;">${exName}</div>
+                        <div style="font-size:0.8rem; color:#777; margin-top:2px;">3 세트 · RPE 8 (8-12회)</div>
+                    </div>
+                    <button class="set-complete-btn" style="background:#2a2a2a; border:none; color:#fff; padding:8px 14px; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="this.style.background='#E50914'; this.innerText='완료됨';">시작</button>
+                </div>
+            `;
+        });
+    }
+
+    listContainer.innerHTML = html;
+}
+
+// [추가됨] 블록 진행 상황 카드 동적 데이터 업데이트 함수
+function updateBlockProgressCard(completedDays = 0, totalWeeks = 6) {
+    const currentWeek = Math.min(Math.floor(completedDays / 4) + 1, totalWeeks);
+    const percent = Math.min(Math.round((completedDays / (totalWeeks * 4)) * 100), 100);
+    const remainingDays = Math.max((totalWeeks * 4) - completedDays, 0);
+
+    const badgeElem = document.getElementById('bpc-week-badge');
+    const percentElem = document.getElementById('bpc-percent');
+    const fillElem = document.getElementById('bpc-progress-fill');
+    const completedElem = document.getElementById('bpc-completed-sessions');
+    const remainingElem = document.getElementById('bpc-remaining-days');
+
+    if (badgeElem) badgeElem.innerText = `${currentWeek}주차 진행 중`;
+    if (percentElem) percentElem.innerText = `${percent}%`;
+    if (fillElem) fillElem.style.width = `${percent}%`;
+    if (completedElem) completedElem.innerText = `${completedDays}회`;
+    if (remainingElem) remainingElem.innerText = `D-${remainingDays}`;
+}
+
+// ==========================================
+// 4. DOM 로드 시 공통 UI 주입 및 7일 바 초기화
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     const path = window.location.pathname;
@@ -176,10 +276,16 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.insertAdjacentHTML('beforeend', modalsHtml);
 
     attachCommonEvents();
+
+    // [수정됨] DOM 로드 시 7일 주간 셀렉터 및 운동 목록, 블록 카드 초기 렌더링
+    renderWeekDayButtons(1);
+    renderCurrentDayWorkout(1);
+    const completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
+    updateBlockProgressCard(completedDays);
 });
 
 // ==========================================
-// 4. 운동 리스트 렌더링
+// 5. 운동 상세 세션 렌더링 (view-workout 전용)
 // ==========================================
 window.renderWorkoutList = function() {
     const rtId = localStorage.getItem('active_routine_id') || 'rt_6_body_limb_lower';
@@ -289,7 +395,7 @@ window.renderWorkoutList = function() {
 };
 
 // ==========================================
-// 5. 본 세트 제어 및 이벤트 (Add/Delete/Check)
+// 6. 본 세트 제어 및 이벤트 (Add/Delete/Check)
 // ==========================================
 window.addMainSet = function(exId) {
     const setsContainer = document.getElementById(`sets-${exId}`);
@@ -359,27 +465,36 @@ window.checkSet = function(btn, exId, setNum, setType = 'main') {
 };
 
 // ==========================================
-// 6. 공통 팝업 및 타이머 연동
+// 7. 공통 팝업 및 타이머 연동
 // ==========================================
 function attachCommonEvents() {
     const modalOverlay = document.getElementById('common-modal-overlay');
-    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) window.closeModal(); });
+    if(modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) window.closeModal(); });
+    }
 
-    document.getElementById('gst-close').addEventListener('click', () => {
-        clearInterval(window.globalTimerInterval);
-        document.getElementById('global-timer-ui').style.display = 'none';
-    });
+    const gstClose = document.getElementById('gst-close');
+    if(gstClose) {
+        gstClose.addEventListener('click', () => {
+            clearInterval(window.globalTimerInterval);
+            document.getElementById('global-timer-ui').style.display = 'none';
+        });
+    }
 
-    document.getElementById('btn-cw-prev').addEventListener('click', () => { if(window.cardioStepIdx > 0) { window.cardioStepIdx--; renderCardioStep(); } });
-    document.getElementById('btn-cw-next').addEventListener('click', () => { if(window.cardioStepIdx < 4) { window.cardioStepIdx++; renderCardioStep(); } else { closeModal(); alert('유산소 설정이 저장되었습니다!'); } });
+    const btnCwPrev = document.getElementById('btn-cw-prev');
+    if(btnCwPrev) btnCwPrev.addEventListener('click', () => { if(window.cardioStepIdx > 0) { window.cardioStepIdx--; renderCardioStep(); } });
+    
+    const btnCwNext = document.getElementById('btn-cw-next');
+    if(btnCwNext) btnCwNext.addEventListener('click', () => { if(window.cardioStepIdx < 4) { window.cardioStepIdx++; renderCardioStep(); } else { closeModal(); alert('유산소 설정이 저장되었습니다!'); } });
 
-    // [최적화] 피드백 제출 로직을 한 곳에 통합 (중복 제거)
     const btnSubmitFeedback = document.getElementById('btn-submit-feedback');
     if(btnSubmitFeedback) {
         btnSubmitFeedback.addEventListener('click', () => {
             closeModal();
             let completedDays = parseInt(localStorage.getItem('completed_analysis_days')) || 0;
-            localStorage.setItem('completed_analysis_days', completedDays + 1);
+            const newCompleted = completedDays + 1;
+            localStorage.setItem('completed_analysis_days', newCompleted);
+            updateBlockProgressCard(newCompleted); // 블록 진행상황 카드도 함께 갱신
             if(typeof window.generateWorkoutSummary === 'function') window.generateWorkoutSummary();
             if(typeof switchView === 'function') switchView('view-summary'); 
         });
@@ -399,11 +514,11 @@ window.hideAllModals = function() {
     if(overlay) overlay.querySelectorAll('.guide-modal, .alert-modal, .feedback-modal, .coach-modal, .bottom-sheet-modal, .full-bottom-sheet').forEach(m => m.classList.remove('active'));
 };
 
-window.openBottomSheet = function(type) { hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById(`bs-${type}`).classList.add('active'); };
+window.openBottomSheet = function(type) { hideAllModals(); const overlay = document.getElementById('common-modal-overlay'); if(overlay) overlay.classList.add('active'); const target = document.getElementById(`bs-${type}`); if(target) target.classList.add('active'); };
 window.closeModal = function() { const overlay = document.getElementById('common-modal-overlay'); if(overlay) overlay.classList.remove('active'); hideAllModals(); };
 
 // ==========================================
-// 7. 유산소 및 코치 가이드
+// 8. 유산소 및 코치 가이드
 // ==========================================
 const cardioSteps = [
     { title: '어떤 유산소 기구를<br>쓸 수 있나요?', sub: '여러 개 고를 수 있어요.', type: 'multi', options: ['트레드밀', '실내 사이클', '일립티컬', '로잉머신', '없음'] },
@@ -417,8 +532,11 @@ window.cardioStepIdx = 0; window.currentCardioMins = 60;
 window.startCardioWizard = function() { window.cardioStepIdx = 0; window.currentCardioMins = 60; renderCardioStep(); openBottomSheet('cardio-wizard'); };
 window.renderCardioStep = function() {
     const data = cardioSteps[window.cardioStepIdx];
-    document.getElementById('cw-step-text').innerText = `질문 ${window.cardioStepIdx+1}/5`;
-    document.getElementById('cw-progress-fill').style.width = `${((window.cardioStepIdx+1)/5)*100}%`;
+    const stepText = document.getElementById('cw-step-text');
+    const pFill = document.getElementById('cw-progress-fill');
+    if(stepText) stepText.innerText = `질문 ${window.cardioStepIdx+1}/5`;
+    if(pFill) pFill.style.width = `${((window.cardioStepIdx+1)/5)*100}%`;
+    
     let html = `<div class="cw-q-num" style="margin-top:20px;">질문 ${window.cardioStepIdx+1}</div><div class="cw-q-title">${data.title}</div><div class="cw-q-sub">${data.sub}</div>`;
 
     if (data.type === 'multi' || data.type === 'single') {
@@ -428,9 +546,12 @@ window.renderCardioStep = function() {
     } else if (data.type === 'time') {
         html += `<div class="cw-time-wrap"><div class="cw-t-chips">` + data.chips.map((c,i) => `<div class="cw-t-chip ${i===0?'active':''}" onclick="changeCardioType(this, '${c}')">${c}</div>`).join('') + `</div><div class="cw-time-box"><button class="cw-t-btn" onclick="changeCardioTime(-5)">-</button><div class="cw-t-val-box"><div class="cw-t-val" id="cw-time-val">${window.currentCardioMins}<span>분</span></div><div class="cw-t-badge">추천</div></div><button class="cw-t-btn" onclick="changeCardioTime(5)">+</button></div></div>`;
     }
-    document.getElementById('cw-render-area').innerHTML = html;
-    document.getElementById('btn-cw-prev').style.display = window.cardioStepIdx === 0 ? 'none' : 'block';
-    document.getElementById('btn-cw-next').innerText = window.cardioStepIdx === 4 ? '유산소 저장하기' : '다음';
+    const renderArea = document.getElementById('cw-render-area');
+    if(renderArea) renderArea.innerHTML = html;
+    const btnPrev = document.getElementById('btn-cw-prev');
+    const btnNext = document.getElementById('btn-cw-next');
+    if(btnPrev) btnPrev.style.display = window.cardioStepIdx === 0 ? 'none' : 'block';
+    if(btnNext) btnNext.innerText = window.cardioStepIdx === 4 ? '유산소 저장하기' : '다음';
 };
 
 window.toggleCardioOpt = function(btn, type) { if (type === 'single') btn.parentElement.querySelectorAll('.cw-opt-btn').forEach(b => b.classList.remove('active')); btn.classList.toggle('active'); };
@@ -438,49 +559,72 @@ window.selectCardioGrid = function(btn) { btn.parentElement.querySelectorAll('.c
 window.changeCardioType = function(btn, type) {
     btn.parentElement.querySelectorAll('.cw-t-chip').forEach(b => b.classList.remove('active')); btn.classList.add('active');
     if (type.includes('사이클링')) window.currentCardioMins = 35; else if (type.includes('인클라인')) window.currentCardioMins = 30; else window.currentCardioMins = 60;
-    document.getElementById('cw-time-val').innerHTML = `${window.currentCardioMins}<span>분</span>`;
+    const timeVal = document.getElementById('cw-time-val');
+    if(timeVal) timeVal.innerHTML = `${window.currentCardioMins}<span>분</span>`;
 };
-window.changeCardioTime = function(amount) { window.currentCardioMins = Math.max(5, window.currentCardioMins + amount); document.getElementById('cw-time-val').innerHTML = `${window.currentCardioMins}<span>분</span>`; };
+window.changeCardioTime = function(amount) { 
+    window.currentCardioMins = Math.max(5, window.currentCardioMins + amount); 
+    const timeVal = document.getElementById('cw-time-val');
+    if(timeVal) timeVal.innerHTML = `${window.currentCardioMins}<span>분</span>`;
+};
 
 window.globalTimerInterval = null;
 window.startGlobalTimer = function(seconds, exName) {
     clearInterval(window.globalTimerInterval);
     let totalDuration = seconds, targetEndTime = Date.now() + (seconds * 1000);
     const timerUi = document.getElementById('global-timer-ui');
-    document.getElementById('gst-ex-name').innerText = exName;
-    document.getElementById('gst-rest-text').innerText = `권장 휴식 시간 ${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
-    document.getElementById('gst-time-display').innerText = `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
-    document.getElementById('gst-progress').style.width = '100%';
-    timerUi.style.display = 'flex'; 
+    const exNameElem = document.getElementById('gst-ex-name');
+    const restTextElem = document.getElementById('gst-rest-text');
+    const timeDispElem = document.getElementById('gst-time-display');
+    const progElem = document.getElementById('gst-progress');
+
+    if(exNameElem) exNameElem.innerText = exName;
+    if(restTextElem) restTextElem.innerText = `권장 휴식 시간 ${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+    if(timeDispElem) timeDispElem.innerText = `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+    if(progElem) progElem.style.width = '100%';
+    if(timerUi) timerUi.style.display = 'flex'; 
+
     window.globalTimerInterval = setInterval(() => {
         const remaining = Math.ceil((targetEndTime - Date.now()) / 1000);
-        if (remaining <= 0) { clearInterval(window.globalTimerInterval); document.getElementById('gst-time-display').innerText = "진행!"; document.getElementById('gst-progress').style.width = '0%'; if (navigator.vibrate) navigator.vibrate([200, 100, 200]); setTimeout(() => { timerUi.style.display = 'none'; }, 3000); 
-        } else { document.getElementById('gst-time-display').innerText = `${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`; document.getElementById('gst-progress').style.width = `${(remaining/totalDuration)*100}%`; }
+        if (remaining <= 0) { 
+            clearInterval(window.globalTimerInterval); 
+            if(timeDispElem) timeDispElem.innerText = "진행!"; 
+            if(progElem) progElem.style.width = '0%'; 
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]); 
+            setTimeout(() => { if(timerUi) timerUi.style.display = 'none'; }, 3000); 
+        } else { 
+            if(timeDispElem) timeDispElem.innerText = `${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`; 
+            if(progElem) progElem.style.width = `${(remaining/totalDuration)*100}%`; 
+        }
     }, 100);
 };
 
 window.checkFinishWorkout = function() {
     let completed = 0;
     window.currentRoutine.forEach(ex => completed += (JSON.parse(localStorage.getItem(`workout_${ex.id}`)) || []).length);
-    hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); 
-    document.getElementById(completed < window.totalGlobalSets ? 'modal-alert-incomplete' : 'modal-daily-feedback').classList.add('active');
+    hideAllModals(); const overlay = document.getElementById('common-modal-overlay'); if(overlay) overlay.classList.add('active'); 
+    const targetModalId = completed < window.totalGlobalSets ? 'modal-alert-incomplete' : 'modal-daily-feedback';
+    const modal = document.getElementById(targetModalId);
+    if(modal) modal.classList.add('active');
 };
-window.forceEndWorkout = function() { hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById('modal-daily-feedback').classList.add('active'); };
-window.selectFeedback = function(btn) { document.querySelectorAll('.fm-opt-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.getElementById('btn-submit-feedback').disabled = false; };
+window.forceEndWorkout = function() { hideAllModals(); const overlay = document.getElementById('common-modal-overlay'); if(overlay) overlay.classList.add('active'); const modal = document.getElementById('modal-daily-feedback'); if(modal) modal.classList.add('active'); };
+window.selectFeedback = function(btn) { document.querySelectorAll('.fm-opt-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); const subBtn = document.getElementById('btn-submit-feedback'); if(subBtn) subBtn.disabled = false; };
 
 const coachData = [{ sub: '', title: '세 번째 운동을 완료했어요!', content: '<p class="coach-desc" style="color:#fff;">벌써 세 번째 운동을 완료하셨네요. 조금씩 운동 기록이 쌓이고 있어요.<br><br>지금처럼 각 세트에서 실제로 수행한 중량과 횟수를 그대로 기록해주세요.<br><br><span style="color:var(--primary); font-weight:bold;">다음 운동도 함께 이어가볼게요!</span></p>' }];
 window.coachStepIdx = 0;
 window.startOverloadCoach = function() { window.coachStepIdx = 0; renderCoachStep(); openBottomSheet('coach'); };
 window.renderCoachStep = function() {
     const data = coachData[window.coachStepIdx]; const subText = document.getElementById('coach-sub-text');
-    if(data.sub) { subText.style.display = 'block'; subText.innerText = data.sub; } else { subText.style.display = 'none'; }
-    document.getElementById('coach-title-text').innerText = data.title; document.getElementById('coach-content-area').innerHTML = data.content;
+    if(subText) { if(data.sub) { subText.style.display = 'block'; subText.innerText = data.sub; } else { subText.style.display = 'none'; } }
+    const titleText = document.getElementById('coach-title-text'); if(titleText) titleText.innerText = data.title;
+    const contentArea = document.getElementById('coach-content-area'); if(contentArea) contentArea.innerHTML = data.content;
     let dotsHtml = ''; for(let i=0; i<coachData.length; i++) dotsHtml += `<div class="cdot ${i===window.coachStepIdx?'active':''}"></div>`;
-    document.getElementById('coach-dots-area').innerHTML = dotsHtml; document.getElementById('btn-coach-next').innerText = window.coachStepIdx === coachData.length - 1 ? '확인' : '다음';
+    const dotsArea = document.getElementById('coach-dots-area'); if(dotsArea) dotsArea.innerHTML = dotsHtml;
+    const btnNext = document.getElementById('btn-coach-next'); if(btnNext) btnNext.innerText = window.coachStepIdx === coachData.length - 1 ? '확인' : '다음';
 };
 
 const guideData = {
-    rir: [{title: "1. RIR의 정의", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> RIR은 실패 지점까지 몇 회가 남았는지를 나타내는 지표입니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.9rem; color:#aaa; line-height:1.6;"><div style="display:flex; margin-bottom:5px;"><span style="width:50px;">공식:</span> <span style="color:#fff;">RIR = 남은 횟수</span></div><div style="display:flex;"><span style="width:50px;">예시:</span><div>물리적 한계가 10회일 때<br>9회를 수행하면 → <span style="color:#00d2a0;">RIR 1</span><br>8회를 수행하면 → <span style="color:#00d2a0;">RIR 2</span><br>7회를 수행하면 → <span style="color:#00d2a0;">RIR 3</span></div></div></div>`},{title: "2. 객관적 판단의 중요성", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 많은 분들이 엄살이나 귀찮음 때문에 자신의 <span style="color:#00d2a0; font-weight:bold;">진정한 한계</span>를 과소평가하여 RIR을 잘못 설정하곤 합니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">본인은 RIR 2(2회 남음)라고 생각했지만, 실제로는 4회 이상 더 수행할 수 있는 경우가 많습니다.</p><p style="color:#ddd; line-height:1.5;">따라서 주관적인 '힘듦'보다는 <span style="color:#00d2a0; font-weight:bold;">수행 속도</span> (Bar Speed)의 변화를 기준으로 객관적으로 판단해야 합니다.</p>`},{title: "3. 단계별 RIR 판단 기준", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 수행 속도, 즉 마지막 횟수를 수행할 때 걸리는 시간이 느려지는 구간으로 RIR을 가늠하세요.</p><p style="color:#aaa; font-size:0.9rem; margin-bottom:15px; line-height:1.5;">예) 벤치 프레스 10RM을 수행할 때 첫 1-6회는 빠르지만, 마지막 7-10회는 많이 느려집니다. 이걸 '수행 속도가 느려졌다'라고 정의합니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.85rem; color:#ccc; line-height:1.6;"><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 3 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">느려지기 시작</span><br><span style="color:#888;">→ "힘들게 들어 올렸다"</span></div><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 2 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">눈에 띄게 느려짐</span><br><span style="color:#888;">→ "꽤 힘들게 들어 올렸다"</span></div><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 1 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">현저히 느려짐 (1~4초 소요)</span><br><span style="color:#888;">→ "간신히 들어 올렸다"</span></div><div><strong style="color:#fff;">RIR 0 :</strong> 마지막 횟수가 5~8초 이상 걸리거나, 얼굴이 빨개지며 온몸을 쥐어짜면서 간신히 들어 올린 <span style="color:var(--primary);">물리적 한계점</span><br><span style="color:#888; font-size:0.8rem;">누가 총을 겨누고 시켜도 추가 횟수 수행이 불가능하며, 고중량 하체 복합 운동 시 어지러움을 느낌</span><br><span style="color:#888;">→ "정말 간신히 들어 올렸다"</span></div></div>`},{title: "4. RIR 정확도 높이기", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 초보자는 RIR을 정확히 예측하기 어렵습니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">가끔은 의도적으로 실패 지점(RIR 0)까지 수행하여 내 진짜 한계가 어디인지 '영점 조절'을 해보세요.</p><p style="color:#ddd; line-height:1.5;">이 경험이 쌓이면 RIR 예측 능력이 정교해집니다.</p>`}],
+    rir: [{title: "1. RIR의 정의", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> RIR은 실패 지점까지 몇 회가 남았는지를 나타내는 지표입니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.9rem; color:#aaa; line-height:1.6;"><div style="display:flex; margin-bottom:5px;"><span style="width:50px;">공식:</span> <span style="color:#fff;">RIR = 남은 횟수</span></div><div style="display:flex;"><span style="width:50px;">예시:</span><div>물리적 한계가 10회일 때<br>9회를 수행하면 → <span style="color:#00d2a0;">RIR 1</span><br>8회를 수행하면 → <span style="color:#00d2a0;">RIR 2</span><br>7회를 수행하면 → <span style="color:#00d2a0;">RIR 3</span></div></div></div>`},{title: "2. 객관적 판단의 중요성", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 많은 분들이 엄살이나 귀찮음 때문에 자신의 <span style="color:#00d2a0; font-weight:bold;">진정한 한계</span>를 과소평가하여 RIR을 잘못 설정하곤 합니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">본인은 RIR 2(2회 남음)라고 생각했지만, 실제로는 4회 이상 더 수행할 수 있는 경우가 많습니다.</p><p style="color:#ddd; line-height:1.5;">따라서 주관적인 '힘듦'보다는 <span style="color:#00d2a0; font-weight:bold;">수행 속도</span> (Bar Speed)의 변화를 기준으로 객관적으로 판단해야 합니다.</p>`},{title: "3. 단계별 RIR 판단 기준", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 수행 속도, 즉 마지막 횟수를 수행할 때 걸리는 시간이 느려지는 구간으로 RIR을 가냄하세요.</p><p style="color:#aaa; font-size:0.9rem; margin-bottom:15px; line-height:1.5;">예) 벤치 프레스 10RM을 수행할 때 첫 1-6회는 빠르지만, 마지막 7-10회는 많이 느려집니다. 이걸 '수행 속도가 느려졌다'라고 정의합니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.85rem; color:#ccc; line-height:1.6;"><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 3 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">느려지기 시작</span><br><span style="color:#888;">→ "힘들게 들어 올렸다"</span></div><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 2 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">눈에 띄게 느려짐</span><br><span style="color:#888;">→ "꽤 힘들게 들어 올렸다"</span></div><div style="margin-bottom:10px;"><strong style="color:#fff;">RIR 1 :</strong> 마지막 횟수의 속도가 <span style="color:#00d2a0;">현저히 느려짐 (1~4초 소요)</span><br><span style="color:#888;">→ "간신히 들어 올렸다"</span></div><div><strong style="color:#fff;">RIR 0 :</strong> 마지막 횟수가 5~8초 이상 걸리거나, 얼굴이 빨개지며 온몸을 쥐어짜면서 간신히 들어 올린 <span style="color:var(--primary);">물리적 한계점</span><br><span style="color:#888; font-size:0.8rem;">누가 총을 겨누고 시켜도 추가 횟수 수행이 불가능하며, 고중량 하체 복합 운동 시 어지러움을 느낌</span><br><span style="color:#888;">→ "정말 간신히 들어 올렸다"</span></div></div>`},{title: "4. RIR 정확도 높이기", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 초보자는 RIR을 정확히 예측하기 어렵습니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">가끔은 의도적으로 실패 지점(RIR 0)까지 수행하여 내 진짜 한계가 어디인지 '영점 조절'을 해보세요.</p><p style="color:#ddd; line-height:1.5;">이 경험이 쌓이면 RIR 예측 능력이 정교해집니다.</p>`}],
     warmup: [{title: "1. 웜업이란?", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 웜업은 본 세트의 수행 능력을 높이기 위해 저중량으로 미리 연습하는 과정입니다.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.9rem; color:#aaa; line-height:1.8;">• 근육과 관절에 혈류 공급<br>• 근신경계 활성화<br>• 퍼포먼스 향상 & 근성장 자극 극대화</div>`},{title: "2. RIR 기준", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 앱에서 추천하는 6회, 5회를 엄격하게 지킬 필요는 없습니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">정확한 횟수보다 중요한 것은 '낮은 강도' 입니다.</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">낮은 강도란 동작 수행 속도가 느려지지 않는 상태를 의미합니다. 즉, 속도가 줄어들지 않고 빠르게 수행할 수 있는 구간에서 세트를 마치세요.</p><div style="background:#222; padding:15px; border-radius:8px; font-size:0.85rem; color:#ccc; line-height:1.6; display:flex;"><span style="width:40px; color:#fff;">예시:</span><div>바벨 벤치 프레스 10RM 수행 시,<br>1~6회까지는 빠르지만 7회부터는 속도가 느려집니다.<br>웜업 세트는 속도가 느려지기 전인 4~6회 정도에서 멈추면 됩니다.</div></div>`},{title: "3. 생략 가능", content: `<p style="color:#ddd; margin-bottom:15px; line-height:1.5;"><span style="color:var(--primary); font-size:1.2rem;">✦</span> 이미 다른 운동으로 몸이 충분히 풀려 있거나 해당 동작이 완전히 익숙하다면,</p><p style="color:#ddd; margin-bottom:15px; line-height:1.5;">웜업 세트의 일부 또는 전부를 생략해도 괜찮습니다.</p><p style="color:#ddd; line-height:1.5;">모든 웜업 세트를 꼭 수행해야 한다는 강박을 가지지 않아도 됩니다.</p>`}]
 };
 window.currentGuideType = ''; window.currentGuideIdx = 0;
@@ -488,27 +632,31 @@ window.openGuideModal = function(type) {
     if(type === 'rir' || type === 'warmup') {
         window.currentGuideType = type; window.currentGuideIdx = 0;
         const badge = document.getElementById('modal-badge-title'); if(badge) badge.innerText = type === 'rir' ? 'RIR 가이드' : '웜업 가이드';
-        renderGuideStep(); hideAllModals(); document.getElementById('common-modal-overlay').classList.add('active'); document.getElementById('modal-guide').classList.add('active');
+        renderGuideStep(); hideAllModals(); const overlay = document.getElementById('common-modal-overlay'); if(overlay) overlay.classList.add('active'); const modalGuide = document.getElementById('modal-guide'); if(modalGuide) modalGuide.classList.add('active');
     }
 };
 window.renderGuideStep = function() {
     const dataList = guideData[window.currentGuideType]; if(!dataList) return;
     const stepData = dataList[window.currentGuideIdx];
-    document.getElementById('modal-content-area').innerHTML = `<div style="color:#fff; font-size:0.85rem; margin-bottom:10px;">${window.currentGuideType === 'rir' ? 'RIR(Reps In Reserve) 가이드' : ''}</div><h2 style="color:#fff; font-size:1.3rem; margin-bottom:20px; font-weight:bold;">${stepData.title}</h2><div>${stepData.content}</div>`;
+    const contentArea = document.getElementById('modal-content-area');
+    if(contentArea) contentArea.innerHTML = `<div style="color:#fff; font-size:0.85rem; margin-bottom:10px;">${window.currentGuideType === 'rir' ? 'RIR(Reps In Reserve) 가이드' : ''}</div><h2 style="color:#fff; font-size:1.3rem; margin-bottom:20px; font-weight:bold;">${stepData.title}</h2><div>${stepData.content}</div>`;
     const btnPrev = document.getElementById('modal-btn-prev'), btnNext = document.getElementById('modal-btn-next');
-    btnPrev.style.visibility = window.currentGuideIdx === 0 ? 'hidden' : 'visible';
-    btnNext.innerText = window.currentGuideIdx === dataList.length - 1 ? '확인' : '다음';
-    btnPrev.onclick = function() { if(window.currentGuideIdx > 0) { window.currentGuideIdx--; renderGuideStep(); } };
-    btnNext.onclick = function() { if(window.currentGuideIdx < dataList.length - 1) { window.currentGuideIdx++; renderGuideStep(); } else { closeModal(); } };
+    if(btnPrev) btnPrev.style.visibility = window.currentGuideIdx === 0 ? 'hidden' : 'visible';
+    if(btnNext) btnNext.innerText = window.currentGuideIdx === dataList.length - 1 ? '확인' : '다음';
+    if(btnPrev) btnPrev.onclick = function() { if(window.currentGuideIdx > 0) { window.currentGuideIdx--; renderGuideStep(); } };
+    if(btnNext) btnNext.onclick = function() { if(window.currentGuideIdx < dataList.length - 1) { window.currentGuideIdx++; renderGuideStep(); } else { closeModal(); } };
 };
 window.openModal = window.openGuideModal;
 
 // ==========================================
-// 8. 운동 종료 및 동적 요약 화면
+// 9. 운동 종료 및 요약 리포트 생성
 // ==========================================
 window.forceExitWorkout = function() {
     if (confirm("진행 중인 운동 기록은 저장되지 않습니다. 운동을 취소하고 메인 화면으로 돌아가시겠습니까?")) {
-        clearInterval(window.globalTimerInterval); document.getElementById('global-timer-ui').style.display = 'none'; hideAllModals();
+        clearInterval(window.globalTimerInterval); 
+        const timerUi = document.getElementById('global-timer-ui');
+        if(timerUi) timerUi.style.display = 'none'; 
+        hideAllModals();
         document.querySelectorAll('.view-container').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; });
         const homeView = document.getElementById('view-home');
         if (homeView) { homeView.classList.add('active'); homeView.style.display = 'block'; } else if (typeof switchView === 'function') switchView('view-home');
