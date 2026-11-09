@@ -46,11 +46,27 @@ if (window.auth) {
 // ==========================================
 // 1-1. 뷰 전환 및 화면 제어 전역 함수
 // ==========================================
+// [추가됨] 뷰 전환 함수 강제 재정의 (기존 오염된 코드 무력화 및 복구)
 window.switchView = function(viewId) {
-    document.querySelectorAll('.view-container').forEach(v => {
-        v.classList.remove('active');
-        v.style.display = 'none';
+    document.querySelectorAll('.view-section').forEach(view => {
+        view.style.display = 'none';
     });
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+        targetView.style.display = 'block';
+    } else {
+        console.error("View not found:", viewId);
+    }
+};
+
+// [수정됨] DOM 로드 시 해시(#condition) 여부에 따른 진입 화면 강제 렌더링
+document.addEventListener("DOMContentLoaded", function () {
+    if (window.location.hash === '#condition') {
+        window.switchView('view-condition');
+    } else {
+        window.switchView('view-home');
+    }
+});
 
     const targetView = document.getElementById(viewId);
     if (targetView) {
